@@ -1,35 +1,22 @@
 package com.chinahitech.shop.aop;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * 限流注解
- */
-@Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+@Documented
 public @interface RepeatLimit {
+    String key() default "repeat_limit:";
 
-    /**
-     * 设置请求锁定时间,默认为 10s
-     *
-     * @return 请求锁定时间
-     */
-    int lockTime() default 10;
+    int window() default 10;
 
-    /**
-     * 时间内请求数，默认为 100
-     *
-     * @return 请求数
-     */
-    int lockNum() default 100;
+    int limit() default 20;
 
-    /**
-     * 当前服务名
-     *
-     * @return 服务名
-     */
-    String serviceName() default "admin";
+    String message() default "请求过于频繁，请稍后再试";
 
+    RateLimiter.LimitType type() default RateLimiter.LimitType.IP;
 }
-

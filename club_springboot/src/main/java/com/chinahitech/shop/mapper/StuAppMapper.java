@@ -3,45 +3,28 @@ package com.chinahitech.shop.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.chinahitech.shop.bean.StuApp;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface StuAppMapper extends BaseMapper<StuApp> {
 
-
-    @Select("select * from `stu_app`")
     List<StuApp> findall();
 
-    @Select("SELECT * FROM `stu_app` WHERE stu_number = #{stunumber}")
     List<StuApp> findMyapp(@Param("stunumber") String stunumber);
 
-    @Select("SELECT * FROM `stu_app` WHERE group_name = #{groupname}")
-    List<StuApp> findRecvapp(@Param("groupname") String groupname);
+    List<StuApp> findRecvapp(@Param("groupName") String groupName);
 
-    @Select("SELECT * FROM `stu_app` WHERE application_id = #{id}")
-    StuApp getById(Integer id);
+    StuApp getById(@Param("id") Integer id);
 
-    @Select("select * from `stu_app` WHERE stu_number = #{studentId} and group_name = #{groupName}")
-    List<StuApp> getByStuAndGroup(String studentId, String groupName);
+    List<StuApp> getByStuAndGroup(@Param("studentId") String studentId,
+                                  @Param("groupName") String groupName);
 
-    @Select("SELECT CASE WHEN is_accepted IS NULL THEN 'null' " +
-            "WHEN is_accepted = true THEN 'true' " +
-            "ELSE 'false' END as isaccepted " +
-            "FROM `stu_app` WHERE application_id = #{id}")
-    String findIsAccepted(Integer id);
+    String findIsAccepted(@Param("id") Integer id);
 
-    @Update("UPDATE stu_app SET attachment = #{attachment} WHERE application_id = #{applicationid}")
-    int updateAttachment(@Param("applicationid") int applicationid, @Param("attachment") String attachment);
+    int updateAttachment(@Param("applicationId") int applicationId,
+                         @Param("attachment") String attachment);
 
-    @Update("update `stu_app` set is_accepted = true where application_id = #{applicationid}")
-    int confirmApplicationByid(@Param("applicationid") Integer applicationid);
+    int confirmApplicationByid(@Param("applicationId") Integer applicationId);
 
-    @Update("update `stu_app` set is_accepted = false where application_id = #{applicationid}")
-    int denyApplicationByid(@Param("applicationid") Integer applicationid);
-
-
+    int denyApplicationByid(@Param("applicationId") Integer applicationId);
 }

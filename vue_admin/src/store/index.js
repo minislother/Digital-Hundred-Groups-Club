@@ -7,6 +7,8 @@ import user from './modules/user'
 
 Vue.use(Vuex)
 
+const savedClubState = sessionStorage.getItem('clubState')
+
 const store = new Vuex.Store({
   modules: {
     app,
@@ -14,7 +16,7 @@ const store = new Vuex.Store({
     user
   },
   getters,
-  state:sessionStorage.getItem('state') ? JSON.parse(sessionStorage.getItem('state')): {
+  state: savedClubState ? JSON.parse(savedClubState) : {
 		clubid:0,
     clubname:"",
 	},

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.StuMapper">
+
+    <select id="getByNum" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_id = #{num}
+    </select>
+
+    <select id="getByName" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_name = #{name}
+    </select>
+
+    <insert id="addStudent">
+        insert into `user` (
+            user_id,
+            password,
+            email,
+            salt,
+            create_time,
+            modify_time,
+            status
+        )
+        values (
+            #{stuNumber},
+            #{password},
+            #{email},
+            #{salt},
+            #{createTime},
+            #{modifyTime},
+            #{status}
+        )
+    </insert>
+
+    <update id="updatePassword">
+        update `user`
+        set password = #{password},
+            modify_time = #{modifyTime}
+        where user_id = #{stuNumber}
+    </update>
+
+    <update id="updatePhone">
+        update `user`
+        set phone = #{phone},
+            modify_time = #{modifyTime}
+        where user_id = #{stuNumber}
+    </update>
+
+    <update id="updateDescription">
+        update `user`
+        set description = #{description},
+            modify_time = #{modifyTime}
+        where user_id = #{stuNumber}
+    </update>
+
+    <update id="updateNickname">
+        update `user`
+        set nickname = #{nickname},
+            modify_time = #{modifyTime}
+        where user_id = #{stuNumber}
+    </update>
+</mapper>

@@ -1,26 +1,49 @@
 package com.chinahitech.shop.exception;
 
-/*
-服务异常基类
- */
-public class ServiceException extends RuntimeException{
+public class ServiceException extends RuntimeException {
+
+    private final String code;
+
     public ServiceException() {
         super();
+        this.code = ErrorCode.BUSINESS_ERROR;
     }
 
     public ServiceException(String message) {
         super(message);
+        this.code = ErrorCode.BUSINESS_ERROR;
+    }
+
+    public ServiceException(String code, String message) {
+        super(message);
+        this.code = normalizeCode(code);
     }
 
     public ServiceException(String message, Throwable cause) {
         super(message, cause);
+        this.code = ErrorCode.BUSINESS_ERROR;
+    }
+
+    public ServiceException(String code, String message, Throwable cause) {
+        super(message, cause);
+        this.code = normalizeCode(code);
     }
 
     public ServiceException(Throwable cause) {
         super(cause);
+        this.code = ErrorCode.BUSINESS_ERROR;
     }
 
     protected ServiceException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
+        this.code = ErrorCode.BUSINESS_ERROR;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    private String normalizeCode(String code) {
+        return code != null && !code.trim().isEmpty() ? code : ErrorCode.BUSINESS_ERROR;
     }
 }

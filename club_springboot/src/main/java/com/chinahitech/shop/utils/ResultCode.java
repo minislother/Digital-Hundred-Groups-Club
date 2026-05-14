@@ -2,9 +2,7 @@ package com.chinahitech.shop.utils;
 
 public interface ResultCode {
 
-    public static Integer SUCCESS = 20000; //成功
+    Integer SUCCESS = 20000;
 
-    public static Integer ERROR = 20001; //失败
+    Integer ERROR = 20001;
 }
-
-

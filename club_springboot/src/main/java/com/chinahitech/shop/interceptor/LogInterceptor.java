@@ -1,5 +1,7 @@
 package com.chinahitech.shop.interceptor;
 
+import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,11 +14,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
  */
 @Component
 public class LogInterceptor implements HandlerInterceptor {
+    private static final Snowflake SNOWFLAKE = IdUtil.getSnowflake(1, 1);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 增加日志流水号
-        MDC.put("LOG_ID", System.currentTimeMillis() + RandomUtil.randomString(3));
+        MDC.put("LOG_ID", String.valueOf(SNOWFLAKE.nextId()));
         return true;
     }
 

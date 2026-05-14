@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.IndividualActivityMapper">
+
+    <sql id="IndividualActivityColumns">
+        ia.*,
+        ia.user_id as student_id
+    </sql>
+
+    <!-- Student side -->
+    <select id="getActivityByStuId" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.user_id = #{studentId}
+    </select>
+
+    <select id="checkExist" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.user_id = #{studentId}
+          and ia.activity_id = #{activityId}
+    </select>
+
+    <insert id="insert">
+        insert into individual_activity (
+            user_id,
+            activity_id,
+            position,
+            status
+        )
+        values (
+            #{studentId},
+            #{activityId},
+            #{position},
+            #{status}
+        )
+    </insert>
+
+    <!-- Manager side -->
+    <select id="getActivityByActivityId" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.activity_id = #{activityId}
+          and ia.status = 1
+    </select>
+
+    <select id="getApplyByActivityId" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.activity_id = #{activityId}
+          and ia.status = 0
+    </select>
+
+    <update id="updatePosition">
+        update individual_activity
+        set position = #{position}
+        where activity_id = #{activityId}
+          and user_id = #{studentId}
+    </update>
+
+    <delete id="delete">
+        delete from individual_activity
+        where activity_id = #{activityId}
+          and user_id = #{studentId}
+    </delete>
+
+    <select id="getAllManagedActivities" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where create_user = #{managerId}
+           or organizer = #{managerId}
+    </select>
+
+    <update id="updateStatus">
+        update individual_activity
+        set status = #{status}
+        where activity_id = #{activityId}
+          and user_id = #{studentId}
+    </update>
+
+    <!-- Top manager side -->
+    <select id="getActivityMembers" resultType="com.chinahitech.shop.bean.notAddedToDatabase.ActivityNum">
+        select
+            a.id,
+            a.name,
+            count(ia.user_id) as memberNum
+        from activity a
+            left join individual_activity ia on a.id = ia.activity_id
+        group by a.id, a.name
+        order by memberNum desc
+        limit 5
+    </select>
+</mapper>

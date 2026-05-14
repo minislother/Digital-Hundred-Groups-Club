@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.IndividualGroupMapper">
+
+    <sql id="IndividualGroupColumns">
+        ig.*,
+        ig.user_id as student_id
+    </sql>
+
+    <!-- Student side -->
+    <select id="getGroupByStuId" resultType="com.chinahitech.shop.bean.IndividualGroup">
+        select
+            <include refid="IndividualGroupColumns"/>
+        from individual_group ig
+        where ig.user_id = #{studentId}
+    </select>
+
+    <select id="checkExist" resultType="com.chinahitech.shop.bean.IndividualGroup">
+        select
+            <include refid="IndividualGroupColumns"/>
+        from individual_group ig
+        where ig.user_id = #{studentId}
+          and ig.group_id = #{groupId}
+    </select>
+
+    <insert id="insert">
+        insert into individual_group (
+            user_id,
+            group_id,
+            position,
+            status
+        )
+        values (
+            #{studentId},
+            #{groupId},
+            #{position},
+            #{status}
+        )
+    </insert>
+
+    <!-- Manager side -->
+    <select id="getStudentsByGroup" resultType="com.chinahitech.shop.bean.IndividualGroup">
+        select
+            <include refid="IndividualGroupColumns"/>
+        from individual_group ig
+        where ig.group_id = #{groupId}
+          and ig.status = 1
+        <if test="searchInfo != null and searchInfo != ''">
+            and ig.user_id like concat('%', #{searchInfo}, '%')
+        </if>
+    </select>
+
+    <select id="getGroupApplyList" resultType="com.chinahitech.shop.bean.IndividualGroup">
+        select
+            <include refid="IndividualGroupColumns"/>
+        from individual_group ig
+        where ig.group_id = #{groupId}
+          and ig.status = 0
+    </select>
+
+    <update id="updateStatus">
+        update individual_group
+        set status = #{status}
+        where group_id = #{groupId}
+          and user_id = #{studentId}
+    </update>
+
+    <update id="updatePosition">
+        update individual_group
+        set position = #{position}
+        where group_id = #{groupId}
+          and user_id = #{studentId}
+    </update>
+
+    <delete id="delete">
+        delete from individual_group
+        where group_id = #{groupId}
+          and user_id = #{studentId}
+    </delete>
+
+    <select id="getAllManagedGroups" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where create_user = #{managerId}
+           or leader = #{managerId}
+    </select>
+
+    <!-- Top manager side -->
+    <select id="getAllStudents" resultType="com.chinahitech.shop.bean.IndividualGroup">
+        select
+            <include refid="IndividualGroupColumns"/>
+        from individual_group ig
+        <where>
+            <if test="searchInfo != null and searchInfo != ''">
+                ig.user_id like concat('%', #{searchInfo}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getGroupMembers" resultType="com.chinahitech.shop.bean.notAddedToDatabase.GroupNum">
+        select
+            g.id,
+            g.name,
+            count(ig.user_id) as memberNum
+        from `group` g
+            left join individual_group ig on g.id = ig.group_id
+        group by g.id, g.name
+        order by memberNum desc
+        limit 5
+    </select>
+</mapper>

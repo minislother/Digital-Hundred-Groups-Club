@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.TopManagerMapper">
+
+    <select id="getTopManagerByNum" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_id = #{num}
+          and status &gt;= 10
+    </select>
+
+    <select id="getUserByNum" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_id = #{num}
+    </select>
+
+    <select id="getAllUsers" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        order by status
+    </select>
+
+    <select id="getUser" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_name = #{userName}
+        order by status
+    </select>
+
+    <insert id="addManager">
+        insert into `user` (
+            user_id,
+            password,
+            email,
+            salt,
+            create_time,
+            modify_time,
+            status
+        )
+        values (
+            #{userId},
+            #{password},
+            #{email},
+            #{salt},
+            #{createTime},
+            #{modifyTime},
+            #{status}
+        )
+    </insert>
+
+    <update id="updatePassword">
+        update `user`
+        set password = #{password},
+            modify_time = #{modifyTime}
+        where user_id = #{userId}
+          and status &gt;= 10
+    </update>
+
+    <update id="updatePhone">
+        update `user`
+        set phone = #{phone},
+            modify_time = #{modifyTime}
+        where user_id = #{userId}
+          and status &gt;= 10
+    </update>
+
+    <update id="updateDescription">
+        update `user`
+        set description = #{description},
+            modify_time = #{modifyTime}
+        where user_id = #{userId}
+          and status &gt;= 10
+    </update>
+
+    <update id="updateNickname">
+        update `user`
+        set nickname = #{nickname},
+            modify_time = #{modifyTime}
+        where user_id = #{userId}
+          and status &gt;= 10
+    </update>
+
+    <update id="updateMajor">
+        update `user`
+        set campus = #{campus},
+            school = #{school},
+            major = #{major},
+            modify_time = #{modifyTime}
+        where user_id = #{userId}
+          and status &gt;= 10
+    </update>
+
+    <update id="updatePermission">
+        update `user`
+        set status = #{status},
+            modify_time = #{modifyTime}
+        where user_id = #{userId}
+          and status &lt; 10
+    </update>
+
+    <select id="getByNumNoStatus" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_id = #{num}
+    </select>
+</mapper>

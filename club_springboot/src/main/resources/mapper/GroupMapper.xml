@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.GroupMapper">
+
+    <sql id="GroupSearchCondition">
+        <if test="searchInfo != null and searchInfo != ''">
+            and (
+                name like concat('%', #{searchInfo}, '%')
+                or leader like concat('%', #{searchInfo}, '%')
+                or description like concat('%', #{searchInfo}, '%')
+            )
+        </if>
+    </sql>
+
+    <sql id="GroupAppSearchCondition">
+        <if test="searchInfo != null and searchInfo != ''">
+            and (
+                name like concat('%', #{searchInfo}, '%')
+                or leader like concat('%', #{searchInfo}, '%')
+                or description like concat('%', #{searchInfo}, '%')
+            )
+        </if>
+    </sql>
+
+    <!-- Student side -->
+    <select id="query" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where is_accepted = 1
+        <include refid="GroupSearchCondition"/>
+        order by hot desc, id desc
+    </select>
+
+    <select id="getByName" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where name = #{groupName}
+        limit 1
+    </select>
+
+    <select id="queryTop" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where is_accepted = 1
+        order by hot desc, id desc
+        limit 5
+    </select>
+
+    <insert id="insert" parameterType="com.chinahitech.shop.bean.Group" useGeneratedKeys="true" keyProperty="id">
+        insert into `group` (
+            name,
+            leader,
+            image,
+            description,
+            attachment,
+            hot,
+            create_user,
+            create_time,
+            modify_user,
+            modify_time,
+            is_accepted
+        )
+        values (
+            #{name},
+            #{leader},
+            #{image},
+            #{description},
+            #{attachment},
+            #{hot},
+            #{createUser},
+            #{createTime},
+            #{modifyUser},
+            #{modifyTime},
+            #{isAccepted}
+        )
+    </insert>
+
+    <update id="addHot">
+        update `group`
+        set hot = coalesce(hot, 0) + 1,
+            modify_time = now()
+        where name = #{groupName}
+    </update>
+
+    <!-- Manager side -->
+    <update id="updateDescription">
+        update `group`
+        set description = #{description},
+            attachment = #{attachment},
+            image = #{image},
+            modify_time = now()
+        where name = #{groupName}
+    </update>
+
+    <update id="updateAttachment">
+        update `group`
+        set attachment = #{attachment},
+            modify_time = now()
+        where name = #{name}
+    </update>
+
+    <update id="updateImage">
+        update `group`
+        set image = #{image},
+            modify_time = now()
+        where name = #{name}
+    </update>
+
+    <select id="getGroupById" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where id = #{id}
+        limit 1
+    </select>
+
+    <!-- Top manager side -->
+    <select id="getAllApp" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where 1 = 1
+        <include refid="GroupAppSearchCondition"/>
+        order by id desc
+    </select>
+
+    <select id="getAppByName" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where name = #{groupName}
+        limit 1
+    </select>
+
+    <update id="confirmApplication">
+        update `group`
+        set is_accepted = 1,
+            modify_time = now()
+        where id = #{groupId}
+    </update>
+
+    <update id="denyApplication">
+        update `group`
+        set is_accepted = 0,
+            modify_time = now()
+        where id = #{groupId}
+    </update>
+</mapper>

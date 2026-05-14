@@ -1,325 +1,201 @@
 package com.chinahitech.shop.controller;
 
-import cn.hutool.core.io.FileUtil;
 import com.chinahitech.shop.aop.RepeatLimit;
 import com.chinahitech.shop.bean.Activity;
+import com.chinahitech.shop.bean.notAddedToDatabase.StoredFile;
+import com.chinahitech.shop.exception.BusinessException;
 import com.chinahitech.shop.service.ActivityService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.chinahitech.shop.service.FileStorageService;
+import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import com.chinahitech.shop.utils.JwtUtils;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/activity")
-@CrossOrigin
 public class ActivityController {
+
     @Autowired
     private ActivityService activityService;
 
-    // 学生端
-    @Value("${upload-dir}")
-    private String uploadDir;
-
-    private static final String ROOT_PATH = System.getProperty("user.dir") + File.separator + "upload";
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @RepeatLimit
     @RequestMapping("/all")
-    public Result getAll(String searchInfo){
-        List<Activity> activities = activityService.query(searchInfo);
-//        System.out.println(activities);
-        return Result.ok().data("items",activities);
+    public Result getAll(String searchInfo, Integer pageNum, Integer pageSize) {
+        List<Activity> activities = activityService.queryCached(searchInfo);
+        return PageUtils.ok("items", activities, pageNum, pageSize);
     }
 
-    // 活动详情（学生端）
     @RepeatLimit
     @PostMapping("/studentDetail")
-    public Result getStudentDetail(String groupName, String activityName){
-//        System.out.println(activityName);
-        Activity activity = activityService.getActivityByNameAndGroupName(activityName, groupName);
+    public Result getStudentDetail(String groupName, String activityName) {
+        Activity activity = activityService.getCachedActivityDetail(activityName, groupName);
         return Result.ok().data("activity", activity);
+    }
+
+    @RepeatLimit
+    @PostMapping("/addGroup")
+    public Result addActivity(@RequestBody Activity group) {
+        activityService.insert(group);
+        return Result.ok();
     }
 
     @RepeatLimit
     @RequestMapping("/getVideo")
     public Result getVideo() {
-        try {
-            // 获取视频文件的相对路径
-            String relativePath = "videotest.mp4";
-
-            // 构造视频URL
-            String videoUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/")
-                    .path(relativePath)
-                    .toUriString();
-//            System.out.println(videoUrl);
-            return Result.ok().data("url", videoUrl);
-        } catch (Exception e) {
-            return Result.error().message("获取视频失败");
-        }
+        String videoUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/")
+                .path("videotest.mp4")
+                .toUriString();
+        return Result.ok().data("url", videoUrl);
     }
 
     @RepeatLimit
     @RequestMapping("/top")
     public Result getTop() {
-        List<Activity> activities = activityService.queryTop();
-//        System.out.println(activities);
+        List<Activity> activities = activityService.queryTopCached();
         return Result.ok().data("item", activities);
     }
-    // end
 
-
-
-    // 管理员端
-    @RepeatLimit
-    @GetMapping("/info")  // "token:xxx"
-    public Result info(String token){
-        String username = JwtUtils.getClaimsByToken(token).getSubject();
-        String url = "https://nimg.ws.126.net/?url=http%3A%2F%2Fdingyue.ws.126.net%2F2021%2F1120%2F783a7b4ej00r2tvvx002fd200hs00hsg00hs00hs.jpg&thumbnail=660x2147483647&quality=80&type=jpg";
-        return Result.ok().data("name",username).data("avatar",url);
-    }
-
-    // 我管理的社团的活动
-    @RepeatLimit
-    @PostMapping("/myActivity")
-    public Result getMyActivities(String groupName){
-        List<Activity> activities = activityService.getActivityByGroupName(groupName);
-//        System.out.println(groupName);
-        return Result.ok().data("items", activities);
-    }
-
-    // 活动详情（管理端）
     @RepeatLimit
     @PostMapping("/managerDetail")
-    public Result getManagerDetail(String groupName, String activityName){
-//        System.out.println(activityName);
+    public Result getManagerDetail(String activityName, String groupName) {
+        if (activityName == null || activityName.trim().isEmpty()
+                || groupName == null || groupName.trim().isEmpty()) {
+            throw new BusinessException("PARAM_ERROR", "参数不能为空");
+        }
         Activity activity = activityService.getActivityByNameAndGroupName(activityName, groupName);
         return Result.ok().data("activity", activity);
     }
 
-    // 活动简介修改
     @RepeatLimit
     @PostMapping("/modifyDescription")
-    public Result  modifyDescription(String groupName, String activityName, String description, String attachment, String image){
-//        System.out.println(activityName);
-//        System.out.println(description);
-        activityService.updateDescription(groupName, activityName, description, attachment,image);
+    public Result modifyDescription(String groupName, String activityName, String description, String attachment, String image) {
+        if (groupName == null || groupName.trim().isEmpty()
+                || activityName == null || activityName.trim().isEmpty()) {
+            throw new BusinessException("PARAM_ERROR", "参数不能为空");
+        }
+        activityService.updateDescription(groupName, activityName, description, attachment, image);
         return Result.ok();
-    }
-
-    //活动其他信息修改
-    @RepeatLimit
-    @PostMapping("/modifyInfo")
-    public Result modifyInfo(@RequestBody Activity activity){
-//        System.out.println(activity.getName());
-        activityService.modifyInfo(activity);
-        return Result.ok();
-    }
-
-    //申请增加活动
-    @RepeatLimit
-    @PostMapping("/addActivity")
-    public Result addActivity(@RequestBody Activity activity){
-//        System.out.println(activity.getName());
-        activity.setIsAccepted(null);
-        activityService.addActivity(activity);
-        return Result.ok();
-    }
-
-    //申请删除活动
-    @RepeatLimit
-    @PostMapping("/deleteActivity")
-    public Result deleteActivity(@RequestBody Activity activity){
-//        System.out.println(activity.getName());
-        activity.setIsAccepted(null);
-        activityService.deleteActivity(activity);
-        return Result.ok();
-    }
-
-    //该社团活动申请列表
-    @RepeatLimit
-    @RequestMapping("/myApps")
-    public Result getMyApps(String searchInfo, String groupName){
-        List<Activity> activities = activityService.getMyApps(searchInfo, groupName);
-//        System.out.println(activities);
-        return Result.ok().data("items",activities);
     }
 
     @RepeatLimit
     @PostMapping("/uploadZip")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
-
-        String fileName = generateUniqueFileName(file.getOriginalFilename());
-
-        try {
-            Path targetLocation = Paths.get(uploadDir, fileName);
-            if(!FileUtil.exist(ROOT_PATH)){
-                FileUtil.mkdir(ROOT_PATH);    // 如果当前文件的父级目录不存在，就创建
-            }
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .pathSegment("upload")
-                    .pathSegment(fileName)
-                    .toUriString();
-
-            Map<String, String> response = new HashMap<>();
-            response.put("fileUrl", fileUrl);
-
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(createErrorResponse("Failed to upload the file."));
-        }
+        return ResponseEntity.ok(fileResponse(fileStorageService.store(file)));
     }
 
     @RepeatLimit
     @PostMapping("/submitZip")
-    public ResponseEntity<Map<String, String>> submitZip(@RequestParam("groupId") String groupName, @RequestParam("attachment") String attachment, @RequestParam("name") String name) {
-        try {
-            activityService.updateAttachment(groupName, name, attachment);
+    public ResponseEntity<Map<String, String>> submitZip(@RequestParam("attachment") String attachment, @RequestParam("name") String name) {
+        activityService.updateAttachment(name, attachment);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Successfully updated attachment.");
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(createErrorResponse("Failed to update the attachment."));
-        }
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Successfully updated attachment.");
+        return ResponseEntity.ok(response);
     }
 
     @RepeatLimit
     @PostMapping("/uploadPhoto")
     public ResponseEntity<Map<String, String>> uploadPhoto(@RequestParam("file") MultipartFile file) {
-
-        String fileName = generateUniqueFileName(file.getOriginalFilename());
-
-        try {
-            Path targetLocation = Paths.get(uploadDir, fileName);
-            if(!FileUtil.exist(ROOT_PATH)){
-                FileUtil.mkdir(ROOT_PATH);    // 如果当前文件的父级目录不存在，就创建
-            }
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .pathSegment("upload")
-                    .pathSegment(fileName)
-                    .toUriString();
-
-            Map<String, String> response = new HashMap<>();
-            response.put("fileUrl", fileUrl);
-
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(createErrorResponse("Failed to upload the file."));
-        }
+        return ResponseEntity.ok(fileResponse(fileStorageService.store(file)));
     }
 
     @RepeatLimit
     @PostMapping("/submitPhoto")
-    public ResponseEntity<Map<String, String>> submitPhoto(@RequestParam("groupName") String groupName, @RequestParam("image") String image, @RequestParam("name") String name) {
-        try {
-            activityService.updateImage(groupName, name, image);
+    public ResponseEntity<Map<String, String>> submitPhoto(@RequestParam("image") String image, @RequestParam("name") String name) {
+        activityService.updateImage(name, image);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Successfully updated image.");
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(createErrorResponse("Failed to update the image."));
-        }
-    }
-
-    @RepeatLimit
-    @PostMapping("/getAttachment")//能直接下载文件，而不是在新标签页中打开的比较难搞，涉及到http报文，暂时不搞了
-    // 这个是在新标签页中打开，对于zip完全没问题
-    public ResponseEntity<Map<String, Object>> getAttachment(@RequestParam("id") int id) {
-        Activity activity = activityService.getActivityById(id);
-        Map<String, Object> response = new HashMap<>();
-        if (activity != null) {
-            response.put("code", 20000);
-            response.put("success", true);
-            response.put("attachment", activity.getAttachment());
-        } else {
-            response.put("code", 50000);
-            response.put("success", false);
-            response.put("message", "Activity not found");
-        }
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Successfully updated image.");
         return ResponseEntity.ok(response);
     }
 
-    private String generateUniqueFileName(String originalFilename) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
-        return timestamp + "_" + originalFilename;
+    @RepeatLimit
+    @PostMapping("/getAttachment")
+    public ResponseEntity<Map<String, Object>> getAttachment(@RequestParam("id") int id) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", 20000);
+        response.put("success", true);
+        response.put("attachment", activityService.getAttachment(id));
+        return ResponseEntity.ok(response);
     }
 
-    private Map<String, String> createErrorResponse(String errorMessage) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", errorMessage);
-        return errorResponse;
-    }
-    //end
-
-    //超级管理员端
-
-    // 申请列表
     @RepeatLimit
     @RequestMapping("/allApps")
-    public Result getAllApps(String searchInfo){
-        List<Activity> activities = activityService.getAllApp(searchInfo);
-//        System.out.println(activities);
-        return Result.ok().data("items",activities);
+    public Result getAllApps(String searchinfo, Integer pageNum, Integer pageSize) {
+        List<Activity> activities = activityService.getAllApp(searchinfo);
+        return PageUtils.ok("items", activities, pageNum, pageSize);
     }
-    // 申请列表->详情
+
     @RepeatLimit
     @PostMapping("/appDetail")
-    public Result getAppDetail(String groupName, String activityName){
-//        System.out.println(activityName);
-        Activity activity = activityService.getAppByNameAndGroupName(activityName, groupName);
-        return Result.ok().data("activity",activity);
+    public Result getAppDetail(String groupname) {
+        Activity activity = activityService.getAppByName(groupname);
+        return Result.ok().data("activity", activity);
     }
 
-    //社团审批
-
-    //接受申请
     @RepeatLimit
     @PostMapping("/accept")
-    public Result accept(int activityId){
-//        System.out.println(activityId);
-        // System.out.println(isaccepted);
+    public Result accept(int activityId) {
         activityService.confirmApplication(activityId);
         return Result.ok();
     }
 
-    //拒绝申请
     @RepeatLimit
     @PostMapping("/reject")
-    public Result reject(int activityId){
-//        System.out.println(activityId);
-        // System.out.println(isaccepted);
+    public Result reject(int activityId) {
         activityService.denyApplication(activityId);
         return Result.ok();
+    }
+
+    @RepeatLimit
+    @PostMapping("/applyJoin")
+    public Result applyJoin(Integer activityId, Integer studentId) {
+        if (activityId == null || studentId == null) {
+            throw new BusinessException("PARAM_ERROR", "参数不能为空");
+        }
+        activityService.applyJoin(activityId, studentId);
+        return Result.ok().message("报名申请已提交");
+    }
+
+    @RepeatLimit
+    @PostMapping("/myJoinedActivities")
+    public Result myJoinedActivities(Integer studentId, Integer pageNum, Integer pageSize) {
+        List<Activity> list = activityService.getMyJoinedActivities(studentId);
+        return PageUtils.ok("items", list, pageNum, pageSize);
+    }
+
+    @RepeatLimit
+    @PostMapping("/getActivityApplicants")
+    public Result getActivityApplicants(Integer activityId, Integer pageNum, Integer pageSize) {
+        List<Map<String, Object>> list = activityService.getActivityApplicants(activityId);
+        return PageUtils.ok("items", list, pageNum, pageSize);
+    }
+
+    @RepeatLimit
+    @PostMapping("/auditApply")
+    public Result auditApply(Integer id, Integer status) {
+        activityService.auditApply(id, status);
+        return Result.ok();
+    }
+
+    private Map<String, String> fileResponse(StoredFile storedFile) {
+        Map<String, String> response = new HashMap<>();
+        response.put("fileUrl", storedFile.getFileUrl());
+        return response;
     }
 }

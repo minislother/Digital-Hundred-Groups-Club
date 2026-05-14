@@ -1,79 +1,27 @@
 package com.chinahitech.shop.service;
 
 import com.chinahitech.shop.bean.StuApp;
-import com.chinahitech.shop.exception.ApplyException;
-import com.chinahitech.shop.mapper.StuAppMapper;
-import com.chinahitech.shop.exception.InsertException;
-import com.chinahitech.shop.exception.UpdateException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class StuAppService {
-    @Autowired
-    private StuAppMapper stuAppMapper;
+public interface StuAppService {
+    List<StuApp> query();
 
-    public List<StuApp> query() {
-        return stuAppMapper.findall();
-    }
+    List<StuApp> queryMyapp(String stunumber);
 
-    public List<StuApp> queryMyapp(String stunumber) {
-        return stuAppMapper.findMyapp(stunumber);
-    }
+    void insert(StuApp stuApp);
 
-    public void insert(StuApp stuApp) {
-        List<StuApp> appList = stuAppMapper.getByStuAndGroup(stuApp.getStuNumber(), stuApp.getGroupName());
-        if (appList.size() >= 5) {
-            throw new ApplyException("申请次数过多！");
-        }
-        int i = stuAppMapper.insert(stuApp);
-        if (i != 1) {
-            throw new InsertException("申请" + stuApp + "无法保存到数据库");
-        }
-    }
+    void submit(StuApp stuApp);
 
-    public List<StuApp> queryRecvapp(String groupname){
-        return stuAppMapper.findRecvapp(groupname);
-    }
+    List<StuApp> queryRecvapp(String groupname);
 
-    public StuApp queryDetailapp(Integer id) {
-        return stuAppMapper.getById(id);
-    }
+    StuApp queryDetailapp(Integer id);
 
-    public String findIsAccepted(Integer id) {
-        return stuAppMapper.findIsAccepted(id);
-    }
+    String findIsAccepted(Integer id);
 
-    public void updateAttachment(int applicationid, String attachment) {
-        StuApp stuApp = queryDetailapp(applicationid);
-        stuApp.setAttachment(attachment);
+    void updateAttachment(int applicationid, String attachment);
 
-        int i = stuAppMapper.updateById(stuApp);
-        if (i != 1) {
-            throw new UpdateException("申请" + applicationid + "附件修改失败");
-        }
-    }
+    void confirmApplication(Integer applicationid);
 
-    public void confirmApplication(Integer applicationid) {
-        StuApp stuApp = queryDetailapp(applicationid);
-        stuApp.setIsAccepted(true);
-
-        int i = stuAppMapper.updateById(stuApp);
-
-        if (i != 1) {
-            throw new UpdateException("申请" + applicationid + "确认失败");
-        }
-    }
-
-    public void denyApplication(Integer applicationid) {
-        StuApp stuApp = queryDetailapp(applicationid);
-        stuApp.setIsAccepted(false);
-
-        int i = stuAppMapper.updateById(stuApp);
-        if (i != 1) {
-            throw new UpdateException("申请" + applicationid + "拒绝失败");
-        }
-    }
+    void denyApplication(Integer applicationid);
 }

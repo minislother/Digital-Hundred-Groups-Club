@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.StuAppMapper">
+
+    <select id="findall" resultType="com.chinahitech.shop.bean.StuApp">
+        select *
+        from `stu_app`
+    </select>
+
+    <select id="findMyapp" resultType="com.chinahitech.shop.bean.StuApp">
+        select *
+        from `stu_app`
+        where stu_number = #{stunumber}
+    </select>
+
+    <select id="findRecvapp" resultType="com.chinahitech.shop.bean.StuApp">
+        select *
+        from `stu_app`
+        where group_name = #{groupName}
+    </select>
+
+    <select id="getById" resultType="com.chinahitech.shop.bean.StuApp">
+        select *
+        from `stu_app`
+        where application_id = #{id}
+    </select>
+
+    <select id="getByStuAndGroup" resultType="com.chinahitech.shop.bean.StuApp">
+        select *
+        from `stu_app`
+        where stu_number = #{studentId}
+          and group_name = #{groupName}
+    </select>
+
+    <select id="findIsAccepted" resultType="java.lang.String">
+        select case
+            when is_accepted is null then 'null'
+            when is_accepted = true then 'true'
+            else 'false'
+        end as isaccepted
+        from `stu_app`
+        where application_id = #{id}
+    </select>
+
+    <update id="updateAttachment">
+        update `stu_app`
+        set attachment = #{attachment}
+        where application_id = #{applicationId}
+    </update>
+
+    <update id="confirmApplicationByid">
+        update `stu_app`
+        set is_accepted = true
+        where application_id = #{applicationId}
+    </update>
+
+    <update id="denyApplicationByid">
+        update `stu_app`
+        set is_accepted = false
+        where application_id = #{applicationId}
+    </update>
+</mapper>

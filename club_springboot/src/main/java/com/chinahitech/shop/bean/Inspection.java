@@ -15,7 +15,7 @@ import java.util.Date;
 @ToString
 public class Inspection{
     @TableId
-    private int id;
+    private Integer id;
     private String attachment;
     private String groupName;
     private Year year;

@@ -1,5 +1,17 @@
-club_springboot/.idea/workspace.xml
-club_springboot/src/main/resources/application.properties
-club_springboot/target/classes
-club_springboot/.idea/workspace.xml
-club_springboot/log
+# IDE/local workspace files
+.idea/
+*.iml
+club_springboot/.idea/
+
+# Build outputs
+**/target/
+**/node_modules/
+dist/
+
+# Local runtime outputs
+club_springboot/log/
+club_springboot/upload/
+*.log
+
+# Generated review/diff artifacts
+*.diff

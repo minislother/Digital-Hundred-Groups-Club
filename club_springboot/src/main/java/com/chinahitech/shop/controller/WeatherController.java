@@ -5,14 +5,12 @@ import com.chinahitech.shop.bean.notAddedToDatabase.LivesModel;
 import com.chinahitech.shop.bean.notAddedToDatabase.WeatherModel;
 import com.chinahitech.shop.utils.HttpsUtil;
 import com.chinahitech.shop.utils.Result;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 @RestController
-@CrossOrigin
 public class WeatherController {
     @RequestMapping("/getWeather")
     public Result getWeather() {

@@ -1,15 +1,17 @@
 import request from '@/utils/request'
 
 export function login(stuNumber,password) {
+  const data = new URLSearchParams()
+  data.append('stuNumber', stuNumber)
+  data.append('password', password)
   return request({
     url: '/student/login',
     method: 'post',
-    params: { stuNumber, password }
+    data
   })
 }
 
 export function register(data) {
-  console.error(data)
   return request({
     url: '/student/register',
     method: 'post',
@@ -18,10 +20,13 @@ export function register(data) {
 }
 
 export function modifyPassword(stuNumber, password) {
+  const data = new URLSearchParams()
+  data.append('stuNumber', stuNumber)
+  data.append('password', password)
   return request({
       url: '/student/modifyPass',
       method: 'post',
-      params: { stuNumber, password }
+      data
   })
 }
 
@@ -50,7 +55,6 @@ export function modifyNickname(stuNumber, nickname) {
 }
 
 export function validateEmail(email) {
-  console.error({ email })
   return request({
       url: '/student/validateEmail',
       method: 'post',
@@ -67,11 +71,10 @@ export function getProfile(stuNumber) {
 }
 
 
-export function getInfo(token) {
+export function getInfo() {
   return request({
     url: '/student/info',
-    method: 'get',
-    params: { token } // name=xx&xxx=xxx
+    method: 'get'
   })
 }
 
@@ -99,9 +102,12 @@ export function verifycode(email, validateCode) {
 }
 
 export function modifypas(stuNumber,password) {
+  const data = new URLSearchParams()
+  data.append('stuNumber', stuNumber)
+  data.append('password', password)
   return request({
     url: '/student/modifyPass',
     method: 'post',
-    params: { stuNumber,password }
+    data
   })
 }

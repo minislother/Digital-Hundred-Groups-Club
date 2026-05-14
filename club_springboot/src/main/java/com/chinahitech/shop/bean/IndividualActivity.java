@@ -16,6 +16,7 @@ public class IndividualActivity {
     @TableId
     private int id;
     private int activityId;
+    private String studentId;
     private String userId;
     private String position;
     private String userName;

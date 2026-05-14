@@ -16,6 +16,7 @@ public class IndividualGroup {
     @TableId
     private int id;
     private int groupId;
+    private String studentId;
     private String userId;
     private String position;
     private String userName;

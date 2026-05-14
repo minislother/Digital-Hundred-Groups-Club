@@ -1,89 +1,30 @@
 package com.chinahitech.shop.service;
 
 import com.chinahitech.shop.bean.Inspection;
-import com.chinahitech.shop.mapper.*;
-import com.chinahitech.shop.exception.EntityNotFoundException;
-import com.chinahitech.shop.exception.UpdateException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.time.Year;
-import java.util.Date;
 import java.util.List;
 
-@Service
-public class InspectionService {
-    @Autowired
-    private InspectionMapper inspectionMapper;
+public interface InspectionService {
+    Inspection getInspectionById(int id);
 
-    public Inspection getInspectionById(int id) {
-        Inspection inspection = inspectionMapper.getById(id);
-        if(inspection == null){
-            throw new EntityNotFoundException("年检申请"+ id +"不存在");
-        }
-        return inspection;
-    }
+    String getAttachment(int id);
 
-    public List<Inspection> findAllByGroup(String groupName) {
-        return inspectionMapper.getByGroup(groupName);
-    }
+    List<Inspection> findAllByGroup(String groupName);
 
-    public List<Inspection> findAllByGroupAndYear(String groupName, Year year) {
-        return inspectionMapper.getByGroupAndYear(groupName, year);
-    }
+    List<Inspection> findAllByGroupAndYear(String groupName, Year year);
 
-    public List<Inspection> findAll(String searchInfo) {
-        if (searchInfo == null || searchInfo.trim().isEmpty()) {
-            return inspectionMapper.findAll();
-        } else {
-            return inspectionMapper.getBySearchInfo(searchInfo);
-        }
-    }
+    List<Inspection> findAll(String searchInfo);
 
-    public List<Inspection> findAllByYear(Year year) {
-        return inspectionMapper.getByYear(year);
-    }
+    List<Inspection> findAllByYear(Year year);
 
-    public void addInspection(Inspection inspection) {
-        Date date = new Date();
-        inspection.setId(0);
-        inspection.setYear(Year.now());
-        inspection.setCreateTime(date);
-        inspection.setModifyTime(date);
-        int i = inspectionMapper.insert(inspection);
-        if(i != 1){
-            throw new UpdateException("年检申请"+ inspection.getId() +"添加失败");
-        }
-    }
+    void addInspection(Inspection inspection);
 
-    public void addFeedback(int inspectionId, String groupName, String feedback) {
-        Date date = new Date();
-        int i = inspectionMapper.addFeedback(inspectionId, groupName, feedback, date);
-        if(i != 1){
-            throw new UpdateException("年检申请"+ inspectionId +"反馈添加失败");
-        }
-    }
+    void addFeedback(int inspectionId, String groupName, String feedback);
 
-    public void modifyAttachment(int inspectionId, String groupName, String attachment) {
-        Date date = new Date();
-        int rowsUpdated = inspectionMapper.modifyAttachment(inspectionId, groupName, attachment, date);
-        if (rowsUpdated == 0) {
-            throw new UpdateException("年检申请"+ inspectionId +"附件修改失败");
-        }
-    }
+    void modifyAttachment(int inspectionId, String groupName, String attachment);
 
+    void confirmApplication(int inspectionId);
 
-    public void confirmApplication(int inspectionId) {
-        int i = inspectionMapper.confirmApplicationByid(inspectionId);
-        if (i != 1) {
-            throw new UpdateException("对年检申请" + inspectionId + "的操作确认失败");
-        }
-    }
-
-    public void denyApplication(int inspectionId) {
-        int i = inspectionMapper.denyApplicationByid(inspectionId);
-        if (i != 1) {
-            throw new UpdateException("对年检申请" + inspectionId + "的操作拒绝失败");
-        }
-    }
+    void denyApplication(int inspectionId);
 }

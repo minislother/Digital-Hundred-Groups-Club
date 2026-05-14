@@ -1,18 +1,20 @@
 import request from '@/utils/request'
 
 export function login(userId, password) {
+  const data = new URLSearchParams()
+  data.append('userId', userId)
+  data.append('password', password)
   return request({
     url: '/topManager/login',
     method: 'post',
-    params: { userId, password }
+    data
   })
 }
 
-export function getInfo(token) {
+export function getInfo() {
   return request({
     url: '/topManager/info',
-    method: 'get',
-    params: { token }
+    method: 'get'
   })
 }
 

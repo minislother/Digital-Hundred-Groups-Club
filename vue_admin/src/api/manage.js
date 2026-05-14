@@ -33,9 +33,12 @@ export function updateForm(groupname, description, attachment,image) {
 }
 
 export function updatePassword(groupName, password) {
+  const data = new URLSearchParams()
+  data.append('groupName', groupName)
+  data.append('password', password)
   return request({
     url: '/group/modifyPassword',
     method: 'post',
-    params: { groupName, password }
+    data
   })
 }

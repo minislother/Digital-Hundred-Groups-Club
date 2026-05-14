@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.ActivityMapper">
+
+    <sql id="ActivitySearchCondition">
+        <if test="searchInfo != null and searchInfo != ''">
+            and (
+                name like concat('%', #{searchInfo}, '%')
+                or group_name like concat('%', #{searchInfo}, '%')
+                or organizer like concat('%', #{searchInfo}, '%')
+            )
+        </if>
+    </sql>
+
+    <sql id="ActivityAppSearchCondition">
+        <if test="searchInfo != null and searchInfo != ''">
+            and (
+                name like concat('%', #{searchInfo}, '%')
+                or group_name like concat('%', #{searchInfo}, '%')
+                or organizer like concat('%', #{searchInfo}, '%')
+            )
+        </if>
+    </sql>
+
+    <!-- Student side -->
+    <select id="query" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where is_accepted = 1
+        <include refid="ActivitySearchCondition"/>
+        order by hot desc, id desc
+    </select>
+
+    <select id="getActivityByNameAndGroupName" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where name = #{activityName}
+          and group_name = #{groupName}
+        limit 1
+    </select>
+
+    <select id="queryTop" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where is_accepted = 1
+        order by hot desc, id desc
+        limit 5
+    </select>
+
+    <insert id="applyJoin">
+        insert into individual_activity (
+            activity_id,
+            user_id,
+            position,
+            status
+        )
+        values (
+            #{activityId},
+            #{studentId},
+            '成员',
+            #{status}
+        )
+    </insert>
+
+    <select id="checkApply" resultType="map">
+        select
+            id,
+            activity_id,
+            user_id as student_id,
+            status
+        from individual_activity
+        where activity_id = #{activityId}
+          and user_id = #{studentId}
+        limit 1
+    </select>
+
+    <select id="countActiveApplications" resultType="int">
+        select count(1)
+        from individual_activity
+        where activity_id = #{activityId}
+          and (status is null or status != -1)
+    </select>
+
+    <select id="getMyJoinedActivities" resultType="com.chinahitech.shop.bean.Activity">
+        select a.*
+        from activity a
+            inner join individual_activity ia on a.id = ia.activity_id
+        where ia.user_id = #{studentId}
+          and ia.status = 1
+        order by a.time desc, a.id desc
+    </select>
+
+    <!-- Manager side -->
+    <select id="getActivityByGroupName" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where group_name = #{groupName}
+          and name = #{activityName}
+        order by time desc, id desc
+    </select>
+
+    <select id="getActivityApplicants" resultType="map">
+        select
+            ia.*,
+            u.user_name,
+            u.email,
+            u.phone
+        from individual_activity ia
+            left join `user` u on ia.user_id = u.user_id
+        where ia.activity_id = #{activityId}
+        order by ia.id desc
+    </select>
+
+    <update id="auditApply">
+        update individual_activity
+        set status = #{status}
+        where id = #{id}
+    </update>
+
+    <insert id="insert" parameterType="com.chinahitech.shop.bean.Activity" useGeneratedKeys="true" keyProperty="id">
+        insert into activity (
+            name,
+            organizer,
+            image,
+            description,
+            attachment,
+            hot,
+            arrange,
+            time,
+            number,
+            place,
+            type,
+            group_name,
+            create_user,
+            create_time,
+            modify_user,
+            modify_time,
+            is_accepted
+        )
+        values (
+            #{name},
+            #{organizer},
+            #{image},
+            #{description},
+            #{attachment},
+            #{hot},
+            #{arrange},
+            #{time},
+            #{number},
+            #{place},
+            #{type},
+            #{groupName},
+            #{createUser},
+            #{createTime},
+            #{modifyUser},
+            #{modifyTime},
+            #{isAccepted}
+        )
+    </insert>
+
+    <update id="updateDescription">
+        update activity
+        set description = #{description},
+            attachment = #{attachment},
+            image = #{image},
+            modify_time = now()
+        where group_name = #{groupName}
+    </update>
+
+    <update id="updateAttachment">
+        update activity
+        set attachment = #{attachment},
+            modify_time = now()
+        where name = #{name}
+    </update>
+
+    <update id="updateImage">
+        update activity
+        set image = #{image},
+            modify_time = now()
+        where name = #{name}
+    </update>
+
+    <select id="getActivityById" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where id = #{id}
+        limit 1
+    </select>
+
+    <!-- Top manager side -->
+    <select id="getAllApp" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where 1 = 1
+        <include refid="ActivityAppSearchCondition"/>
+        order by id desc
+    </select>
+
+    <select id="getAppByName" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where group_name = #{groupName}
+        order by id desc
+        limit 1
+    </select>
+
+    <update id="confirmApplication">
+        update activity
+        set is_accepted = 1,
+            modify_time = now()
+        where id = #{activityId}
+    </update>
+
+    <update id="denyApplication">
+        update activity
+        set is_accepted = 0,
+            modify_time = now()
+        where id = #{activityId}
+    </update>
+
+    <update id="modifyInfo" parameterType="com.chinahitech.shop.bean.Activity">
+        update activity
+        set name = #{name},
+            organizer = #{organizer},
+            image = #{image},
+            description = #{description},
+            attachment = #{attachment},
+            hot = #{hot},
+            arrange = #{arrange},
+            time = #{time},
+            number = #{number},
+            place = #{place},
+            type = #{type},
+            group_name = #{groupName},
+            modify_user = #{modifyUser},
+            modify_time = now(),
+            is_accepted = #{isAccepted}
+        where id = #{id}
+    </update>
+</mapper>
