@@ -7,7 +7,9 @@ import com.chinahitech.shop.bean.notAddedToDatabase.GroupNum;
 import com.chinahitech.shop.service.IndividualGroupService;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,14 +25,16 @@ public class IndividualGroupController {
 
     @RepeatLimit
     @RequestMapping("/allGroups")
-    public Result getIndividualGroup(String studentId) {
+    public Result getIndividualGroup(Authentication authentication) {
+        String studentId = SecurityUtils.currentUserId(authentication);
         Map<String, Object> map = individualGroupService.getStudentGroupsCached(studentId);
         return Result.ok().data(map);
     }
 
     @RepeatLimit
     @RequestMapping("/applyJoinGroup")
-    public Result applyJoinGroup(int groupId, String studentId) {
+    public Result applyJoinGroup(int groupId, Authentication authentication) {
+        String studentId = SecurityUtils.currentUserId(authentication);
         individualGroupService.applyJoinGroupAndNotify(groupId, studentId);
         return Result.ok().message("申请提交成功，请等待管理员审核");
     }

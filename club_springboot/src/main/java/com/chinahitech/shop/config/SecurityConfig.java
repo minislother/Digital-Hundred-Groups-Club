@@ -42,16 +42,94 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/manager/getValidate",
                         "/manager/validateEmail",
                         "/topManager/login",
-                        "/topManager/register",
                         "/topManager/getEmail",
                         "/topManager/getValidate",
                         "/topManager/validateEmail",
-                        "/upload/**"
+                        "/upload/*.jpg",
+                        "/upload/*.jpeg",
+                        "/upload/*.png",
+                        "/upload/*.gif",
+                        "/upload/**/*.jpg",
+                        "/upload/**/*.jpeg",
+                        "/upload/**/*.png",
+                        "/upload/**/*.gif"
                 ).permitAll()
+                .antMatchers("/upload/**").hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
+                .antMatchers(
+                        "/activity/all",
+                        "/activity/studentDetail",
+                        "/activity/getVideo",
+                        "/activity/top",
+                        "/group/all",
+                        "/group/studentDetail",
+                        "/group/getVideo",
+                        "/group/top",
+                        "/weather/**",
+                        "/videotest.mp4"
+                ).hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
+                .antMatchers(
+                        "/activity/applyJoin",
+                        "/activity/myJoinedActivities",
+                        "/individualActivity/allActivities",
+                        "/individualActivity/joinActivity",
+                        "/individualGroup/allGroups",
+                        "/individualGroup/applyJoinGroup"
+                ).hasAnyRole("STUDENT", "TOP_MANAGER")
+                .antMatchers(
+                        "/activity/addGroup",
+                        "/activity/managerDetail",
+                        "/activity/modifyDescription",
+                        "/activity/uploadZip",
+                        "/activity/submitZip",
+                        "/activity/uploadPhoto",
+                        "/activity/submitPhoto",
+                        "/activity/getAttachment",
+                        "/activity/getActivityApplicants",
+                        "/activity/auditApply",
+                        "/group/addGroup",
+                        "/group/managerDetail",
+                        "/group/modifydescription",
+                        "/group/uploadzip",
+                        "/group/submitzip",
+                        "/group/uploadphoto",
+                        "/group/submitphoto",
+                        "/group/getattachment",
+                        "/individualActivity/getAllStudents",
+                        "/individualActivity/getAllApplyStudents",
+                        "/individualActivity/addActivityStudent",
+                        "/individualActivity/modifyGroupStudent",
+                        "/individualActivity/deleteActivityStudent",
+                        "/individualActivity/allManagedActivities",
+                        "/individualActivity/accept",
+                        "/individualActivity/reject",
+                        "/individualGroup/getStudentsByGroup",
+                        "/individualGroup/getGroupApplyList",
+                        "/individualGroup/acceptJoin",
+                        "/individualGroup/rejectJoin",
+                        "/individualGroup/addGroupStudent",
+                        "/individualGroup/modifyGroupStudent",
+                        "/individualGroup/deleteGroupStudent",
+                        "/individualGroup/allManagedGroups",
+                        "/individualGroup/transferStatus",
+                        "/individualGroup/updatePermission"
+                ).hasAnyRole("MANAGER", "TOP_MANAGER")
+                .antMatchers(
+                        "/activity/allApps",
+                        "/activity/appDetail",
+                        "/activity/accept",
+                        "/activity/reject",
+                        "/group/allApps",
+                        "/group/appDetail",
+                        "/group/accept",
+                        "/group/reject",
+                        "/individualActivity/getActivityMembers",
+                        "/individualGroup/getAllStudents",
+                        "/individualGroup/getGroupMembers"
+                ).hasRole("TOP_MANAGER")
                 .antMatchers("/student/**").hasAnyRole("STUDENT", "TOP_MANAGER")
                 .antMatchers("/manager/**").hasAnyRole("MANAGER", "TOP_MANAGER")
                 .antMatchers("/topManager/**").hasRole("TOP_MANAGER")
-                .anyRequest().authenticated()
+                .anyRequest().denyAll()
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint((request, response, authException) -> {

@@ -14,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -28,7 +30,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("接口限流切面单元测试")
+@DisplayName("RateLimiterAspect unit tests")
 @ExtendWith(MockitoExtension.class)
 class RateLimiterAspectTest {
 
@@ -47,36 +49,30 @@ class RateLimiterAspectTest {
     @AfterEach
     void tearDown() {
         RequestContextHolder.resetRequestAttributes();
+        SecurityContextHolder.clearContext();
     }
 
     @Test
-    @DisplayName("限流检查 - 超过阈值抛出异常")
+    @DisplayName("doBefore - over limit throws exception")
     void testDoBefore_OverLimit_ThrowException() throws NoSuchMethodException {
-        // Given - 准备测试数据和Mock行为
+        // Given - script rejects the request
         Method method = DemoApi.class.getDeclaredMethod("limited");
         RateLimiter rateLimiter = method.getAnnotation(RateLimiter.class);
-        when(joinPoint.getSignature()).thenReturn(methodSignature);
-        when(methodSignature.getMethod()).thenReturn(method);
-        when(stringRedisTemplate.execute(
-                any(DefaultRedisScript.class),
-                anyList(),
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(0L);
+        mockMethod(method);
+        whenScriptReturns(0L);
 
-        // When & Then - 执行被测试方法并验证异常
+        // When & Then - rate limit exception is thrown
         RateLimitException exception = assertThrows(
                 RateLimitException.class,
                 () -> rateLimiterAspect.doBefore(joinPoint, rateLimiter)
         );
-        assertEquals("访问过快", exception.getMessage());
+        assertEquals("too fast", exception.getMessage());
     }
 
     @Test
-    @DisplayName("限流脚本 - Redis异常时返回拒绝")
+    @DisplayName("executeSlidingWindowScript - Redis exception returns reject code")
     void testExecuteSlidingWindowScript_RedisException_ReturnZero() {
-        // Given - 准备测试数据和Mock行为
+        // Given - Redis command fails
         when(stringRedisTemplate.execute(
                 any(DefaultRedisScript.class),
                 anyList(),
@@ -85,75 +81,80 @@ class RateLimiterAspectTest {
                 anyString()
         )).thenThrow(new RuntimeException("redis down"));
 
-        // When - 执行被测试方法
+        // When - executing script
         Long result = rateLimiterAspect.executeSlidingWindowScript("rate:test", 10L, 1L);
 
-        // Then - 验证结果
+        // Then - request is rejected
         assertEquals(0L, result);
     }
 
     @Test
-    @DisplayName("限流Key - 按IP使用转发头首个地址")
+    @DisplayName("rate key - IP type uses first forwarded IP")
     void testDoBefore_IpType_UseForwardedForFirstIp() throws NoSuchMethodException {
-        // Given - 准备测试数据和Mock行为
+        // Given - forwarded IP header
         Method method = DemoApi.class.getDeclaredMethod("ipLimited");
         RateLimiter rateLimiter = method.getAnnotation(RateLimiter.class);
         bindRequest("X-Forwarded-For", "10.0.0.1, 10.0.0.2", null);
-        when(joinPoint.getSignature()).thenReturn(methodSignature);
-        when(methodSignature.getMethod()).thenReturn(method);
-        whenScriptAllowed();
+        mockMethod(method);
+        whenScriptReturns(1L);
 
-        // When - 执行被测试方法
+        // When - checking rate limit
         rateLimiterAspect.doBefore(joinPoint, rateLimiter);
 
-        // Then - 验证限流key包含首个转发IP
+        // Then - key uses first IP
         assertCapturedKeyEquals("rate_limit:" + DemoApi.class.getName() + ":ipLimited:ip:10.0.0.1");
     }
 
     @Test
-    @DisplayName("限流Key - 按用户优先使用请求头用户ID")
-    void testDoBefore_UserType_UseHeaderUserId() throws NoSuchMethodException {
-        // Given - 准备测试数据和Mock行为
+    @DisplayName("rate key - USER type uses security context principal")
+    void testDoBefore_UserType_UseSecurityContextUserId() throws NoSuchMethodException {
+        // Given - spoofed header and authenticated principal
         Method method = DemoApi.class.getDeclaredMethod("userLimited");
         RateLimiter rateLimiter = method.getAnnotation(RateLimiter.class);
-        bindRequest("X-User-Id", "u1001", null);
-        when(joinPoint.getSignature()).thenReturn(methodSignature);
-        when(methodSignature.getMethod()).thenReturn(method);
-        whenScriptAllowed();
+        bindRequest("X-User-Id", "spoofed-user", null);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("u1001", null)
+        );
+        mockMethod(method);
+        whenScriptReturns(1L);
 
-        // When - 执行被测试方法
+        // When - checking rate limit
         rateLimiterAspect.doBefore(joinPoint, rateLimiter);
 
-        // Then - 验证限流key包含用户ID
+        // Then - key ignores spoofed header and uses authenticated user
         assertCapturedKeyEquals("rate_limit:" + DemoApi.class.getName() + ":userLimited:user:u1001");
     }
 
     @Test
-    @DisplayName("重复提交限流 - 使用RepeatLimit注解执行")
+    @DisplayName("repeat limit - annotation path executes script")
     void testDoBeforeRepeat_Allowed_ExecuteScript() throws NoSuchMethodException {
-        // Given - 准备测试数据和Mock行为
+        // Given - RepeatLimit annotation
         Method method = DemoApi.class.getDeclaredMethod("repeatLimited");
         RepeatLimit repeatLimit = method.getAnnotation(RepeatLimit.class);
         bindRequest("X-Forwarded-For", "127.0.0.1", null);
-        when(joinPoint.getSignature()).thenReturn(methodSignature);
-        when(methodSignature.getMethod()).thenReturn(method);
-        whenScriptAllowed();
+        mockMethod(method);
+        whenScriptReturns(1L);
 
-        // When - 执行被测试方法
+        // When - checking repeat limit
         rateLimiterAspect.doBeforeRepeat(joinPoint, repeatLimit);
 
-        // Then - 验证脚本被执行
+        // Then - script is executed with repeat key
         assertCapturedKeyEquals("repeat_limit:" + DemoApi.class.getName() + ":repeatLimited:ip:127.0.0.1");
     }
 
-    private void whenScriptAllowed() {
+    private void mockMethod(Method method) {
+        when(joinPoint.getSignature()).thenReturn(methodSignature);
+        when(methodSignature.getMethod()).thenReturn(method);
+    }
+
+    private void whenScriptReturns(Long result) {
         when(stringRedisTemplate.execute(
                 any(DefaultRedisScript.class),
                 anyList(),
                 anyString(),
                 anyString(),
                 anyString()
-        )).thenReturn(1L);
+        )).thenReturn(result);
     }
 
     private void bindRequest(String headerName, String headerValue, String userIdParam) {
@@ -181,7 +182,7 @@ class RateLimiterAspectTest {
     }
 
     private static class DemoApi {
-        @RateLimiter(limit = 1, window = 5, message = "访问过快", type = RateLimiter.LimitType.METHOD)
+        @RateLimiter(limit = 1, window = 5, message = "too fast", type = RateLimiter.LimitType.METHOD)
         void limited() {
         }
 

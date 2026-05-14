@@ -113,6 +113,23 @@ class FileStorageServiceImplTest {
         assertTrue(exception.getMessage().contains("文件名不合法"));
     }
 
+    @Test
+    @DisplayName("store file - unsupported extension throws exception")
+    void testStore_UnsupportedExtension_ThrowException() {
+        // Given - a file type outside the upload allowlist
+        FileStorageServiceImpl fileStorageService = createService();
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "shell.jsp",
+                "text/plain",
+                "bad".getBytes(StandardCharsets.UTF_8)
+        );
+
+        // When & Then - unsupported file types are rejected
+        BusinessException exception = assertThrows(BusinessException.class, () -> fileStorageService.store(file));
+        assertNotNull(exception.getMessage());
+    }
+
     private FileStorageServiceImpl createService() {
         FileStorageServiceImpl fileStorageService = new FileStorageServiceImpl();
         ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());

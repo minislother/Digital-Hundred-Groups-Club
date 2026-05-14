@@ -8,8 +8,10 @@ import com.chinahitech.shop.service.ActivityService;
 import com.chinahitech.shop.service.FileStorageService;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -164,17 +166,19 @@ public class ActivityController {
 
     @RepeatLimit
     @PostMapping("/applyJoin")
-    public Result applyJoin(Integer activityId, Integer studentId) {
-        if (activityId == null || studentId == null) {
+    public Result applyJoin(Integer activityId, Authentication authentication) {
+        if (activityId == null) {
             throw new BusinessException("PARAM_ERROR", "参数不能为空");
         }
+        Integer studentId = currentStudentId(authentication);
         activityService.applyJoin(activityId, studentId);
         return Result.ok().message("报名申请已提交");
     }
 
     @RepeatLimit
     @PostMapping("/myJoinedActivities")
-    public Result myJoinedActivities(Integer studentId, Integer pageNum, Integer pageSize) {
+    public Result myJoinedActivities(Integer pageNum, Integer pageSize, Authentication authentication) {
+        Integer studentId = currentStudentId(authentication);
         List<Activity> list = activityService.getMyJoinedActivities(studentId);
         return PageUtils.ok("items", list, pageNum, pageSize);
     }
@@ -197,5 +201,13 @@ public class ActivityController {
         Map<String, String> response = new HashMap<>();
         response.put("fileUrl", storedFile.getFileUrl());
         return response;
+    }
+
+    private Integer currentStudentId(Authentication authentication) {
+        try {
+            return Integer.valueOf(SecurityUtils.currentUserId(authentication));
+        } catch (NumberFormatException e) {
+            throw new BusinessException("PARAM_ERROR", "鐢ㄦ埛缂栧彿涓嶅悎娉?");
+        }
     }
 }

@@ -7,7 +7,9 @@ import com.chinahitech.shop.bean.notAddedToDatabase.ActivityNum;
 import com.chinahitech.shop.service.IndividualActivityService;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,14 +25,16 @@ public class IndividualActivityController {
 
     @RepeatLimit
     @RequestMapping("/allActivities")
-    public Result getIndividualActivity(String studentId, Integer pageNum, Integer pageSize) {
+    public Result getIndividualActivity(Integer pageNum, Integer pageSize, Authentication authentication) {
+        String studentId = SecurityUtils.currentUserId(authentication);
         List<IndividualActivity> list = individualActivityService.getActivityByStuIdCached(studentId);
         return PageUtils.ok("items", list, pageNum, pageSize);
     }
 
     @RepeatLimit
     @PostMapping("/joinActivity")
-    public Result joinActivity(int activityId, String studentId) {
+    public Result joinActivity(int activityId, Authentication authentication) {
+        String studentId = SecurityUtils.currentUserId(authentication);
         individualActivityService.joinActivityAndNotify(activityId, studentId);
         return Result.ok().message("申请提交成功，请等待管理员审核");
     }

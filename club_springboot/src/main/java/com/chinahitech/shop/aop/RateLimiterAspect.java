@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -113,15 +115,10 @@ public class RateLimiterAspect {
     }
 
     private String getCurrentUserId() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().trim().isEmpty()) {
             return "anonymous";
         }
-        HttpServletRequest request = attributes.getRequest();
-        String userId = request.getHeader("X-User-Id");
-        if (userId == null || userId.trim().isEmpty()) {
-            userId = request.getParameter("userId");
-        }
-        return userId == null || userId.trim().isEmpty() ? "anonymous" : userId.trim();
+        return authentication.getName().trim();
     }
 }
