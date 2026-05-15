@@ -207,7 +207,7 @@ public class ActivityController {
         try {
             return Integer.valueOf(SecurityUtils.currentUserId(authentication));
         } catch (NumberFormatException e) {
-            throw new BusinessException("PARAM_ERROR", "鐢ㄦ埛缂栧彿涓嶅悎娉?");
+            throw new BusinessException("PARAM_ERROR", "用户编号不合法");
         }
     }
 }

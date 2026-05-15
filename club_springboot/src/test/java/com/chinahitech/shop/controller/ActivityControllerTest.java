@@ -3,6 +3,7 @@ package com.chinahitech.shop.controller;
 import com.chinahitech.shop.service.ActivityService;
 import com.chinahitech.shop.service.FileStorageService;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
@@ -59,13 +61,18 @@ class ActivityControllerTest {
     }
 
     @Test
-    @DisplayName("applyJoin - non numeric principal throws exception")
+    @DisplayName("报名活动 - 非数字用户编号抛出可读异常")
     void testApplyJoin_NonNumericPrincipal_ThrowException() {
         // Given - authenticated user with non-numeric id
         Authentication authentication = new UsernamePasswordAuthenticationToken("student-a", null);
 
         // When & Then - non-numeric id is rejected before service call
-        assertThrows(RuntimeException.class, () -> activityController.applyJoin(1, authentication));
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> activityController.applyJoin(1, authentication)
+        );
+        assertEquals("PARAM_ERROR", exception.getCode());
+        assertEquals("用户编号不合法", exception.getMessage());
         verify(activityService, never()).applyJoin(1, null);
     }
 

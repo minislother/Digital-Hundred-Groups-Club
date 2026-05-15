@@ -87,4 +87,19 @@ class IndividualGroupControllerTest {
         assertTrue(result.getSuccess());
         verify(individualGroupService).updatePermissionAndNotify(7, "1001", 2);
     }
+
+    @Test
+    @DisplayName("管理社团列表 - 使用请求中的管理员编号查询")
+    void testGetAllManagedGroups_RequestManagerId_CallService() {
+        // Given - manager id and empty managed group list
+        when(individualGroupService.getAllManagedGroupsCached("manager001"))
+                .thenReturn(Collections.emptyList());
+
+        // When - manager queries managed groups
+        Result result = individualGroupController.getAllManagedGroups("manager001", 1, 10);
+
+        // Then - service receives requested manager id
+        assertTrue(result.getSuccess());
+        verify(individualGroupService).getAllManagedGroupsCached("manager001");
+    }
 }

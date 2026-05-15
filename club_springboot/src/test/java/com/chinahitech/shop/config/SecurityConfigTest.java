@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("SecurityConfig authorization tests")
@@ -46,7 +47,8 @@ class SecurityConfigTest {
     @DisplayName("top manager register - anonymous request is rejected")
     void testTopManagerRegister_Anonymous_Unauthorized() throws Exception {
         mockMvc.perform(post("/topManager/register"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(50008));
     }
 
     @Test
@@ -99,6 +101,20 @@ class SecurityConfigTest {
     }
 
     @Test
+    @DisplayName("管理活动列表 - 管理员令牌允许访问")
+    void testIndividualActivityManagedActivities_ManagerToken_Ok() throws Exception {
+        mockMvc.perform(post("/individualActivity/allManagedActivities").header("X-Token", token(JwtUtils.ROLE_MANAGER)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("学生自助社团列表 - 管理员令牌禁止访问")
+    void testIndividualGroupAllGroups_ManagerToken_Forbidden() throws Exception {
+        mockMvc.perform(post("/individualGroup/allGroups").header("X-Token", token(JwtUtils.ROLE_MANAGER)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("top manager audit - top manager token is allowed")
     void testActivityAccept_TopManagerToken_Ok() throws Exception {
         mockMvc.perform(post("/activity/accept").header("X-Token", token(JwtUtils.ROLE_TOP_MANAGER)))
@@ -117,6 +133,20 @@ class SecurityConfigTest {
     void testPrivateUploadFile_Anonymous_Unauthorized() throws Exception {
         mockMvc.perform(get("/upload/users.xlsx"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("公开上传图片 - 匿名请求允许访问")
+    void testPublicUploadImage_Anonymous_Ok() throws Exception {
+        mockMvc.perform(get("/upload/logo.png"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("私有上传附件 - 管理员令牌允许访问")
+    void testPrivateUploadFile_ManagerToken_Ok() throws Exception {
+        mockMvc.perform(get("/upload/users.xlsx").header("X-Token", token(JwtUtils.ROLE_MANAGER)))
+                .andExpect(status().isOk());
     }
 
     private String token(String role) {
@@ -172,8 +202,23 @@ class SecurityConfigTest {
             return "ok";
         }
 
+        @PostMapping(value = "/individualActivity/allManagedActivities", produces = MediaType.TEXT_PLAIN_VALUE)
+        String individualActivityAllManagedActivities() {
+            return "ok";
+        }
+
+        @PostMapping(value = "/individualGroup/allGroups", produces = MediaType.TEXT_PLAIN_VALUE)
+        String individualGroupAllGroups() {
+            return "ok";
+        }
+
         @GetMapping(value = "/upload/users.xlsx", produces = MediaType.TEXT_PLAIN_VALUE)
         String privateUploadFile() {
+            return "ok";
+        }
+
+        @GetMapping(value = "/upload/logo.png", produces = MediaType.TEXT_PLAIN_VALUE)
+        String publicUploadImage() {
             return "ok";
         }
     }

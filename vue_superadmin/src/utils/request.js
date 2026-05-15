@@ -70,11 +70,29 @@ service.interceptors.response.use(
     }
   },
   error => {
+    const response = error.response || {}
+    const data = response.data || {}
+    const code = data.code
+    const message = data.message || error.message
+
     Message({
-      message: error.message,
+      message: message,
       type: 'error',
       duration: 5 * 1000
     })
+
+    if (response.status === 401 || code === 50008 || code === 50012 || code === 50014) {
+      MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
+        confirmButtonText: 'Re-Login',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        store.dispatch('user/resetToken').then(() => {
+          location.reload()
+        })
+      })
+    }
+
     return Promise.reject(error)
   }
 )

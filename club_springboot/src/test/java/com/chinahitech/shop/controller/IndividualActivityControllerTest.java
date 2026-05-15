@@ -87,4 +87,19 @@ class IndividualActivityControllerTest {
         assertTrue(result.getSuccess());
         verify(individualActivityService).denyApplicationAndNotify(9, "1001");
     }
+
+    @Test
+    @DisplayName("管理活动列表 - 使用请求中的管理员编号查询")
+    void testGetAllManagedActivities_RequestManagerId_CallService() {
+        // Given - manager id and empty managed activity list
+        when(individualActivityService.getAllManagedActivitiesCached("manager001"))
+                .thenReturn(Collections.emptyList());
+
+        // When - manager queries managed activities
+        Result result = individualActivityController.getAllManagedActivities("manager001", 1, 10);
+
+        // Then - service receives requested manager id
+        assertTrue(result.getSuccess());
+        verify(individualActivityService).getAllManagedActivitiesCached("manager001");
+    }
 }
