@@ -12,15 +12,16 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 @RestController
 public class WeatherController {
+    /**
+     * 调用高德天气接口获取当前城市天气，并返回天气、温度和穿衣/防晒提示。
+     */
     @RequestMapping("/getWeather")
     public Result getWeather() {
         String url = "https://restapi.amap.com/v3/weather/weatherInfo?city=440402&key=76bb5f7e39f7b4b1c497bbad05bc44aa";
         String s = HttpsUtil.get(url);
-//        System.out.println(s);
         JSONObject object = JSONObject.parseObject(s);
         WeatherModel jb = (WeatherModel)JSONObject.toJavaObject(object, WeatherModel.class);
         LivesModel livesModel = jb.getLives().get(0);
-//        System.out.println(livesModel);
         int c =Integer.valueOf(livesModel.getTemperature());
         SimpleDateFormat dateFm = new SimpleDateFormat("EEEE");
         String currSun = dateFm.format(new Date());
@@ -38,7 +39,6 @@ public class WeatherController {
                 "温度: "+ livesModel.getTemperature()+"  "+remark+"\n"+
                 "风向: "+ livesModel.getWinddirection()+"风"+"\n"+
                 "风级: "+livesModel.getWindpower();
-//        System.out.println(zong);
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("weather", livesModel.getWeather());
         responseData.put("temperature", livesModel.getTemperature());

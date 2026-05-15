@@ -29,6 +29,9 @@ public class StuAppController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    /**
+     * 查询全部学生入团申请，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/all")
     public Result getAll(Integer pageNum, Integer pageSize) {
@@ -36,6 +39,9 @@ public class StuAppController {
         return PageUtils.ok("items", stuApps, pageNum, pageSize);
     }
 
+    /**
+     * 学生端查询本人提交的入团申请记录，并分页返回。
+     */
     @RepeatLimit
     @PostMapping("/myApps")
     public Result getMyApps(String stuNumber, Integer pageNum, Integer pageSize) {
@@ -43,6 +49,9 @@ public class StuAppController {
         return PageUtils.ok("items", stuApps, pageNum, pageSize);
     }
 
+    /**
+     * 学生提交入团申请表。
+     */
     @RepeatLimit
     @PostMapping("/submit")
     public Result submit(@RequestBody StuApp stuApp) {
@@ -50,6 +59,9 @@ public class StuAppController {
         return Result.ok();
     }
 
+    /**
+     * 社团管理员查询本社团收到的入团申请，并分页返回。
+     */
     @RepeatLimit
     @PostMapping("/recApps")
     public Result getRecApps(String groupName, Integer pageNum, Integer pageSize) {
@@ -57,6 +69,9 @@ public class StuAppController {
         return PageUtils.ok("items", stuApps, pageNum, pageSize);
     }
 
+    /**
+     * 查询单条入团申请详情，并返回该申请当前审批状态。
+     */
     @RepeatLimit
     @PostMapping("/recApp")
     public Result getRecApp(Integer id) {
@@ -65,6 +80,9 @@ public class StuAppController {
         return Result.ok().data("items", stuApp).data("isAccepted", isAcceptedStr);
     }
 
+    /**
+     * 更新指定入团申请的附件地址。
+     */
     @RepeatLimit
     @PostMapping("/updateAttachment")
     public Result updateAttachment(@RequestParam("applicationId") int applicationId,
@@ -73,6 +91,9 @@ public class StuAppController {
         return Result.ok().data("applicationId", applicationId).data("attachment", attachmentUrl);
     }
 
+    /**
+     * 上传入团申请附件压缩包，只允许 zip 类型文件。
+     */
     @RepeatLimit
     @PostMapping("/uploadZip")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -89,6 +110,9 @@ public class StuAppController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 社团管理员通过入团申请。
+     */
     @RepeatLimit
     @PostMapping("/accept")
     public Result acceptApplication(Integer applicationId) {
@@ -96,6 +120,9 @@ public class StuAppController {
         return Result.ok();
     }
 
+    /**
+     * 社团管理员拒绝入团申请。
+     */
     @RepeatLimit
     @PostMapping("/reject")
     public Result rejectApplication(Integer applicationId) {

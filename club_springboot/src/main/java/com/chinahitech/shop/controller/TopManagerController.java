@@ -41,6 +41,9 @@ public class TopManagerController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    /**
+     * 超级管理员登录，校验账号密码并返回 JWT token。
+     */
     @RepeatLimit
     @PostMapping("/login")
     public Result login(String userId, String password) {
@@ -51,6 +54,9 @@ public class TopManagerController {
         return Result.ok().data("token", token);
     }
 
+    /**
+     * 注册超级管理员账号。
+     */
     @RepeatLimit
     @PostMapping("/register")
     public Result register(@RequestBody RegisterUser user) {
@@ -58,6 +64,9 @@ public class TopManagerController {
         return Result.ok().message("注册成功");
     }
 
+    /**
+     * 根据超级管理员编号发送账号关联邮箱，并返回邮箱地址。
+     */
     @RepeatLimit
     @PostMapping("/getEmail")
     public Result getEmail(String userNumber) throws Exception {
@@ -65,6 +74,9 @@ public class TopManagerController {
         return Result.ok().data("email", email);
     }
 
+    /**
+     * 校验邮箱验证码是否正确。
+     */
     @RepeatLimit
     @PostMapping("/getValidate")
     public Result getValidate(String email, String validateCode) {
@@ -72,6 +84,9 @@ public class TopManagerController {
         return Result.ok().message("验证成功");
     }
 
+    /**
+     * 向指定邮箱发送验证码。
+     */
     @RepeatLimit
     @PostMapping("/validateEmail")
     public Result validateEmail(String email) throws Exception {
@@ -79,6 +94,9 @@ public class TopManagerController {
         return Result.ok().message("验证码已发送");
     }
 
+    /**
+     * 当前登录超级管理员修改自己的登录密码。
+     */
     @RepeatLimit
     @PostMapping("/modifyPass")
     public Result modifyPassword(String userId, String password, Authentication authentication) {
@@ -87,6 +105,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录超级管理员修改自己的手机号。
+     */
     @RepeatLimit
     @PostMapping("/modifyPhone")
     public Result modifyPhone(String userId, String phone, Authentication authentication) {
@@ -95,6 +116,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录超级管理员修改自己的个人简介。
+     */
     @RepeatLimit
     @PostMapping("/modifyDescription")
     public Result modifyDescription(String userId, String description, Authentication authentication) {
@@ -103,6 +127,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录超级管理员修改自己的昵称。
+     */
     @RepeatLimit
     @PostMapping("/modifyNickname")
     public Result modifyNickname(String userId, String nickname, Authentication authentication) {
@@ -111,6 +138,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录超级管理员修改自己的校区、学院和专业信息。
+     */
     @RepeatLimit
     @PostMapping("/modifyMajor")
     public Result modifyMajor(String userId, String campus, String school, String major, Authentication authentication) {
@@ -119,6 +149,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录超级管理员查询自己的个人资料。
+     */
     @RepeatLimit
     @PostMapping("/profile")
     public Result getProfile(String userId, Authentication authentication) {
@@ -127,6 +160,9 @@ public class TopManagerController {
         return Result.ok().data("user", user);
     }
 
+    /**
+     * 根据请求头 token 解析当前超级管理员身份，返回前端需要的用户名和头像信息。
+     */
     @RepeatLimit
     @GetMapping("/info")
     public Result info(@RequestHeader(value = "X-Token", required = false) String xToken,
@@ -137,12 +173,18 @@ public class TopManagerController {
         return Result.ok().data("name", username).data("avatar", url);
     }
 
+    /**
+     * 超级管理员退出登录，前端收到成功响应后清理本地 token。
+     */
     @RepeatLimit
     @PostMapping("/logout")
     public Result logout() {
         return Result.ok();
     }
 
+    /**
+     * 超级管理员手动新增用户账号。
+     */
     @RepeatLimit
     @PostMapping("/addUser")
     public Result addUser(@RequestBody RegisterUser user) {
@@ -150,6 +192,9 @@ public class TopManagerController {
         return Result.ok().message("添加成功");
     }
 
+    /**
+     * 超级管理员查询全部用户列表，支持搜索和分页。
+     */
     @RepeatLimit
     @RequestMapping("/getAllUsers")
     public Result getAllUsers(String searchInfo, Integer pageNum, Integer pageSize) {
@@ -157,6 +202,9 @@ public class TopManagerController {
         return PageUtils.ok("items", users, pageNum, pageSize);
     }
 
+    /**
+     * 超级管理员修改指定用户的基础资料。
+     */
     @RepeatLimit
     @PostMapping("/modifyUserInfo")
     public Result modifyUserInfo(@RequestBody User user) {
@@ -164,6 +212,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 超级管理员删除指定用户账号。
+     */
     @RepeatLimit
     @RequestMapping("/deleteUser")
     public Result deleteUser(@RequestBody User user) {
@@ -171,6 +222,9 @@ public class TopManagerController {
         return Result.ok();
     }
 
+    /**
+     * 超级管理员上传用户 Excel 文件，并将批量导入任务加入后台处理队列。
+     */
     @RepeatLimit
     @PostMapping("/uploadExcel")
     public ResponseEntity<Map<String, String>> uploadExcel(@RequestParam("file") MultipartFile file) {
@@ -183,6 +237,9 @@ public class TopManagerController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 下载已上传的 Excel 文件，文件名必须是 xls 或 xlsx 后缀。
+     */
     @GetMapping("/downloadExcel")
     public void downloadExcel(String fileName, HttpServletResponse response) throws IOException {
         if (!isExcelFile(fileName)) {

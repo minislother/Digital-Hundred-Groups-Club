@@ -30,6 +30,9 @@ public class InspectionController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    /**
+     * 社团管理员查询本社团的年审记录，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/findAllByGroup")
     public Result findAllByGroup(String groupName, Integer pageNum, Integer pageSize) {
@@ -37,6 +40,9 @@ public class InspectionController {
         return PageUtils.ok("items", inspections, pageNum, pageSize);
     }
 
+    /**
+     * 社团管理员按年份查询本社团的年审记录，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/findAllByGroupAndYear")
     public Result findAllByGroupAndYear(String groupName, Year year, Integer pageNum, Integer pageSize) {
@@ -44,6 +50,9 @@ public class InspectionController {
         return PageUtils.ok("items", inspections, pageNum, pageSize);
     }
 
+    /**
+     * 社团管理员提交新的年审材料记录。
+     */
     @RepeatLimit
     @PostMapping("/addInspection")
     public Result addInspection(Inspection inspection) {
@@ -51,6 +60,9 @@ public class InspectionController {
         return Result.ok();
     }
 
+    /**
+     * 社团管理员修改年审材料中的附件信息。
+     */
     @RepeatLimit
     @PostMapping("/modifyInfo")
     public Result modifyInfo(Inspection inspection) {
@@ -58,6 +70,9 @@ public class InspectionController {
         return Result.ok();
     }
 
+    /**
+     * 上传年审附件压缩包，返回文件可访问地址。
+     */
     @RepeatLimit
     @PostMapping("/uploadZip")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -67,6 +82,9 @@ public class InspectionController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 将已上传的附件地址绑定到指定年审记录。
+     */
     @RepeatLimit
     @PostMapping("/submitZip")
     public ResponseEntity<Map<String, String>> submitZip(@RequestParam("inspectionId") int inspectionId,
@@ -79,6 +97,9 @@ public class InspectionController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 根据年审记录 ID 查询附件地址，供前端下载或展示附件入口。
+     */
     @RepeatLimit
     @PostMapping("/getAttachment")
     public ResponseEntity<Map<String, Object>> getAttachment(@RequestParam("id") int id) {
@@ -89,6 +110,9 @@ public class InspectionController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 超级管理员查询全部年审记录，支持搜索和分页。
+     */
     @RepeatLimit
     @RequestMapping("/all")
     public Result findAll(String searchInfo, Integer pageNum, Integer pageSize) {
@@ -96,6 +120,9 @@ public class InspectionController {
         return PageUtils.ok("items", inspections, pageNum, pageSize);
     }
 
+    /**
+     * 超级管理员按年份查询全部年审记录，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/findAllByYear")
     public Result findAllByYear(Year year, Integer pageNum, Integer pageSize) {
@@ -103,6 +130,9 @@ public class InspectionController {
         return PageUtils.ok("items", inspections, pageNum, pageSize);
     }
 
+    /**
+     * 超级管理员为年审记录填写反馈意见。
+     */
     @RepeatLimit
     @PostMapping("/addFeedback")
     public Result addFeedback(@RequestBody Inspection inspection) {
@@ -110,6 +140,9 @@ public class InspectionController {
         return Result.ok();
     }
 
+    /**
+     * 超级管理员通过年审申请。
+     */
     @RepeatLimit
     @PostMapping("/accept")
     public Result accept(int inspectionId) {
@@ -117,6 +150,9 @@ public class InspectionController {
         return Result.ok();
     }
 
+    /**
+     * 超级管理员拒绝年审申请。
+     */
     @RepeatLimit
     @PostMapping("/reject")
     public Result reject(int inspectionId) {

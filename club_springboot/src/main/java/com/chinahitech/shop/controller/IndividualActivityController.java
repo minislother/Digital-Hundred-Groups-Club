@@ -29,6 +29,9 @@ public class IndividualActivityController {
     @Autowired
     private IndividualActivityService individualActivityService;
 
+    /**
+     * 查询当前登录学生已加入或已报名的活动，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/allActivities")
     public Result getIndividualActivity(Integer pageNum, Integer pageSize, Authentication authentication) {
@@ -37,6 +40,9 @@ public class IndividualActivityController {
         return PageUtils.ok("items", list, pageNum, pageSize);
     }
 
+    /**
+     * 当前登录学生申请报名指定活动。
+     */
     @RepeatLimit
     @PostMapping("/joinActivity")
     public Result joinActivity(int activityId, Authentication authentication) {
@@ -45,6 +51,9 @@ public class IndividualActivityController {
         return Result.ok().message("申请提交成功，请等待管理员审核");
     }
 
+    /**
+     * 管理端查询指定活动的正式成员列表，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/getAllStudents")
     public Result getStudentsByActivity(int activityId, Integer pageNum, Integer pageSize) {
@@ -52,6 +61,9 @@ public class IndividualActivityController {
         return PageUtils.ok("items", list, pageNum, pageSize);
     }
 
+    /**
+     * 管理端查询指定活动的待审核报名申请列表，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/getAllApplyStudents")
     public Result getAllApplyStudents(int activityId, Integer pageNum, Integer pageSize) {
@@ -59,6 +71,9 @@ public class IndividualActivityController {
         return PageUtils.ok("items", list, pageNum, pageSize);
     }
 
+    /**
+     * 管理端直接向活动中添加成员，并指定该成员在活动中的职务。
+     */
     @RepeatLimit
     @RequestMapping("/addActivityStudent")
     public Result addActivityStudent(int activityId, String studentId, String position, Authentication authentication) {
@@ -67,6 +82,9 @@ public class IndividualActivityController {
         return Result.ok().message("添加成功");
     }
 
+    /**
+     * 管理端修改活动成员在活动中的职务。
+     */
     @RepeatLimit
     @RequestMapping("/modifyGroupStudent")
     public Result modifyGroupStudent(int activityId, String studentId, String position, Authentication authentication) {
@@ -75,6 +93,9 @@ public class IndividualActivityController {
         return Result.ok().message("修改成功");
     }
 
+    /**
+     * 管理端将指定学生从活动成员列表中移除。
+     */
     @RepeatLimit
     @RequestMapping("/deleteActivityStudent")
     public Result deleteActivityStudent(int activityId, String studentId, Authentication authentication) {
@@ -83,6 +104,9 @@ public class IndividualActivityController {
         return Result.ok().message("删除成功");
     }
 
+    /**
+     * 查询当前登录管理员负责的活动列表，并分页返回。
+     */
     @RepeatLimit
     @RequestMapping("/allManagedActivities")
     public Result getAllManagedActivities(Integer pageNum, Integer pageSize, Authentication authentication) {
@@ -92,6 +116,9 @@ public class IndividualActivityController {
         return PageUtils.ok("items", activityList, pageNum, pageSize);
     }
 
+    /**
+     * 管理端通过学生的活动报名申请。
+     */
     @RepeatLimit
     @PostMapping("/accept")
     public Result acceptApplication(int activityId, String studentId, Authentication authentication) {
@@ -101,6 +128,9 @@ public class IndividualActivityController {
         return Result.ok().message("审批通过");
     }
 
+    /**
+     * 管理端拒绝学生的活动报名申请。
+     */
     @RepeatLimit
     @PostMapping("/reject")
     public Result rejectApplication(int activityId, String studentId, Authentication authentication) {
@@ -109,6 +139,9 @@ public class IndividualActivityController {
         return Result.ok().message("已拒绝");
     }
 
+    /**
+     * 查询活动成员数排名统计，供数据展示使用。
+     */
     @RepeatLimit
     @RequestMapping("/getActivityMembers")
     public Result getActivityMembers() {

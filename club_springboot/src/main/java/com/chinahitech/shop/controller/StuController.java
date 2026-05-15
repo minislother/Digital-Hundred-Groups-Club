@@ -22,6 +22,9 @@ public class StuController {
     @Autowired
     private StuService stuService;
 
+    /**
+     * 学生登录，校验学号和密码并返回 JWT token。
+     */
     @RepeatLimit
     @PostMapping("/login")
     public Result login(String stuNumber, String password) {
@@ -32,6 +35,9 @@ public class StuController {
         return Result.ok().data("token", token);
     }
 
+    /**
+     * 注册学生账号。
+     */
     @RepeatLimit
     @PostMapping("/register")
     public Result register(@RequestBody RegisterUser student) {
@@ -39,6 +45,9 @@ public class StuController {
         return Result.ok().message("注册成功");
     }
 
+    /**
+     * 根据学号发送账号关联邮箱，并返回邮箱地址。
+     */
     @RepeatLimit
     @PostMapping("/getEmail")
     public Result getEmail(String stuNumber) throws Exception {
@@ -46,6 +55,9 @@ public class StuController {
         return Result.ok().data("email", email);
     }
 
+    /**
+     * 校验邮箱验证码是否正确。
+     */
     @RepeatLimit
     @PostMapping("/getValidate")
     public Result getValidate(String email, String validateCode) {
@@ -53,6 +65,9 @@ public class StuController {
         return Result.ok().message("验证成功");
     }
 
+    /**
+     * 向指定邮箱发送验证码。
+     */
     @RepeatLimit
     @PostMapping("/validateEmail")
     public Result validateEmail(String email) throws Exception {
@@ -60,6 +75,9 @@ public class StuController {
         return Result.ok().message("验证码已发送");
     }
 
+    /**
+     * 当前登录学生修改自己的登录密码。
+     */
     @RepeatLimit
     @PostMapping("/modifyPass")
     public Result modifyPassword(String stuNumber, String password, Authentication authentication) {
@@ -68,6 +86,9 @@ public class StuController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录学生修改自己的手机号。
+     */
     @RepeatLimit
     @PostMapping("/modifyPhone")
     public Result modifyPhone(String stuNumber, String phone, Authentication authentication) {
@@ -76,6 +97,9 @@ public class StuController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录学生修改自己的个人简介。
+     */
     @RepeatLimit
     @PostMapping("/modifyDescription")
     public Result modifyDescription(String stuNumber, String description, Authentication authentication) {
@@ -84,6 +108,9 @@ public class StuController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录学生修改自己的昵称。
+     */
     @RepeatLimit
     @PostMapping("/modifyNickname")
     public Result modifyNickname(String stuNumber, String nickname, Authentication authentication) {
@@ -92,6 +119,9 @@ public class StuController {
         return Result.ok();
     }
 
+    /**
+     * 当前登录学生查询自己的个人资料。
+     */
     @RepeatLimit
     @PostMapping("/profile")
     public Result getProfile(String stuNumber, Authentication authentication) {
@@ -100,6 +130,9 @@ public class StuController {
         return Result.ok().data("student", student);
     }
 
+    /**
+     * 根据请求头 token 解析当前学生身份，返回前端需要的用户名和头像信息。
+     */
     @RepeatLimit
     @GetMapping("/info")
     public Result info(@RequestHeader(value = "X-Token", required = false) String xToken,
@@ -110,6 +143,9 @@ public class StuController {
         return Result.ok().data("name", username).data("avatar", url);
     }
 
+    /**
+     * 学生退出登录，前端收到成功响应后清理本地 token。
+     */
     @RepeatLimit
     @PostMapping("/logout")
     public Result logout() {
