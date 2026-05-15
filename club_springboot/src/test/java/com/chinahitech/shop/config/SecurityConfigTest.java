@@ -57,6 +57,20 @@ class SecurityConfigTest {
     }
 
     @Test
+    @DisplayName("admin group audit - student token is forbidden")
+    void testGroupAccept_StudentToken_Forbidden() throws Exception {
+        mockMvc.perform(post("/group/accept").header("X-Token", token(JwtUtils.ROLE_STUDENT)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("group permission update - student token is forbidden")
+    void testIndividualGroupUpdatePermission_StudentToken_Forbidden() throws Exception {
+        mockMvc.perform(post("/individualGroup/updatePermission").header("X-Token", token(JwtUtils.ROLE_STUDENT)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("top manager add user - manager token is forbidden")
     void testTopManagerAddUser_ManagerToken_Forbidden() throws Exception {
         mockMvc.perform(post("/topManager/addUser").header("X-Token", token(JwtUtils.ROLE_MANAGER)))
@@ -71,9 +85,30 @@ class SecurityConfigTest {
     }
 
     @Test
+    @DisplayName("manager group detail - manager token is allowed")
+    void testGroupManagerDetail_ManagerToken_Ok() throws Exception {
+        mockMvc.perform(post("/group/managerDetail").header("X-Token", token(JwtUtils.ROLE_MANAGER)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("managed group list - manager token is allowed")
+    void testIndividualGroupManagedGroups_ManagerToken_Ok() throws Exception {
+        mockMvc.perform(post("/individualGroup/allManagedGroups").header("X-Token", token(JwtUtils.ROLE_MANAGER)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("top manager audit - top manager token is allowed")
     void testActivityAccept_TopManagerToken_Ok() throws Exception {
         mockMvc.perform(post("/activity/accept").header("X-Token", token(JwtUtils.ROLE_TOP_MANAGER)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("top manager group audit - top manager token is allowed")
+    void testGroupAccept_TopManagerToken_Ok() throws Exception {
+        mockMvc.perform(post("/group/accept").header("X-Token", token(JwtUtils.ROLE_TOP_MANAGER)))
                 .andExpect(status().isOk());
     }
 
@@ -114,6 +149,26 @@ class SecurityConfigTest {
 
         @PostMapping(value = "/activity/managerDetail", produces = MediaType.TEXT_PLAIN_VALUE)
         String activityManagerDetail() {
+            return "ok";
+        }
+
+        @PostMapping(value = "/group/accept", produces = MediaType.TEXT_PLAIN_VALUE)
+        String groupAccept() {
+            return "ok";
+        }
+
+        @PostMapping(value = "/group/managerDetail", produces = MediaType.TEXT_PLAIN_VALUE)
+        String groupManagerDetail() {
+            return "ok";
+        }
+
+        @PostMapping(value = "/individualGroup/updatePermission", produces = MediaType.TEXT_PLAIN_VALUE)
+        String individualGroupUpdatePermission() {
+            return "ok";
+        }
+
+        @PostMapping(value = "/individualGroup/allManagedGroups", produces = MediaType.TEXT_PLAIN_VALUE)
+        String individualGroupAllManagedGroups() {
             return "ok";
         }
 
