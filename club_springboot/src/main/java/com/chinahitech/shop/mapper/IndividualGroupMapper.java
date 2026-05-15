@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface IndividualGroupMapper {
 
-    // Student side
+    // 学生端：查询学生社团关系、检查重复申请、写入入团申请。
     List<IndividualGroup> getGroupByStuId(@Param("studentId") String studentId);
 
     IndividualGroup checkExist(@Param("studentId") String studentId,
@@ -17,26 +17,29 @@ public interface IndividualGroupMapper {
 
     void insert(IndividualGroup individualGroup);
 
-    // Manager side
+    // 管理端：成员维护、审批和当前管理员负责的社团范围。
     List<IndividualGroup> getStudentsByGroup(@Param("groupId") int groupId,
                                              @Param("searchInfo") String searchInfo);
 
     List<IndividualGroup> getGroupApplyList(@Param("groupId") int groupId);
 
-    void updateStatus(@Param("groupId") int groupId,
-                      @Param("studentId") String studentId,
-                      @Param("status") int status);
+    int updateStatus(@Param("groupId") int groupId,
+                     @Param("studentId") String studentId,
+                     @Param("status") int status);
 
-    void updatePosition(@Param("groupId") int groupId,
-                        @Param("studentId") String studentId,
-                        @Param("position") String position);
+    int updatePosition(@Param("groupId") int groupId,
+                       @Param("studentId") String studentId,
+                       @Param("position") String position);
 
-    void delete(@Param("groupId") int groupId,
-                @Param("studentId") String studentId);
+    int delete(@Param("groupId") int groupId,
+               @Param("studentId") String studentId);
 
     List<Group> getAllManagedGroups(@Param("managerId") String managerId);
 
-    // Top manager side
+    int countManagedGroup(@Param("groupId") int groupId,
+                          @Param("managerId") String managerId);
+
+    // 超级管理员端：全量成员查询和社团人数统计。
     List<IndividualGroup> getAllStudents(@Param("searchInfo") String searchInfo);
 
     List<GroupNum> getGroupMembers();

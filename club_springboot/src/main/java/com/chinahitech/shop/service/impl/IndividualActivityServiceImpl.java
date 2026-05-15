@@ -18,6 +18,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 个人活动关系服务。
+ *
+ * <p>负责学生报名活动、管理员审批/维护活动成员、缓存失效和 MQ 通知。
+ * 管理端写操作必须先校验当前管理员是否管理目标活动。</p>
+ */
 @Service
 public class IndividualActivityServiceImpl implements IndividualActivityService {
 
@@ -121,9 +127,15 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     }
 
     @Override
+    public void addActivityStudentAndNotify(int activityId, String studentId, String position, String managerId) {
+        assertManagedActivity(activityId, managerId);
+        addActivityStudentAndNotify(activityId, studentId, position);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void modifyActivityStudent(int activityId, String studentId, String position) {
-        individualActivityMapper.updatePosition(activityId, studentId, position);
+        ensureUpdated(individualActivityMapper.updatePosition(activityId, studentId, position));
     }
 
     @Override
@@ -135,9 +147,15 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     }
 
     @Override
+    public void modifyActivityStudentAndNotify(int activityId, String studentId, String position, String managerId) {
+        assertManagedActivity(activityId, managerId);
+        modifyActivityStudentAndNotify(activityId, studentId, position);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteActivityStudent(int activityId, String studentId) {
-        individualActivityMapper.delete(activityId, studentId);
+        ensureUpdated(individualActivityMapper.delete(activityId, studentId));
     }
 
     @Override
@@ -146,6 +164,12 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         deleteActivityStudent(activityId, studentId);
         sendEvent("delete_activity_student", activityId, studentId, null);
         evictActivityStudentCache(activityId, studentId);
+    }
+
+    @Override
+    public void deleteActivityStudentAndNotify(int activityId, String studentId, String managerId) {
+        assertManagedActivity(activityId, managerId);
+        deleteActivityStudentAndNotify(activityId, studentId);
     }
 
     @Override
@@ -168,7 +192,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void confirmApplication(int activityId, String studentId) {
-        individualActivityMapper.updateStatus(activityId, studentId, 1);
+        ensureUpdated(individualActivityMapper.updateStatus(activityId, studentId, 1));
     }
 
     @Override
@@ -180,9 +204,15 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     }
 
     @Override
+    public void confirmApplicationAndNotify(int activityId, String studentId, String managerId) {
+        assertManagedActivity(activityId, managerId);
+        confirmApplicationAndNotify(activityId, studentId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void denyApplication(int activityId, String studentId) {
-        individualActivityMapper.updateStatus(activityId, studentId, -1);
+        ensureUpdated(individualActivityMapper.updateStatus(activityId, studentId, -1));
     }
 
     @Override
@@ -191,6 +221,12 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         denyApplication(activityId, studentId);
         sendEvent("reject_apply", activityId, studentId, null);
         evictActivityStudentCache(activityId, studentId);
+    }
+
+    @Override
+    public void denyApplicationAndNotify(int activityId, String studentId, String managerId) {
+        assertManagedActivity(activityId, managerId);
+        denyApplicationAndNotify(activityId, studentId);
     }
 
     @Override
@@ -214,6 +250,15 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         requireStudentId(studentId);
     }
 
+    private void assertManagedActivity(int activityId, String managerId) {
+        requireActivityId(activityId);
+        requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
+        // create_user 和 organizer 都视为该活动的合法管理员。
+        if (individualActivityMapper.countManagedActivity(activityId, managerId) <= 0) {
+            throw new BusinessException("FORBIDDEN", "\u65e0\u6743\u64cd\u4f5c\u8be5\u6d3b\u52a8");
+        }
+    }
+
     private void requireActivityId(int activityId) {
         if (activityId <= 0) {
             throw new BusinessException("PARAM_ERROR", "\u6d3b\u52a8ID\u4e0d\u5408\u6cd5");
@@ -227,6 +272,13 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     private void requireText(String value, String message) {
         if (value == null || value.trim().isEmpty()) {
             throw new BusinessException("PARAM_ERROR", message);
+        }
+    }
+
+    private void ensureUpdated(int rows) {
+        // update/delete 影响 0 行通常表示目标申请或成员关系不存在，不能返回业务成功。
+        if (rows <= 0) {
+            throw new BusinessException("NOT_FOUND", "\u672a\u627e\u5230\u53ef\u66f4\u65b0\u7684\u6d3b\u52a8\u6210\u5458\u8bb0\u5f55");
         }
     }
 

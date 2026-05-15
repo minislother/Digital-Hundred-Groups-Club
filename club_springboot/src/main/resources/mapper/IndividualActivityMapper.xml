@@ -8,7 +8,7 @@
         ia.user_id as student_id
     </sql>
 
-    <!-- Student side -->
+    <!-- 学生端：查询个人活动、检查重复报名、提交报名申请。 -->
     <select id="getActivityByStuId" resultType="com.chinahitech.shop.bean.IndividualActivity">
         select
             <include refid="IndividualActivityColumns"/>
@@ -39,7 +39,7 @@
         )
     </insert>
 
-    <!-- Manager side -->
+    <!-- 管理端：活动成员维护、报名审批和管理员资源范围校验。 -->
     <select id="getActivityByActivityId" resultType="com.chinahitech.shop.bean.IndividualActivity">
         select
             <include refid="IndividualActivityColumns"/>
@@ -76,6 +76,13 @@
            or organizer = #{managerId}
     </select>
 
+    <select id="countManagedActivity" resultType="int">
+        select count(1)
+        from activity
+        where id = #{activityId}
+          and (create_user = #{managerId} or organizer = #{managerId})
+    </select>
+
     <update id="updateStatus">
         update individual_activity
         set status = #{status}
@@ -83,7 +90,7 @@
           and user_id = #{studentId}
     </update>
 
-    <!-- Top manager side -->
+    <!-- 超级管理员端：活动人数统计。 -->
     <select id="getActivityMembers" resultType="com.chinahitech.shop.bean.notAddedToDatabase.ActivityNum">
         select
             a.id,

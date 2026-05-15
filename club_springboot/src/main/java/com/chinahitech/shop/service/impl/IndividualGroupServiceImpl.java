@@ -20,6 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 个人社团关系服务。
+ *
+ * <p>负责学生申请入团、管理员审批/维护成员、权限转让以及相关缓存失效和 MQ 通知。
+ * 管理端写操作必须先校验当前管理员是否管理目标社团。</p>
+ */
 @Service
 public class IndividualGroupServiceImpl implements IndividualGroupService {
 
@@ -62,12 +68,13 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void applyJoinGroup(int groupId, String studentId) {
-        String guardKey = groupApplyGuardKey(groupId, studentId);
-        if (!RedisUtils.setIfAbsent(guardKey, "1", APPLY_GUARD_TTL_SECONDS)) {
-            throw new BusinessException("APPLY_EXIST", "\u5df2\u7533\u8bf7\u6216\u5df2\u52a0\u5165\u8be5\u793e\u56e2");
-        }
+        // 先查数据库再写 Redis guard，避免“已存在申请”路径留下防重缓存。
         IndividualGroup exist = individualGroupMapper.checkExist(studentId, groupId);
         if (exist != null) {
+            throw new BusinessException("APPLY_EXIST", "\u5df2\u7533\u8bf7\u6216\u5df2\u52a0\u5165\u8be5\u793e\u56e2");
+        }
+        String guardKey = groupApplyGuardKey(groupId, studentId);
+        if (!RedisUtils.setIfAbsent(guardKey, "1", APPLY_GUARD_TTL_SECONDS)) {
             throw new BusinessException("APPLY_EXIST", "\u5df2\u7533\u8bf7\u6216\u5df2\u52a0\u5165\u8be5\u793e\u56e2");
         }
         IndividualGroup ig = new IndividualGroup();
@@ -128,7 +135,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void acceptJoin(int groupId, String studentId) {
-        individualGroupMapper.updateStatus(groupId, studentId, 1);
+        ensureUpdated(individualGroupMapper.updateStatus(groupId, studentId, 1));
     }
 
     @Override
@@ -140,9 +147,15 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     }
 
     @Override
+    public void acceptJoinAndNotify(int groupId, String studentId, String managerId) {
+        assertManagedGroup(groupId, managerId);
+        acceptJoinAndNotify(groupId, studentId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void rejectJoin(int groupId, String studentId) {
-        individualGroupMapper.updateStatus(groupId, studentId, -1);
+        ensureUpdated(individualGroupMapper.updateStatus(groupId, studentId, -1));
     }
 
     @Override
@@ -151,6 +164,12 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         rejectJoin(groupId, studentId);
         sendEvent("reject_group_apply", groupId, studentId, null);
         evictGroupStudentCache(groupId, studentId);
+    }
+
+    @Override
+    public void rejectJoinAndNotify(int groupId, String studentId, String managerId) {
+        assertManagedGroup(groupId, managerId);
+        rejectJoinAndNotify(groupId, studentId);
     }
 
     @Override
@@ -173,9 +192,15 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     }
 
     @Override
+    public void addGroupStudentAndNotify(int groupId, String studentId, String position, String managerId) {
+        assertManagedGroup(groupId, managerId);
+        addGroupStudentAndNotify(groupId, studentId, position);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void modifyGroupStudent(int groupId, String studentId, String position) {
-        individualGroupMapper.updatePosition(groupId, studentId, position);
+        ensureUpdated(individualGroupMapper.updatePosition(groupId, studentId, position));
     }
 
     @Override
@@ -187,9 +212,15 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     }
 
     @Override
+    public void modifyGroupStudentAndNotify(int groupId, String studentId, String position, String managerId) {
+        assertManagedGroup(groupId, managerId);
+        modifyGroupStudentAndNotify(groupId, studentId, position);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteGroupStudent(int groupId, String studentId) {
-        individualGroupMapper.delete(groupId, studentId);
+        ensureUpdated(individualGroupMapper.delete(groupId, studentId));
         RedisUtils.del(groupApplyGuardKey(groupId, studentId));
     }
 
@@ -199,6 +230,12 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         deleteGroupStudent(groupId, studentId);
         sendEvent("delete_group_student", groupId, studentId, null);
         evictGroupStudentCache(groupId, studentId);
+    }
+
+    @Override
+    public void deleteGroupStudentAndNotify(int groupId, String studentId, String managerId) {
+        assertManagedGroup(groupId, managerId);
+        deleteGroupStudentAndNotify(groupId, studentId);
     }
 
     @Override
@@ -221,8 +258,8 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void transferStatus(int groupId, String managerId, String userId) {
-        individualGroupMapper.updateStatus(groupId, managerId, 0);
-        individualGroupMapper.updateStatus(groupId, userId, 2);
+        ensureUpdated(individualGroupMapper.updateStatus(groupId, managerId, 0));
+        ensureUpdated(individualGroupMapper.updateStatus(groupId, userId, 2));
     }
 
     @Override
@@ -230,6 +267,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         requireGroupId(groupId);
         requireText(managerId, "\u539f\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
         requireText(userId, "\u65b0\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
+        assertManagedGroup(groupId, managerId);
         transferStatus(groupId, managerId, userId);
 
         Map<String, Object> extra = new HashMap<>();
@@ -243,7 +281,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePermission(int groupId, String studentId, int status) {
-        individualGroupMapper.updateStatus(groupId, studentId, status);
+        ensureUpdated(individualGroupMapper.updateStatus(groupId, studentId, status));
     }
 
     @Override
@@ -255,6 +293,12 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         extra.put("status", status);
         sendEvent("update_permission", groupId, studentId, extra);
         evictGroupStudentCache(groupId, studentId);
+    }
+
+    @Override
+    public void updatePermissionAndNotify(int groupId, String studentId, int status, String managerId) {
+        assertManagedGroup(groupId, managerId);
+        updatePermissionAndNotify(groupId, studentId, status);
     }
 
     @Override
@@ -283,6 +327,15 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         requireStudentId(studentId);
     }
 
+    private void assertManagedGroup(int groupId, String managerId) {
+        requireGroupId(groupId);
+        requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
+        // create_user 和 leader 都视为该社团的合法管理员。
+        if (individualGroupMapper.countManagedGroup(groupId, managerId) <= 0) {
+            throw new BusinessException("FORBIDDEN", "\u65e0\u6743\u64cd\u4f5c\u8be5\u793e\u56e2");
+        }
+    }
+
     private void requireGroupId(int groupId) {
         if (groupId <= 0) {
             throw new BusinessException("PARAM_ERROR", "\u793e\u56e2ID\u4e0d\u5408\u6cd5");
@@ -296,6 +349,13 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     private void requireText(String value, String message) {
         if (value == null || value.trim().isEmpty()) {
             throw new BusinessException("PARAM_ERROR", message);
+        }
+    }
+
+    private void ensureUpdated(int rows) {
+        // update/delete 影响 0 行通常表示目标申请或成员关系不存在，不能返回业务成功。
+        if (rows <= 0) {
+            throw new BusinessException("NOT_FOUND", "\u672a\u627e\u5230\u53ef\u66f4\u65b0\u7684\u793e\u56e2\u6210\u5458\u8bb0\u5f55");
         }
     }
 

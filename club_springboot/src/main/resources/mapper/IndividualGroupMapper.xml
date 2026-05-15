@@ -8,7 +8,7 @@
         ig.user_id as student_id
     </sql>
 
-    <!-- Student side -->
+    <!-- 学生端：查询个人社团、检查重复申请、提交入团申请。 -->
     <select id="getGroupByStuId" resultType="com.chinahitech.shop.bean.IndividualGroup">
         select
             <include refid="IndividualGroupColumns"/>
@@ -39,7 +39,7 @@
         )
     </insert>
 
-    <!-- Manager side -->
+    <!-- 管理端：社团成员维护、入团审批和管理员资源范围校验。 -->
     <select id="getStudentsByGroup" resultType="com.chinahitech.shop.bean.IndividualGroup">
         select
             <include refid="IndividualGroupColumns"/>
@@ -86,7 +86,14 @@
            or leader = #{managerId}
     </select>
 
-    <!-- Top manager side -->
+    <select id="countManagedGroup" resultType="int">
+        select count(1)
+        from `group`
+        where id = #{groupId}
+          and (create_user = #{managerId} or leader = #{managerId})
+    </select>
+
+    <!-- 超级管理员端：全量成员查询和社团人数统计。 -->
     <select id="getAllStudents" resultType="com.chinahitech.shop.bean.IndividualGroup">
         select
             <include refid="IndividualGroupColumns"/>

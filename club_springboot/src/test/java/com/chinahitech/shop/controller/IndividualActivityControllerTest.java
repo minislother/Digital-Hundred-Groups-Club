@@ -19,7 +19,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("IndividualActivityController unit tests")
+@DisplayName("个人活动控制器单元测试")
 @ExtendWith(MockitoExtension.class)
 class IndividualActivityControllerTest {
 
@@ -30,7 +30,7 @@ class IndividualActivityControllerTest {
     private IndividualActivityController individualActivityController;
 
     @Test
-    @DisplayName("allActivities - authenticated user id is used")
+    @DisplayName("学生活动列表 - 使用认证学生编号")
     void testGetIndividualActivity_AuthenticatedUser_CallServiceWithPrincipal() {
         // Given - authenticated student
         Authentication authentication = new UsernamePasswordAuthenticationToken("1001", null);
@@ -45,7 +45,7 @@ class IndividualActivityControllerTest {
     }
 
     @Test
-    @DisplayName("allActivities - missing authentication throws exception")
+    @DisplayName("学生活动列表 - 缺少认证抛出异常")
     void testGetIndividualActivity_MissingAuthentication_ThrowException() {
         // When & Then - unauthenticated request is rejected before service call
         assertThrows(RuntimeException.class, () -> individualActivityController.getIndividualActivity(1, 10, null));
@@ -53,7 +53,7 @@ class IndividualActivityControllerTest {
     }
 
     @Test
-    @DisplayName("joinActivity - authenticated user id is used")
+    @DisplayName("申请加入活动 - 使用认证学生编号")
     void testJoinActivity_AuthenticatedUser_CallServiceWithPrincipal() {
         // Given - authenticated student and activity id
         Authentication authentication = new UsernamePasswordAuthenticationToken("1001", null);
@@ -67,38 +67,45 @@ class IndividualActivityControllerTest {
     }
 
     @Test
-    @DisplayName("accept - manager endpoint delegates request parameters")
-    void testAcceptApplication_ManagerEndpoint_CallService() {
+    @DisplayName("批准活动申请 - 使用认证管理员编号")
+    void testAcceptApplication_ManagerEndpoint_CallServiceWithAuthenticatedManager() {
+        // Given - authenticated manager
+        Authentication authentication = new UsernamePasswordAuthenticationToken("manager001", null);
+
         // When - manager accepts an activity application
-        Result result = individualActivityController.acceptApplication(9, "1001");
+        Result result = individualActivityController.acceptApplication(9, "1001", authentication);
 
-        // Then - service receives request parameters
+        // Then - service receives authenticated manager id
         assertTrue(result.getSuccess());
-        verify(individualActivityService).confirmApplicationAndNotify(9, "1001");
+        verify(individualActivityService).confirmApplicationAndNotify(9, "1001", "manager001");
     }
 
     @Test
-    @DisplayName("reject - manager endpoint delegates request parameters")
-    void testRejectApplication_ManagerEndpoint_CallService() {
+    @DisplayName("拒绝活动申请 - 使用认证管理员编号")
+    void testRejectApplication_ManagerEndpoint_CallServiceWithAuthenticatedManager() {
+        // Given - authenticated manager
+        Authentication authentication = new UsernamePasswordAuthenticationToken("manager001", null);
+
         // When - manager rejects an activity application
-        Result result = individualActivityController.rejectApplication(9, "1001");
+        Result result = individualActivityController.rejectApplication(9, "1001", authentication);
 
-        // Then - service receives request parameters
+        // Then - service receives authenticated manager id
         assertTrue(result.getSuccess());
-        verify(individualActivityService).denyApplicationAndNotify(9, "1001");
+        verify(individualActivityService).denyApplicationAndNotify(9, "1001", "manager001");
     }
 
     @Test
-    @DisplayName("管理活动列表 - 使用请求中的管理员编号查询")
-    void testGetAllManagedActivities_RequestManagerId_CallService() {
-        // Given - manager id and empty managed activity list
+    @DisplayName("管理活动列表 - 使用认证管理员编号")
+    void testGetAllManagedActivities_AuthenticatedManagerId_CallService() {
+        // Given - authenticated manager and empty managed activity list
+        Authentication authentication = new UsernamePasswordAuthenticationToken("manager001", null);
         when(individualActivityService.getAllManagedActivitiesCached("manager001"))
                 .thenReturn(Collections.emptyList());
 
         // When - manager queries managed activities
-        Result result = individualActivityController.getAllManagedActivities("manager001", 1, 10);
+        Result result = individualActivityController.getAllManagedActivities(1, 10, authentication);
 
-        // Then - service receives requested manager id
+        // Then - service receives authenticated manager id
         assertTrue(result.getSuccess());
         verify(individualActivityService).getAllManagedActivitiesCached("manager001");
     }
