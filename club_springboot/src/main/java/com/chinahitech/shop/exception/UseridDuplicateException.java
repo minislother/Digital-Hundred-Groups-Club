@@ -1,7 +1,7 @@
 package com.chinahitech.shop.exception;
 
-/*
-用户已存在
+/**
+ * 新增用户时账号已存在或批量导入账号重复时抛出的业务异常。
  */
 public class UseridDuplicateException extends ServiceException {
     public UseridDuplicateException() {

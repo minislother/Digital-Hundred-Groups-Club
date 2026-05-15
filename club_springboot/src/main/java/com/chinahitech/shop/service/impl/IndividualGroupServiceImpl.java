@@ -21,10 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 个人社团关系服务。
- *
- * <p>负责学生申请入团、管理员审批/维护成员、权限转让以及相关缓存失效和 MQ 通知。
- * 管理端写操作必须先校验当前管理员是否管理目标社团。</p>
+ * 社团成员关系实现，处理入团申请、管理员审核/维护成员、权限转移、缓存失效和 MQ 通知。
+ * 管理端写操作会先校验当前管理员是否有权管理目标社团。
  */
 @Service
 public class IndividualGroupServiceImpl implements IndividualGroupService {
@@ -68,7 +66,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void applyJoinGroup(int groupId, String studentId) {
-        // 先查数据库再写 Redis guard，避免“已存在申请”路径留下防重缓存。
+        // 先查数据库再写 Redis guard，避免已有申请路径留下防重复缓存。
         IndividualGroup exist = individualGroupMapper.checkExist(studentId, groupId);
         if (exist != null) {
             throw new BusinessException("APPLY_EXIST", "\u5df2\u7533\u8bf7\u6216\u5df2\u52a0\u5165\u8be5\u793e\u56e2");
@@ -353,7 +351,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     }
 
     private void ensureUpdated(int rows) {
-        // update/delete 影响 0 行通常表示目标申请或成员关系不存在，不能返回业务成功。
+        // update/delete 影响 0 行表示目标申请或成员关系不存在，不能返回业务成功。
         if (rows <= 0) {
             throw new BusinessException("NOT_FOUND", "\u672a\u627e\u5230\u53ef\u66f4\u65b0\u7684\u793e\u56e2\u6210\u5458\u8bb0\u5f55");
         }

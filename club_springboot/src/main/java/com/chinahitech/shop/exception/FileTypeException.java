@@ -1,9 +1,9 @@
 package com.chinahitech.shop.exception;
 
-/*
-文件类型错误
+/**
+ * 上传文件类型或 Excel 文件格式不受支持时抛出的业务异常。
  */
-public class FileTypeException extends ServiceException{
+public class FileTypeException extends ServiceException {
     public FileTypeException() {
         super();
     }

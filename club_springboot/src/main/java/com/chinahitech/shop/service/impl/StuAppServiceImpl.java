@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 学生入团申请实现，处理申请创建、提交、附件更新和审核状态变更。
+ */
 @Service
 public class StuAppServiceImpl implements StuAppService {
     @Autowired

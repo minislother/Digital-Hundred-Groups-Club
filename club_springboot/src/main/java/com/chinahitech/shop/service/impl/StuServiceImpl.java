@@ -20,6 +20,9 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * 学生账号实现，处理登录令牌、注册、邮箱验证码和学生资料更新。
+ */
 @Service
 public class StuServiceImpl implements StuService {
     @Autowired
@@ -75,25 +78,15 @@ public class StuServiceImpl implements StuService {
         }
         String oldPwd = stu.getPassword();
 
-//        System.out.println(salt);
-
-//        String newPwd = MD5handler(pwd,salt);
         if (!PasswordUtil.matches(oldPwd,pwd)){
-//            System.out.println(oldPwd);
-//            System.out.println(pwd);
             stu.setPassword(null);
-// throw new PwdNotMatchException("Password error");
         }
         return stu;
     }
 
-// MD5 password hashing.
     public void addStudent(String stuNumber, String lastPwd, String email) {
         Date date = new Date();
-        // MD5 password hashing.
-//            System.out.println(lastPwd);
         String salt = UUID.randomUUID().toString().toUpperCase();
-//            System.out.println(salt);
         String currPwd = PasswordUtil.encode(lastPwd);
 
         User stu = stuMapper.getByNum(stuNumber);
@@ -108,16 +101,10 @@ public class StuServiceImpl implements StuService {
     }
 
 
-// MD5 password hashing.
     public void updatePassword(String stuNumber, String password){
         User stu = stuMapper.getByNum(stuNumber);
-//        String oldMD5pwd = stu.getPwd();
         String salt = stu.getSalt();
-//        if (!isEqual(oldMD5pwd, oldPwd, salt)){
-// throw new PwdNotMatchException("Password error");
-//        }
         String newMD5pwd = PasswordUtil.encode(password);
-//        System.out.println(newMD5pwd);
         Date date = new Date();
 
         stu.setPassword(newMD5pwd);

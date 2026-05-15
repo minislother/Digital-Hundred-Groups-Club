@@ -1,7 +1,7 @@
 package com.chinahitech.shop.exception;
 
-/*
-该实体不存在
+/**
+ * 查询或更新目标实体不存在时抛出的业务异常。
  */
 public class EntityNotFoundException extends ServiceException {
     public EntityNotFoundException() {

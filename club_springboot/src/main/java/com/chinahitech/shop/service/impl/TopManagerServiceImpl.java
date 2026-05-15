@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * 超级管理员业务实现，处理超级管理员登录、用户资料管理、Excel 批量导入和导入消息投递。
+ */
 @Service
 public class TopManagerServiceImpl implements TopManagerService {
     @Autowired
@@ -96,16 +99,8 @@ public class TopManagerServiceImpl implements TopManagerService {
         String oldPwd = user.getPassword();
 
         String salt = user.getSalt();
-//        System.out.println(salt);
-
-//        String newPwd = MD5handler(pwd,salt);
         if (!PasswordUtil.matches(oldPwd,pwd)){
-//            System.out.println(oldPwd);
-//            System.out.println(pwd);
             user.setPassword(null);
-// throw new PwdNotMatchException("Password error");
-// Check user permission level.
-//            user.setPassword(null);
         }
         return user;
     }
@@ -113,10 +108,7 @@ public class TopManagerServiceImpl implements TopManagerService {
 
     public void addManager(String userId, String lastPwd, String email) {
         Date date = new Date();
-        // MD5 password hashing.
-//            System.out.println(lastPwd);
         String salt = UUID.randomUUID().toString().toUpperCase();
-//            System.out.println(salt);
         String currPwd = PasswordUtil.encode(lastPwd);
 
         User user = topManagerMapper.getTopManagerByNum(userId);
@@ -133,13 +125,7 @@ public class TopManagerServiceImpl implements TopManagerService {
 
     public void updatePassword(String userId, String password){
         User stu = getByUserId(userId);
-//        String oldMD5pwd = stu.getPwd();
-//        String salt = stu.getSalt();
-//        if (!isEqual(oldMD5pwd, oldPwd, salt)){
-// throw new PwdNotMatchException("Password error");
-//        }
         String newMD5pwd = PasswordUtil.encode(password);
-//        System.out.println(newMD5pwd);
 
         Date date = new Date();
 
@@ -219,9 +205,7 @@ public class TopManagerServiceImpl implements TopManagerService {
     public void addUser(String userId, String lastPwd, String email) {
         Date date = new Date();
 
-//            System.out.println(lastPwd);
         String salt = UUID.randomUUID().toString().toUpperCase();
-//            System.out.println(salt);
         String currPwd = PasswordUtil.encode(lastPwd);
         User user = new User();
         user.setUserId(userId);
@@ -290,10 +274,8 @@ public class TopManagerServiceImpl implements TopManagerService {
             for (User user : users) {
                 Date date = new Date();
 
-//            System.out.println(lastPwd);
-                String salt = UUID.randomUUID().toString().toUpperCase();
-//            System.out.println(salt);
-                String currPwd = PasswordUtil.encode(user.getPassword());
+        String salt = UUID.randomUUID().toString().toUpperCase();
+        String currPwd = PasswordUtil.encode(user.getPassword());
                 user.setPassword(currPwd);
                 user.setSalt(salt);
                 user.setCreateTime(date);

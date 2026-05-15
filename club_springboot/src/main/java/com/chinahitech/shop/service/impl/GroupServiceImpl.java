@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 社团业务实现，处理社团列表/详情缓存、社团资料维护和社团审核通知。
+ */
 @Service
 public class GroupServiceImpl implements GroupService {
 

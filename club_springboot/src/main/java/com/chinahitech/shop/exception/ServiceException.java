@@ -1,5 +1,8 @@
 package com.chinahitech.shop.exception;
 
+/**
+ * 后端业务异常基类，携带统一错误码并由全局异常处理器转换为 Result 响应。
+ */
 public class ServiceException extends RuntimeException {
 
     private final String code;

@@ -1,5 +1,8 @@
 package com.chinahitech.shop.exception;
 
+/**
+ * 后端统一异常响应使用的错误码常量。
+ */
 public final class ErrorCode {
 
     public static final String PARAM_ERROR = "PARAM_ERROR";

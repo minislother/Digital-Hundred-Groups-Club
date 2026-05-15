@@ -1,7 +1,7 @@
 package com.chinahitech.shop.exception;
 
-/*
-redis数据库错误
+/**
+ * Redis 写入或验证码缓存保存失败时抛出的业务异常。
  */
 public class RedisAddException extends ServiceException {
     public RedisAddException() {

@@ -1,9 +1,9 @@
 package com.chinahitech.shop.exception;
 
-/*
-申请次数过多
+/**
+ * 申请提交或申请次数限制相关操作失败时抛出的业务异常。
  */
-public class ApplyException extends ServiceException{
+public class ApplyException extends ServiceException {
     public ApplyException() {
         super();
     }
@@ -24,5 +24,3 @@ public class ApplyException extends ServiceException{
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
-
-

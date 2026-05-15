@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 本地文件存储实现，校验上传文件类型并保存到配置的上传目录。
+ */
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
 

@@ -1,7 +1,7 @@
 package com.chinahitech.shop.exception;
 
-/*
-更新数据异常
+/**
+ * 修改数据库记录失败时抛出的业务异常。
  */
 public class UpdateException extends ServiceException {
     public UpdateException() {

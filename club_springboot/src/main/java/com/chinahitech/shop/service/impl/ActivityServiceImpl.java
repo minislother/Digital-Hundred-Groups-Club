@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 活动业务实现，处理活动查询缓存、报名防重复提交、活动审核和 MQ 通知。
+ */
 @Service
 public class ActivityServiceImpl implements ActivityService {
 

@@ -1,7 +1,7 @@
 package com.chinahitech.shop.exception;
 
-/*
-文件上传异常
+/**
+ * 文件上传、保存或批量导入文件处理失败时抛出的业务异常。
  */
 public class FileUploadException extends ServiceException {
     public FileUploadException() {

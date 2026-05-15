@@ -12,6 +12,9 @@ import java.time.Year;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 年审业务实现，处理年审记录查询、材料附件修改、反馈填写和审核状态流转。
+ */
 @Service
 public class InspectionServiceImpl implements InspectionService {
     @Autowired

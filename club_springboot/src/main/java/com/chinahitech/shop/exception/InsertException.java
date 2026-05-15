@@ -1,9 +1,9 @@
 package com.chinahitech.shop.exception;
 
-/*
-插入数据异常
+/**
+ * 新增数据库记录失败时抛出的业务异常。
  */
-public class InsertException extends ServiceException{
+public class InsertException extends ServiceException {
     public InsertException() {
         super();
     }

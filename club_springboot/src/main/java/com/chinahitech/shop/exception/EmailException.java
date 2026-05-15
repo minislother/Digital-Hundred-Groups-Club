@@ -1,16 +1,9 @@
 package com.chinahitech.shop.exception;
 
-
+/**
+ * 邮箱格式、校园邮箱校验或邮件发送失败时抛出的业务异常。
+ */
 public class EmailException extends ServiceException {
-    String email;
-//    public EmailException(String email_) {
-//        email = email_;
-//    }
-
-//    public String expMessage() {
-//        return email + "不属于校园邮箱，请使用中大邮箱注册";
-//    }
-
     public EmailException() {
         super();
     }

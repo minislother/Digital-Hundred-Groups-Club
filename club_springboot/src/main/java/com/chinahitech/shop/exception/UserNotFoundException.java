@@ -1,9 +1,9 @@
 package com.chinahitech.shop.exception;
 
-/*
-用户不存在
+/**
+ * 根据账号查询用户不存在时抛出的业务异常。
  */
-public class UserNotFoundException extends ServiceException{
+public class UserNotFoundException extends ServiceException {
     public UserNotFoundException() {
         super();
     }

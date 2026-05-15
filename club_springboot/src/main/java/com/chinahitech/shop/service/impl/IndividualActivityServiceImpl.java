@@ -19,10 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 个人活动关系服务。
- *
- * <p>负责学生报名活动、管理员审批/维护活动成员、缓存失效和 MQ 通知。
- * 管理端写操作必须先校验当前管理员是否管理目标活动。</p>
+ * 活动成员关系实现，处理学生报名、管理员审核/维护活动成员、缓存失效和 MQ 通知。
+ * 管理端写操作会先校验当前管理员是否有权管理目标活动。
  */
 @Service
 public class IndividualActivityServiceImpl implements IndividualActivityService {
@@ -276,7 +274,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     }
 
     private void ensureUpdated(int rows) {
-        // update/delete 影响 0 行通常表示目标申请或成员关系不存在，不能返回业务成功。
+        // update/delete 影响 0 行表示目标申请或成员关系不存在，不能返回业务成功。
         if (rows <= 0) {
             throw new BusinessException("NOT_FOUND", "\u672a\u627e\u5230\u53ef\u66f4\u65b0\u7684\u6d3b\u52a8\u6210\u5458\u8bb0\u5f55");
         }

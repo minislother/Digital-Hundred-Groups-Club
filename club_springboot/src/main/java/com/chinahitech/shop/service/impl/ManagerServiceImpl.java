@@ -20,6 +20,9 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * 社团管理员账号实现，处理登录令牌、注册、邮箱验证码和个人资料更新。
+ */
 @Service
 public class ManagerServiceImpl implements ManagerService {
     @Autowired
@@ -75,14 +78,8 @@ public class ManagerServiceImpl implements ManagerService {
         }
         String oldPwd = user.getPassword();
 
-//        String newPwd = MD5handler(pwd,salt);
         if (!PasswordUtil.matches(oldPwd,pwd)){
-//            System.out.println(oldPwd);
-//            System.out.println(pwd);
             user.setPassword(null);
-// throw new PwdNotMatchException("Password error");
-// Check user permission level.
-//            user.setPassword(null);
         }
         return user;
     }
@@ -91,9 +88,7 @@ public class ManagerServiceImpl implements ManagerService {
     public void addManager(String userId, String lastPwd, String email) {
         Date date = new Date();
 
-//            System.out.println(lastPwd);
         String salt = UUID.randomUUID().toString().toUpperCase();
-//            System.out.println(salt);
         String currPwd = PasswordUtil.encode(lastPwd);
 
         User user = managerMapper.getByNum(userId);
@@ -110,13 +105,8 @@ public class ManagerServiceImpl implements ManagerService {
 
     public void updatePassword(String userId, String password){
         User stu = managerMapper.getByNum(userId);
-//        String oldMD5pwd = stu.getPwd();
         String salt = stu.getSalt();
-//        if (!isEqual(oldMD5pwd, oldPwd, salt)){
-// throw new PwdNotMatchException("Password error");
-//        }
         String newMD5pwd = PasswordUtil.encode(password);
-//        System.out.println(newMD5pwd);
         Date date = new Date();
 
         stu.setPassword(newMD5pwd);
