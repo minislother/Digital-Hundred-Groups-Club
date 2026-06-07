@@ -7,23 +7,21 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.util.Date;
 
 public class JwtUtils {
-    //7天过期
-    private static final long expire = 604800;
+    private static final long DEFAULT_EXPIRE_SECONDS = 604800L;
     private static final String BEARER_PREFIX = "Bearer ";
     public static final String ROLE_STUDENT = "STUDENT";
     public static final String ROLE_MANAGER = "MANAGER";
     public static final String ROLE_TOP_MANAGER = "TOP_MANAGER";
 
-    //生成token
-    public static String generateToken(String username){
+    public static String generateToken(String username) {
         return generateToken(username, null);
     }
 
-    public static String generateToken(String username, String role){
+    public static String generateToken(String username, String role) {
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + 1000 * expire);
+        Date expiration = new Date(now.getTime() + 1000L * getExpireSeconds());
         io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
-                .setHeaderParam("type","JWT")
+                .setHeaderParam("type", "JWT")
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiration);
@@ -34,13 +32,11 @@ public class JwtUtils {
                 .compact();
     }
 
-    //解析token
-    public static Claims getClaimsByToken(String token){
+    public static Claims getClaimsByToken(String token) {
         return Jwts.parser()
-                    .setSigningKey(getSecret())
-                    .parseClaimsJws(token)
-                    .getBody();
-
+                .setSigningKey(getSecret())
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public static String resolveToken(String xToken, String authorization) {
@@ -62,5 +58,21 @@ public class JwtUtils {
             throw new IllegalStateException("JWT_SECRET is not configured");
         }
         return secret;
+    }
+
+    private static long getExpireSeconds() {
+        String configured = System.getProperty("jwt.expire-seconds");
+        if (configured == null || configured.trim().isEmpty()) {
+            configured = System.getenv("JWT_EXPIRE_SECONDS");
+        }
+        if (configured == null || configured.trim().isEmpty()) {
+            return DEFAULT_EXPIRE_SECONDS;
+        }
+        try {
+            long seconds = Long.parseLong(configured.trim());
+            return seconds > 0 ? seconds : DEFAULT_EXPIRE_SECONDS;
+        } catch (NumberFormatException e) {
+            return DEFAULT_EXPIRE_SECONDS;
+        }
     }
 }

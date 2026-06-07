@@ -23,7 +23,7 @@
           :before-upload="beforeUpload"
           class="upload-demo"
           style="margin-top: 10px;"
-          action="http://localhost:8081/group/uploadZip"
+          :action="uploadAction('/group/uploadZip')"
           :on-remove="handleRemove"
           :before-remove="beforeRemove"
           :on-success="handleUploadSuccess"
@@ -45,7 +45,7 @@
           :on-remove="handleRemovePhoto"
           accept=".jpg,.png"
           :limit="1"
-          action="http://localhost:8081/group/uploadPhoto"
+          :action="uploadAction('/group/uploadPhoto')"
           multiple
           :on-exceed="handlePhotoExceed"
         >
@@ -143,6 +143,9 @@ export default {
     }
   },
   methods: {
+    uploadAction(path) {
+      return `${process.env.VUE_APP_BASE_API}${path}`
+    },
     handlePhotoExceed(files, fileList) {
       this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
     },

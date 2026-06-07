@@ -18,7 +18,7 @@
       <el-upload
         class="upload-demo"
         style="margin-left: 100px;"
-        action="http://localhost:8081/activityapplication/uploadZip"
+        :action="uploadAction('/activity/uploadZip')"
         :on-remove="handleRemove"
         :before-remove="beforeRemove"
         :on-success="handleUploadSuccess"
@@ -112,6 +112,9 @@
         })
     },
     methods: {
+      uploadAction(path) {
+        return `${process.env.VUE_APP_BASE_API}${path}`
+      },
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
@@ -218,5 +221,4 @@
     }
   }
   </script>
-  
   

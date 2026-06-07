@@ -20,6 +20,7 @@ class JwtUtilsTest {
     @AfterEach
     void tearDown() {
         System.clearProperty("jwt.secret");
+        System.clearProperty("jwt.expire-seconds");
     }
 
     @Test
@@ -77,5 +78,19 @@ class JwtUtilsTest {
 
         // Then - no token can be resolved
         assertNull(token);
+    }
+
+    @Test
+    @DisplayName("generateToken - expiration can be configured")
+    void testGenerateToken_ConfiguredExpiration_UsesConfiguredSeconds() {
+        // Given - a short token lifetime
+        System.setProperty("jwt.expire-seconds", "60");
+
+        // When - generating a token
+        Claims claims = JwtUtils.getClaimsByToken(JwtUtils.generateToken("1001"));
+
+        // Then - expiration is close to the configured lifetime
+        long lifetimeSeconds = (claims.getExpiration().getTime() - claims.getIssuedAt().getTime()) / 1000;
+        assertEquals(60, lifetimeSeconds);
     }
 }

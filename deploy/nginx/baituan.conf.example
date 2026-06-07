@@ -1,0 +1,92 @@
+# Replace example domains, certificate paths, and root paths before deployment.
+
+upstream baituan_backend {
+    server 127.0.0.1:8081;
+}
+
+server {
+    listen 80;
+    server_name student.example.com admin.example.com superadmin.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name student.example.com;
+
+    ssl_certificate /etc/nginx/ssl/student.example.com.pem;
+    ssl_certificate_key /etc/nginx/ssl/student.example.com.key;
+
+    root /var/www/baituan/student;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://baituan_backend/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /upload/ {
+        proxy_pass http://baituan_backend/upload/;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name admin.example.com;
+
+    ssl_certificate /etc/nginx/ssl/admin.example.com.pem;
+    ssl_certificate_key /etc/nginx/ssl/admin.example.com.key;
+
+    root /var/www/baituan/admin;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://baituan_backend/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /upload/ {
+        proxy_pass http://baituan_backend/upload/;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name superadmin.example.com;
+
+    ssl_certificate /etc/nginx/ssl/superadmin.example.com.pem;
+    ssl_certificate_key /etc/nginx/ssl/superadmin.example.com.key;
+
+    root /var/www/baituan/superadmin;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://baituan_backend/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /upload/ {
+        proxy_pass http://baituan_backend/upload/;
+    }
+}

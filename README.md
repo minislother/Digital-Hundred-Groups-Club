@@ -153,6 +153,14 @@ mvn test
 club_springboot/target/site/jacoco/
 ```
 
+## 生产部署
+
+生产部署建议使用 Nginx 托管三个前端，并通过 `/api` 反向代理到 Spring Boot 后端。详细步骤、环境变量和 Nginx 示例见：
+
+```text
+deploy/production.md
+```
+
 ## 说明
 
 本项目为校园社团管理系统实践项目。若需要部署到生产环境，请根据实际情况修改数据库、Redis、Kafka、文件上传目录、JWT 密钥和前端接口地址等配置。

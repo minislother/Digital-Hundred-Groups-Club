@@ -44,7 +44,7 @@
       <hr>
       <!-- <el-form-item label="上传附件">
         <el-upload class="upload-demo" drag :on-remove="handleRemove" :before-remove="beforeRemove"
-          action="https://localhost:8081/activity/uploadZip/" :before-upload="beforeZipUpload">
+          :action="uploadAction('/activity/uploadZip')" :before-upload="beforeZipUpload">
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">只能上传zip文件, 且不超过2MB</div>
@@ -52,7 +52,7 @@
       </el-form-item>
       <el-form-item label="上传图片">
         <el-upload class="upload-demo" drag :on-remove="handleRemove" list-type="picture"
-          action="https://localhost:8081/activity/uploadPhoto/">
+          :action="uploadAction('/activity/uploadPhoto')">
           <i class="el-icon-upload"></i>
           <i class="el-icon-picture"></i>
           <div class="el-upload__text">将图片拖到此处，或<em>点击上传</em></div>
@@ -128,6 +128,9 @@ export default {
     };
   },
   methods: {
+    uploadAction(path) {
+      return `${process.env.VUE_APP_BASE_API}${path}`
+    },
     submitActivity(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
