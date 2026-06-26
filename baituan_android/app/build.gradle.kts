@@ -58,7 +58,8 @@ android {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             resValue("string", "baituan_base_url", releaseBaseUrl)
             resValue("bool", "baituan_enable_http_logging", "false")
             manifestPlaceholders["usesCleartextTraffic"] = "false"
