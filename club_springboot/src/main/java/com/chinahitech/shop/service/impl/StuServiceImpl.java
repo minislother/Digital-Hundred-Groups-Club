@@ -39,17 +39,29 @@ public class StuServiceImpl implements StuService {
 
     @Override
     public void register(RegisterUser user) {
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         validateCode(user.getEmail(), user.getValicode());
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addStudent(user.getUserId(), user.getPassword(), user.getEmail());
     }
 
     @Override
     public String sendAccountEmail(String stuNumber) throws Exception {
         User student = getByStuNumber(stuNumber);
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         sendValidateEmail(student.getEmail());
         return student.getEmail();
     }
 
+    /**
+     * 校验输入内容是否满足业务要求。
+     */
     @Override
     public void validateCode(String email, String validateCode) {
         Object cached = RedisUtils.get(email);
@@ -58,11 +70,17 @@ public class StuServiceImpl implements StuService {
         }
     }
 
+    /**
+     * 校验输入内容是否满足业务要求。
+     */
     @Override
     public void sendValidateEmail(String email) throws Exception {
         new EmailService(email).sendEmail();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public User getByStuNumber(String num) {
         User stu = stuMapper.getByNum(num);
         if (stu == null) {
@@ -84,6 +102,9 @@ public class StuServiceImpl implements StuService {
         return stu;
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     public void addStudent(String stuNumber, String lastPwd, String email) {
         Date date = new Date();
         String salt = UUID.randomUUID().toString().toUpperCase();
@@ -101,6 +122,9 @@ public class StuServiceImpl implements StuService {
     }
 
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updatePassword(String stuNumber, String password){
         User stu = stuMapper.getByNum(stuNumber);
         String salt = stu.getSalt();
@@ -112,10 +136,16 @@ public class StuServiceImpl implements StuService {
 
         int i = stuMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updatePhone(String stuNumber, String phone){
         Date date = new Date();
 
@@ -125,10 +155,16 @@ public class StuServiceImpl implements StuService {
 
         int i = stuMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateDescription(String stuNumber, String description){
         Date date = new Date();
 
@@ -138,10 +174,16 @@ public class StuServiceImpl implements StuService {
 
         int i = stuMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateNickname(String stuNumber, String nickname){
         Date date = new Date();
 
@@ -151,6 +193,9 @@ public class StuServiceImpl implements StuService {
 
         int i = stuMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }

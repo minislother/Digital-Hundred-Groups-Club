@@ -70,8 +70,8 @@ class RateLimiterAspectTest {
     }
 
     @Test
-    @DisplayName("executeSlidingWindowScript - Redis exception returns reject code")
-    void testExecuteSlidingWindowScript_RedisException_ReturnZero() {
+    @DisplayName("executeSlidingWindowScript - Redis exception allows request")
+    void testExecuteSlidingWindowScript_RedisException_ReturnAllowCode() {
         // Given - Redis command fails
         when(stringRedisTemplate.execute(
                 any(DefaultRedisScript.class),
@@ -84,8 +84,8 @@ class RateLimiterAspectTest {
         // When - executing script
         Long result = rateLimiterAspect.executeSlidingWindowScript("rate:test", 10L, 1L);
 
-        // Then - request is rejected
-        assertEquals(0L, result);
+        // Then - request is allowed so Redis outages do not block login or normal APIs
+        assertEquals(1L, result);
     }
 
     @Test

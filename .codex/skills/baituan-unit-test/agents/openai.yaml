@@ -1,0 +1,4 @@
+interface:
+  display_name: "Baituan Unit Test"
+  short_description: "Generate baituan backend tests by project rules"
+  default_prompt: "Use $baituan-unit-test to generate unit tests for backend changes."

@@ -45,6 +45,9 @@ public class EmailService {
         return REQUIRED_EMAIL_DOMAIN.equalsIgnoreCase(toEmail.substring(atPos + 1));
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     private String getValicode() {
         return String.format("%06d", new Random().nextInt(1_000_000));
     }
@@ -70,10 +73,16 @@ public class EmailService {
 
         boolean check = RedisUtils.set(toEmail, valicode, 300);
         if (!check) {
+            /**
+             * 新增业务数据或追加界面状态。
+             */
             throw new RedisAddException("Redis added error!");
         }
     }
 
+    /**
+     * 创建业务数据或初始化页面结构。
+     */
     public MimeMessage createSimpleMail(Session session) throws Exception {
         MimeMessage message = new MimeMessage(session);
         message.setFrom(new InternetAddress(fromEmail));
@@ -83,6 +92,9 @@ public class EmailService {
         return message;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     private static String getConfig(String key, String defaultValue) {
         String value = System.getProperty(key);
         if (value == null || value.trim().isEmpty()) {

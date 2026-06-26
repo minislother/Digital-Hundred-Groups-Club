@@ -21,6 +21,9 @@ public class RedisUtils {
 
     private static RedisTemplate<String, Object> redisTemplate;
 
+    /**
+     * 更新对象属性或页面状态值。
+     */
     @Resource
     public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
         RedisUtils.redisTemplate = redisTemplate;
@@ -71,6 +74,9 @@ public class RedisUtils {
         });
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public static Object get(String key) {
         if (key == null) {
             log.warn("[Redis get] key is null");
@@ -88,6 +94,9 @@ public class RedisUtils {
         }
     }
 
+    /**
+     * 更新对象属性或页面状态值。
+     */
     public static boolean set(String key, Object value) {
         if (key == null) {
             log.warn("[Redis set] key is null");
@@ -106,6 +115,9 @@ public class RedisUtils {
         }
     }
 
+    /**
+     * 更新对象属性或页面状态值。
+     */
     public static boolean set(String key, Object value, long time) {
         if (time <= 0) {
             return set(key, value);
@@ -127,6 +139,9 @@ public class RedisUtils {
         }
     }
 
+    /**
+     * 更新对象属性或页面状态值。
+     */
     public static boolean setIfAbsent(String key, Object value, long time) {
         if (key == null) {
             log.warn("[Redis setIfAbsent] key is null");

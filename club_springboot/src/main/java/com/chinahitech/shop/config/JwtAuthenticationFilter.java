@@ -52,10 +52,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * 从请求头中解析 Bearer Token。
+     */
     private String resolveToken(HttpServletRequest request) {
         return JwtUtils.resolveToken(request.getHeader(TOKEN_HEADER), request.getHeader(AUTHORIZATION_HEADER));
     }
 
+    /**
+     * 根据用户角色生成 Spring Security 权限列表。
+     */
     private List<SimpleGrantedAuthority> authorities(String role) {
         if (!StringUtils.hasText(role)) {
             return Collections.emptyList();

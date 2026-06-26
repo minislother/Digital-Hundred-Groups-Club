@@ -14,6 +14,9 @@ import org.springframework.core.env.Environment;
 public class ShopApplication {
     private static final Logger LOG = LoggerFactory.getLogger(ShopApplication.class);
 
+    /**
+     * 启动应用入口，初始化框架并启动系统。
+     */
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(ShopApplication.class);
 //        SpringApplication.run(ShopApplication.class, args);

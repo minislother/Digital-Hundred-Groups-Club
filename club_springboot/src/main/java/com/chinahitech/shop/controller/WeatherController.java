@@ -20,9 +20,17 @@ public class WeatherController {
         String url = "https://restapi.amap.com/v3/weather/weatherInfo?city=440402&key=76bb5f7e39f7b4b1c497bbad05bc44aa";
         String s = HttpsUtil.get(url);
         JSONObject object = JSONObject.parseObject(s);
-        WeatherModel jb = (WeatherModel)JSONObject.toJavaObject(object, WeatherModel.class);
+        WeatherModel jb = (WeatherModel) JSONObject.toJavaObject(object, WeatherModel.class);
+        if (jb == null || jb.getLives() == null || jb.getLives().isEmpty()) {
+            return Result.ok().data(defaultWeather());
+        }
         LivesModel livesModel = jb.getLives().get(0);
-        int c =Integer.valueOf(livesModel.getTemperature());
+        int c;
+        try {
+            c = Integer.parseInt(livesModel.getTemperature());
+        } catch (NumberFormatException e) {
+            return Result.ok().data(defaultWeather());
+        }
         SimpleDateFormat dateFm = new SimpleDateFormat("EEEE");
         String currSun = dateFm.format(new Date());
         String remark = null;
@@ -47,5 +55,12 @@ public class WeatherController {
         return Result.ok().data(responseData);
     }
 
+    private Map<String, Object> defaultWeather() {
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("weather", "暂无天气信息");
+        responseData.put("temperature", "-");
+        responseData.put("remark", "天气服务暂时不可用");
+        return responseData;
+    }
 
 }

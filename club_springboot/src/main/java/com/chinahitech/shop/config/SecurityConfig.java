@@ -18,6 +18,9 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    /**
+     * 配置 Spring Security 的登录、权限和跨域策略。
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -38,7 +41,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/student/getValidate",
                         "/student/validateEmail",
                         "/manager/login",
-                        "/manager/register",
                         "/manager/getEmail",
                         "/manager/getValidate",
                         "/manager/validateEmail",
@@ -65,12 +67,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/group/studentDetail",
                         "/group/getVideo",
                         "/group/top",
+                        "/getWeather",
                         "/weather/**",
                         "/videotest.mp4"
                 ).hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
                 .antMatchers(
                         "/activity/applyJoin",
                         "/activity/myJoinedActivities",
+                        "/application/myApps",
+                        "/application/submit",
+                        "/application/updateAttachment",
+                        "/application/uploadZip",
                         "/individualActivity/allActivities",
                         "/individualActivity/joinActivity",
                         "/individualGroup/allGroups",
@@ -87,6 +94,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/activity/getAttachment",
                         "/activity/getActivityApplicants",
                         "/activity/auditApply",
+                        "/application/recApps",
+                        "/application/recApp",
+                        "/application/accept",
+                        "/application/reject",
                         "/group/addGroup",
                         "/group/managerDetail",
                         "/group/modifydescription",
@@ -119,6 +130,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/activity/appDetail",
                         "/activity/accept",
                         "/activity/reject",
+                        "/application/all",
+                        "/manager/register",
                         "/group/allApps",
                         "/group/appDetail",
                         "/group/accept",
@@ -166,6 +179,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "http://localhost:9527",
                     "http://localhost:9528",
                     "http://localhost:9529",
+                    "http://localhost:9530",
                     "http://localhost:8080"
             );
         }

@@ -69,11 +69,17 @@ public class ActivityServiceImpl implements ActivityService {
         return activities;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Activity getActivityByNameAndGroupName(String activityName, String groupName) {
         return activityMapper.getActivityByNameAndGroupName(activityName, groupName);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Activity getCachedActivityDetail(String activityName, String groupName) {
         String key = activityDetailKey(groupName, activityName);
@@ -96,6 +102,9 @@ public class ActivityServiceImpl implements ActivityService {
         }
 
         Activity activity = activityMapper.getActivityByNameAndGroupName(activityName, groupName);
+        /**
+         * 保存业务数据或本地状态。
+         */
         saveActivityDetailCache(key, activity);
         return activity;
     }
@@ -151,16 +160,25 @@ public class ActivityServiceImpl implements ActivityService {
         }
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Activity> getMyJoinedActivities(Integer studentId) {
         return activityMapper.getMyJoinedActivities(studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Activity> getActivityByGroupName(String groupName) {
         return activityMapper.getActivityByGroupName(groupName);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Map<String, Object>> getActivityApplicants(Integer activityId) {
         return activityMapper.getActivityApplicants(activityId);
@@ -178,29 +196,44 @@ public class ActivityServiceImpl implements ActivityService {
         evictActivityCache();
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateDescription(String groupName, String activityName, String description, String attachment, String image) {
         activityMapper.updateDescription(groupName, activityName, description, attachment, image);
         evictActivityCache();
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateAttachment(String name, String attachment) {
         activityMapper.updateAttachment(name, attachment);
         evictActivityCache();
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateImage(String name, String image) {
         activityMapper.updateImage(name, image);
         evictActivityCache();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Activity getActivityById(Integer id) {
         return activityMapper.getActivityById(id);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public String getAttachment(Integer id) {
         Activity activity = getActivityById(id);
@@ -210,11 +243,17 @@ public class ActivityServiceImpl implements ActivityService {
         return activity.getAttachment();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Activity> getAllApp(String searchinfo) {
         return activityMapper.getAllApp(searchinfo);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Activity getAppByName(String groupname) {
         return activityMapper.getAppByName(groupname);
@@ -223,6 +262,9 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public void confirmApplication(Integer activityId) {
         activityMapper.confirmApplication(activityId);
+        /**
+         * 清空表单、状态或本地缓存。
+         */
         clearActivityApplyGuard(activityId);
         evictActivityCache();
     }
@@ -230,6 +272,9 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public void denyApplication(Integer activityId) {
         activityMapper.denyApplication(activityId);
+        /**
+         * 清空表单、状态或本地缓存。
+         */
         clearActivityApplyGuard(activityId);
         evictActivityCache();
     }
@@ -237,6 +282,9 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public void modifyInfo(Activity activity) {
         activityMapper.modifyInfo(activity);
+        /**
+         * 清空表单、状态或本地缓存。
+         */
         clearActivityApplyGuard(activity.getId());
         evictActivityCache();
     }
@@ -267,6 +315,9 @@ public class ActivityServiceImpl implements ActivityService {
         }
     }
 
+    /**
+     * 清空表单、状态或本地缓存。
+     */
     private void clearActivityApplyGuard(Integer activityId) {
         if (activityId == null) {
             return;
@@ -299,6 +350,9 @@ public class ActivityServiceImpl implements ActivityService {
         CACHE_REBUILD_EXECUTOR.execute(() -> {
             try {
                 Activity fresh = activityMapper.getActivityByNameAndGroupName(activityName, groupName);
+                /**
+                 * 保存业务数据或本地状态。
+                 */
                 saveActivityDetailCache(key, fresh);
             } finally {
                 RedisUtils.del(lockKey);
@@ -306,6 +360,9 @@ public class ActivityServiceImpl implements ActivityService {
         });
     }
 
+    /**
+     * 保存业务数据或本地状态。
+     */
     private void saveActivityDetailCache(String key, Activity activity) {
         if (activity == null) {
             RedisUtils.set(key, RedisUtils.NULL_VALUE, ACTIVITY_DETAIL_NULL_TTL_SECONDS);

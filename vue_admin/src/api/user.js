@@ -1,6 +1,7 @@
 import request from '@/utils/request'
 
 
+// 处理当前组件的业务逻辑或用户交互。
 export function managerlogin(userId,password) {
   const data = new URLSearchParams()
   data.append('userId', userId)
@@ -12,6 +13,7 @@ export function managerlogin(userId,password) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getInfo() {
   return request({
     url: '/manager/info',
@@ -19,6 +21,7 @@ export function getInfo() {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function logout() {
   return request({
     url: '/manager/logout',
@@ -26,6 +29,7 @@ export function logout() {
   })
 }
 
+  // 处理当前组件的业务逻辑或用户交互。
   export function managedgroup(managerId) {
     return request({
       url: '/individualGroup/allManagedGroups',
@@ -35,6 +39,7 @@ export function logout() {
 }
 
 
+// 读取并返回业务数据或页面状态。
 export function getStudentDetail(userId) {
   return request({
     url: '/manager/profile',
@@ -43,6 +48,7 @@ export function getStudentDetail(userId) {
   })
 }
 
+// 根据筛选条件查询并更新列表结果。
 export function searchStudent(studentId) {
   return request({
     url: '/individualGroup/allGroups',

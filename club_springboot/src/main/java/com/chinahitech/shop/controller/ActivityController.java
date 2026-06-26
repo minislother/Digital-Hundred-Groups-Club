@@ -10,7 +10,6 @@ import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
 import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -120,8 +118,8 @@ public class ActivityController {
      */
     @RepeatLimit
     @PostMapping("/uploadZip")
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(fileResponse(fileStorageService.store(file)));
+    public Result uploadFile(@RequestParam("file") MultipartFile file) {
+        return fileResponse(fileStorageService.store(file));
     }
 
     /**
@@ -129,12 +127,9 @@ public class ActivityController {
      */
     @RepeatLimit
     @PostMapping("/submitZip")
-    public ResponseEntity<Map<String, String>> submitZip(@RequestParam("attachment") String attachment, @RequestParam("name") String name) {
+    public Result submitZip(@RequestParam("attachment") String attachment, @RequestParam("name") String name) {
         activityService.updateAttachment(name, attachment);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Successfully updated attachment.");
-        return ResponseEntity.ok(response);
+        return Result.ok().message("Successfully updated attachment.");
     }
 
     /**
@@ -142,8 +137,8 @@ public class ActivityController {
      */
     @RepeatLimit
     @PostMapping("/uploadPhoto")
-    public ResponseEntity<Map<String, String>> uploadPhoto(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(fileResponse(fileStorageService.store(file)));
+    public Result uploadPhoto(@RequestParam("file") MultipartFile file) {
+        return fileResponse(fileStorageService.store(file));
     }
 
     /**
@@ -151,12 +146,9 @@ public class ActivityController {
      */
     @RepeatLimit
     @PostMapping("/submitPhoto")
-    public ResponseEntity<Map<String, String>> submitPhoto(@RequestParam("image") String image, @RequestParam("name") String name) {
+    public Result submitPhoto(@RequestParam("image") String image, @RequestParam("name") String name) {
         activityService.updateImage(name, image);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Successfully updated image.");
-        return ResponseEntity.ok(response);
+        return Result.ok().message("Successfully updated image.");
     }
 
     /**
@@ -164,12 +156,8 @@ public class ActivityController {
      */
     @RepeatLimit
     @PostMapping("/getAttachment")
-    public ResponseEntity<Map<String, Object>> getAttachment(@RequestParam("id") int id) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", 20000);
-        response.put("success", true);
-        response.put("attachment", activityService.getAttachment(id));
-        return ResponseEntity.ok(response);
+    public Result getAttachment(@RequestParam("id") int id) {
+        return Result.ok().data("attachment", activityService.getAttachment(id));
     }
 
     /**
@@ -257,10 +245,8 @@ public class ActivityController {
         return Result.ok();
     }
 
-    private Map<String, String> fileResponse(StoredFile storedFile) {
-        Map<String, String> response = new HashMap<>();
-        response.put("fileUrl", storedFile.getFileUrl());
-        return response;
+    private Result fileResponse(StoredFile storedFile) {
+        return Result.ok().data("fileUrl", storedFile.getFileUrl());
     }
 
     private Integer currentStudentId(Authentication authentication) {

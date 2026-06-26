@@ -28,7 +28,7 @@
         <div class="grid-content bg-purple"><el-main class="el-icon-time"> 申请时间</el-main></div>
       </el-col>
       <el-col :span="4">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.time | formatDate }}</el-main></div>
+        <div class="grid-content bg-purple-light"><el-main>{{ formatDate(activity.time) }}</el-main></div>
       </el-col>
       <el-col :span="4">
         <div class="grid-content bg-purple"><el-main class="el-icon-set-up"> 事项安排</el-main></div>
@@ -68,9 +68,10 @@
     </div>
   </div>
 </template>
-  
+
 <script>
 import { mapGetters } from 'vuex'
+import shared from '@baituan/frontend-shared'
 
 export default {
   name: 'ActivityList',
@@ -79,26 +80,16 @@ export default {
       'name'
     ])
   },
-  filters: {
-    formatDate: function (value) {
-      const date = new Date(value)
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      const seconds = String(date.getSeconds()).padStart(2, '0')
-      return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`
-    }
-  },
+  // 提供组件初始响应式数据。
   data() {
     return {
       activity: []
     }
   },
+  // 组件创建后加载页面初始数据。
   created: function () {
     this.activity = this.$route.params.activity // 获取路由参数activity
-    if(this.$store.state.clubid==0) {
+    if(!this.$store.getters.isClubSelected) {
       if(confirm("登陆身份失效，请重新登陆"))
       {
         this.reload()
@@ -111,12 +102,19 @@ export default {
     }
   },
   methods: {
+    // 格式化展示文本，便于页面直接显示。
+    formatDate(value) {
+      return shared.formatDateTime(value)
+    },
+    // 打开详情、预览或外部资源。
     openAttachment() {
       window.open(activity.attachment)
     },
+    // 打开详情、预览或外部资源。
     openImage() {
       window.open(activity.image)
     },
+    // 重新加载当前页面数据，保持界面内容最新。
     async reload() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
@@ -129,8 +127,6 @@ export default {
     //   setTimeout(() => {
     //     acceptActivity(activity.id)
     //       .then((response) => {
-    //         console.log(response.data)
-    //         router.go() // 刷新当前页面
     //       })
     //       .catch((error) => {
     //         console.error(error)
@@ -145,8 +141,6 @@ export default {
     //   setTimeout(() => {
     //     rejectActivity(activity.id)
     //       .then((response) => {
-    //         console.log(response.data)
-    //         router.go()
     //       })
     //       .catch((error) => {
     //         console.error(error)
@@ -156,7 +150,7 @@ export default {
   }
 }
 </script>
-  
+
 <style scoped>
 .el-row {
   margin-bottom: 20px;
@@ -217,4 +211,4 @@ export default {
   color: #ff9800;
 }
 </style>
-  
+

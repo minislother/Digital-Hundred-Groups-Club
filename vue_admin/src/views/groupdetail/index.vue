@@ -1,90 +1,99 @@
 <template>
-  <div>
-    <el-steps :active="3" style="margin-left: 200px; margin-right: 80px; margin-top: 20px">
-      <el-step title="社团描述（必填）" icon="el-icon-edit"></el-step>
-      <el-step title="上传附件（可选）" icon="el-icon-upload"></el-step>
-      <el-step title="上传图片（可选）" icon="el-icon-picture"></el-step>
-      <el-step title="确认修改（必点）" icon="el-icon-check"></el-step>
-    </el-steps>
-    <div class="groupcard">
-    <div style="margin: 30px;" />
-    <el-form :model="staticForm" label-width="80px" style="margin-left: 20px;">
-      <el-form-item label="社团名称" prop="name">
-        <el-input v-model="staticForm.name" :disabled="true" class="custom-data" />
-      </el-form-item>
-      <el-form-item label="社长" prop="leader">
-        <el-input v-model="staticForm.leader" :disabled="true" class="custom-data" />
-      </el-form-item>
-    </el-form>
-    <el-form ref="newForm" :model="newForm" status-icon :rules="rules" label-width="100px" class="demo-ruleForm">
-      <el-form-item label="详细介绍" prop="description">
-        <el-input v-model="newForm.description" type="decription" class="custom-data" />
-        <el-upload
-          :before-upload="beforeUpload"
-          class="upload-demo"
-          style="margin-top: 10px;"
-          :action="uploadAction('/group/uploadZip')"
-          :on-remove="handleRemove"
-          :before-remove="beforeRemove"
-          :on-success="handleUploadSuccess"
-          :on-error="handleUploadError"
-          multiple
-          :limit="1"
-          :on-exceed="handleExceed"
-          :file-list="zipList"
-          accept=".zip"
-        >
-          <el-button size="small" type="primary">上传附件</el-button>
-          <div slot="tip" class="el-upload__tip" style="margin-top: -10px;">只能上传zip文件,且不超过10MB</div>
-        </el-upload>
-        <el-upload
-          class="upload-demo"
-          drag
-          :on-success="handlePhotoUploadSuccess"
-          :on-preview="handlePictureCardPreview"
-          :on-remove="handleRemovePhoto"
-          accept=".jpg,.png"
-          :limit="1"
-          :action="uploadAction('/group/uploadPhoto')"
-          multiple
-          :on-exceed="handlePhotoExceed"
-        >
-          <i class="el-icon-upload" />
-          <div class="el-upload__text">将社团图片拖到此处，或<em>点击上传</em></div>
-          <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
-        </el-upload>
-        <el-button type="primary" @click="updateDescription('newForm')">确认修改</el-button>
-      </el-form-item>
-    </el-form>
+  <div class="app-container group-detail-page">
+    <section class="page-heading">
+      <span class="eyebrow">Club profile</span>
+      <h1>社团资料</h1>
+      <p>维护社团介绍、附件和封面图。社团资料会影响学生端展示，请保持信息准确清晰。</p>
+    </section>
 
+    <section class="detail-layout">
+      <el-form :model="staticForm" label-width="96px" class="info-card">
+        <h2>基础信息</h2>
+        <el-form-item label="社团名称" prop="name">
+          <el-input v-model="staticForm.name" disabled />
+        </el-form-item>
+        <el-form-item label="社长" prop="leader">
+          <el-input v-model="staticForm.leader" disabled />
+        </el-form-item>
+      </el-form>
+
+      <el-form ref="newForm" :model="newForm" status-icon :rules="rules" label-width="96px" class="edit-card">
+        <h2>展示资料</h2>
+        <el-form-item label="详细介绍" prop="description">
+          <el-input
+            v-model="newForm.description"
+            type="textarea"
+            :rows="6"
+            maxlength="800"
+            show-word-limit
+            placeholder="介绍社团定位、日常活动、招新要求等"
+          />
+        </el-form-item>
+        <el-form-item label="介绍附件">
+          <el-upload
+            :before-upload="beforeUpload"
+            class="upload-demo"
+            :action="uploadAction('/group/uploadZip')"
+            :on-remove="handleRemove"
+            :before-remove="beforeRemove"
+            :on-success="handleUploadSuccess"
+            :on-error="handleUploadError"
+            multiple
+            :limit="1"
+            :on-exceed="handleExceed"
+            :file-list="zipList"
+            accept=".zip"
+          >
+            <el-button type="primary">上传 zip 附件</el-button>
+            <template #tip>
+              <div class="el-upload__tip">支持 1 个 zip 文件，大小不超过 10MB。</div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="社团封面">
+          <el-upload
+            class="upload-demo"
+            drag
+            :on-success="handlePhotoUploadSuccess"
+            :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemovePhoto"
+            accept=".jpg,.png"
+            :limit="1"
+            :action="uploadAction('/group/uploadPhoto')"
+            multiple
+            :on-exceed="handlePhotoExceed"
+          >
+            <div class="upload-placeholder">
+              <strong>拖拽图片到这里，或点击上传</strong>
+              <span>支持 jpg/png，建议使用横向封面图。</span>
+            </div>
+            <template #tip>
+              <div class="el-upload__tip">上传后会用于学生端社团卡片展示。</div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        <div class="form-actions">
+          <el-button type="primary" @click="updateDescription('newForm')">保存社团资料</el-button>
+        </div>
+      </el-form>
+    </section>
   </div>
-</div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-import { getDetails, updateForm, updatePassword } from '@/api/manage.js'
+import { getDetails, updateForm } from '@/api/manage.js'
+import { buildUploadAction } from '@/utils/upload'
+
 export default {
   name: 'Groupdetail',
   computed: {
     ...mapGetters([
       'name'
-    ]) },
+    ])
+  },
+  // 提供组件初始响应式数据。
   data() {
-    const validatePass = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('密码长度不能少于6位'))
-      } else {
-        callback()
-      }
-    }
-    const validatePass2 = (rule, value, callback) => {
-      if (value !== this.ruleForm.pass) {
-        callback(new Error('两次输入密码不一致!'))
-      } else {
-        callback()
-      }
-    }
     return {
       zipList: [],
       fileList: [],
@@ -99,27 +108,18 @@ export default {
         attachment: '',
         image: ''
       },
-      ruleForm: {
-        pass: '',
-        checkPass: ''
-      },
       rules: {
         description: [
-          { required: true, message: '内容不能为空', trigger: 'change' }
-        ],
-        pass: [
-          { required: true, validator: validatePass, trigger: 'blur' }
-        ],
-        checkPass: [
-          { required: true, validator: validatePass2, trigger: 'blur' }
+          { required: true, message: '请填写社团详细介绍', trigger: 'change' }
         ]
       }
     }
   },
-  created: function() {
+  // 组件创建后加载页面初始数据。
+  created() {
     this.staticForm.name = this.name
 
-    getDetails(this.$store.state.clubname)
+    getDetails(this.$store.getters.currentClubName)
       .then((response) => {
         this.staticForm.name = response.data.group.name
         this.staticForm.leader = response.data.group.leader
@@ -130,134 +130,138 @@ export default {
       .catch((error) => {
         console.error(error)
       })
-      if(this.$store.state.clubid==0) {
-      if(confirm("登陆身份失效，请重新登陆"))
-      {
-        this.reload()
-      }
-      else
-      {
-        window.alert("取消也得重新登陆")
-        this.reload()
-      }
+
+    if (!this.$store.getters.isClubSelected) {
+      this.$confirm('登录身份已失效，请重新登录', '需要重新登录', {
+        confirmButtonText: '重新登录',
+        showCancelButton: false,
+        type: 'warning'
+      }).finally(() => this.reload())
     }
   },
   methods: {
+    // 处理文件上传相关逻辑。
     uploadAction(path) {
-      return `${process.env.VUE_APP_BASE_API}${path}`
+      return buildUploadAction(path)
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handlePhotoExceed(files, fileList) {
-      this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
+      this.$message.warning(`最多上传 1 张图片，本次选择了 ${files.length} 张，当前共 ${files.length + fileList.length} 张。`)
     },
-    handlePhotoUploadSuccess(response, file, fileList) {
-      console.log(file, fileList)
-      this.newForm.image = response.fileUrl
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
+    handlePhotoUploadSuccess(response) {
+      this.newForm.image = response.data?.fileUrl || response.fileUrl
+      this.$message.success('封面上传成功')
     },
-    handleRemovePhoto(file, fileList) {
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
+    handleRemovePhoto(file) {
       this.fileList = this.fileList.filter((item) => item.name !== file.name)
-      console.log(file, fileList)
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handlePictureCardPreview(file) {
       this.dialogImageUrl = file.url
       this.dialogVisible = true
     },
-    handleRemove(file, zipList) {
-      console.log(file, zipList)
-    },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
+    handleRemove() {},
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleExceed(files, zipList) {
-      this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + zipList.length} 个文件`)
+      this.$message.warning(`最多上传 1 个文件，本次选择了 ${files.length} 个，当前共 ${files.length + zipList.length} 个。`)
     },
-    // beforeRemove(file, zipList) {
-    //   console.log(file, zipList)
-    //   return this.$confirm(`确定移除 ${file.name}？`)
-    // },
-    handleUploadSuccess(response, file, zipList) {
-      console.log(file, zipList)
-      this.newForm.attachment = response.fileUrl
+    // 移除指定业务数据或上传文件。
+    beforeRemove(file) {
+      return this.$confirm(`确定移除 ${file.name}？`)
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
+    handleUploadSuccess(response) {
+      this.newForm.attachment = response.data?.fileUrl || response.fileUrl
+      this.$message.success('附件上传成功')
+    },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleUploadError() {
-      // 处理文件上传失败的情况
-      this.dialogVisible = true // 显示提示信息的对话框
+      this.$message.error('附件上传失败，请稍后重试')
     },
+    // 处理文件上传相关逻辑。
     beforeUpload(file) {
       if (file.size / 1024 / 1024 > 10) {
-        this.$message.error('文件大小不能超10MB')
+        this.$message.error('文件大小不能超过 10MB')
         return false
       }
       return true
     },
+    // 更新表单字段或业务数据。
     updateDescription(formName) {
       this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.$message({
-            message: '详情介绍更新成功',
-            type: 'success'
+        if (!valid) return false
+
+        updateForm(this.staticForm.name, this.newForm.description, this.newForm.attachment, this.newForm.image)
+          .then(() => {
+            this.$message.success('社团资料已保存')
+            this.$router.push({ name: 'Groupdetail' })
           })
-          updateForm(this.staticForm.name, this.newForm.description, this.newForm.attachment, this.newForm.image)
-            .then(response => {
-              console.log(response.data)
-              this.$router.push({ name: 'Groupdetail' })
-            })
-            .catch(error => {
-              console.error(error)
-            })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
-    },
-    submitPassword(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.showSuccessUpdatePassword()
-          updatePassword(this.name, this.ruleForm.pass).then(response => {
-            console.log(response.data)
-            this.logout()
+          .catch(error => {
+            console.error(error)
           })
-            .catch(error => {
-              console.error(error)
-            })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
       })
     },
-    showSuccessUpdatePassword() {
-      this.$message({
-        message: '密码修改成功',
-        type: 'success'
-      })
-    },
-    async logout() {
-      await this.$store.dispatch('group/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-    },
-    resetForm(formName) {
-      console.log( this.$store.state.clubid)
-      console.log( this.$store.state.clubname)
-      this.$refs[formName].resetFields()
-    },
+    // 重新加载当前页面数据，保持界面内容最新。
     async reload() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-    },
+    }
   }
 }
 </script>
 
-<style>
-.custom-data {
-  width: 300px;
+<style lang="scss" scoped>
+.detail-layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
 }
-.groupcard {
-  width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  text-align: center;
+
+.info-card,
+.edit-card {
+  padding: 24px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: var(--bt-radius-lg);
+  background: var(--bt-surface);
+  box-shadow: var(--bt-shadow);
+}
+
+.info-card h2,
+.edit-card h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+}
+
+.upload-placeholder {
+  display: grid;
+  gap: 6px;
+  color: var(--bt-text);
+}
+
+.upload-placeholder span {
+  color: var(--bt-text-muted);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-left: 96px;
+}
+
+@media (max-width: 1080px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    padding-left: 0;
+  }
 }
 </style>
-

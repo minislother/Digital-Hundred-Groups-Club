@@ -14,6 +14,9 @@ public interface StuAppMapper extends BaseMapper<StuApp> {
 
     List<StuApp> findRecvapp(@Param("groupName") String groupName);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     StuApp getById(@Param("id") Integer id);
 
     List<StuApp> getByStuAndGroup(@Param("studentId") String studentId,

@@ -46,6 +46,9 @@ public class StuAppServiceImpl implements StuAppService {
         }
     }
 
+    /**
+     * 提交表单数据并触发后端业务处理。
+     */
     @Override
     public void submit(StuApp stuApp) {
         stuApp.setCreateTime(new Date());
@@ -68,6 +71,9 @@ public class StuAppServiceImpl implements StuAppService {
         return stuAppMapper.findIsAccepted(id);
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateAttachment(int applicationid, String attachment) {
         StuApp stuApp = queryDetailapp(applicationid);
@@ -75,6 +81,9 @@ public class StuAppServiceImpl implements StuAppService {
 
         int i = stuAppMapper.updateById(stuApp);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
@@ -86,6 +95,9 @@ public class StuAppServiceImpl implements StuAppService {
 
         int i = stuAppMapper.updateById(stuApp);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
@@ -97,6 +109,9 @@ public class StuAppServiceImpl implements StuAppService {
 
         int i = stuAppMapper.updateById(stuApp);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }

@@ -7,6 +7,9 @@ import com.alibaba.fastjson.JSON;
 import java.util.Map;
 
 public class HttpsUtil {
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public static String get(String url){
         HttpHeaders headers = new HttpHeaders();
         MediaType mediaType = MediaType.parseMediaType("application/json; charset=UTF-8");

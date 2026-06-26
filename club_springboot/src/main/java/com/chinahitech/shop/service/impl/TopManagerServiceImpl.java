@@ -52,24 +52,45 @@ public class TopManagerServiceImpl implements TopManagerService {
 
     @Override
     public void register(RegisterUser user) {
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         validateCode(user.getEmail(), user.getValicode());
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addManager(user.getUserId(), user.getPassword(), user.getEmail());
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addUser(RegisterUser user) {
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         validateCode(user.getEmail(), user.getValicode());
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addUser(user.getUserId(), user.getPassword(), user.getEmail());
     }
 
     @Override
     public String sendAccountEmail(String userNumber) throws Exception {
         User user = getByUserId(userNumber);
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         sendValidateEmail(user.getEmail());
         return user.getEmail();
     }
 
+    /**
+     * 校验输入内容是否满足业务要求。
+     */
     @Override
     public void validateCode(String email, String validateCode) {
         Object cached = RedisUtils.get(email);
@@ -78,11 +99,17 @@ public class TopManagerServiceImpl implements TopManagerService {
         }
     }
 
+    /**
+     * 校验输入内容是否满足业务要求。
+     */
     @Override
     public void sendValidateEmail(String email) throws Exception {
         new EmailService(email).sendEmail();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public User getByUserId(String num) {
         User stu = topManagerMapper.getTopManagerByNum(num);
         if (stu == null) {
@@ -106,6 +133,9 @@ public class TopManagerServiceImpl implements TopManagerService {
     }
 
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     public void addManager(String userId, String lastPwd, String email) {
         Date date = new Date();
         String salt = UUID.randomUUID().toString().toUpperCase();
@@ -123,6 +153,9 @@ public class TopManagerServiceImpl implements TopManagerService {
     }
 
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updatePassword(String userId, String password){
         User stu = getByUserId(userId);
         String newMD5pwd = PasswordUtil.encode(password);
@@ -134,10 +167,16 @@ public class TopManagerServiceImpl implements TopManagerService {
 
         int i = topManagerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updatePhone(String userId, String phone){
         Date date = new Date();
 
@@ -147,10 +186,16 @@ public class TopManagerServiceImpl implements TopManagerService {
 
         int i = topManagerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateDescription(String userId, String description){
         Date date = new Date();
 
@@ -160,10 +205,16 @@ public class TopManagerServiceImpl implements TopManagerService {
 
         int i = topManagerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateNickname(String userId, String nickname){
         Date date = new Date();
 
@@ -173,10 +224,16 @@ public class TopManagerServiceImpl implements TopManagerService {
 
         int i = topManagerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateMajor(String userId, String campus, String school, String major){
         Date date = new Date();
 
@@ -188,10 +245,16 @@ public class TopManagerServiceImpl implements TopManagerService {
 
         int i = topManagerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public List<User> getAllUsers(String searchInfo) {
         if (searchInfo == null || searchInfo.trim().isEmpty()) {
             return topManagerMapper.getAllUsers();
@@ -201,6 +264,9 @@ public class TopManagerServiceImpl implements TopManagerService {
     }
 
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Transactional(rollbackFor = Exception.class)
     public void addUser(String userId, String lastPwd, String email) {
         Date date = new Date();
@@ -222,6 +288,9 @@ public class TopManagerServiceImpl implements TopManagerService {
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Transactional(rollbackFor = Exception.class)
     public void updateUserInfo(User user){
         Date date = new Date();
@@ -230,28 +299,49 @@ public class TopManagerServiceImpl implements TopManagerService {
 
         int i = topManagerMapper.updateById(user);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Transactional(rollbackFor = Exception.class)
     public void deleteUser(User user) {
         String id = user.getUserId();
         int i = topManagerMapper.deleteById(id);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 处理文件上传相关逻辑。
+     */
     @Transactional(rollbackFor = Exception.class)
     public void uploadExcel(MultipartFile file) {
         try {
+            /**
+             * 保存业务数据或本地状态。
+             */
             saveImportedUsers(new ScanExcel().readExcel(file));
         } catch (Exception e) {
+            /**
+             * 处理文件上传相关逻辑。
+             */
             throw new FileUploadException("操作失败");
         }
     }
 
+    /**
+     * 处理文件上传相关逻辑。
+     */
     public void enqueueUploadExcel(String filePath) {
         Map<String, Object> message = new HashMap<>();
         message.put("filePath", filePath);
@@ -263,12 +353,21 @@ public class TopManagerServiceImpl implements TopManagerService {
     @Transactional(rollbackFor = Exception.class)
     public void importExcelFile(String filePath) {
         try {
+            /**
+             * 保存业务数据或本地状态。
+             */
             saveImportedUsers(new ScanExcel().readExcel(new File(filePath)));
         } catch (Exception e) {
+            /**
+             * 处理文件上传相关逻辑。
+             */
             throw new FileUploadException("操作失败");
         }
     }
 
+    /**
+     * 保存业务数据或本地状态。
+     */
     private void saveImportedUsers(List<User> users) {
         if (users != null && !users.isEmpty()){
             for (User user : users) {

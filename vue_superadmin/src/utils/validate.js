@@ -6,6 +6,7 @@
  * @param {string} path
  * @returns {Boolean}
  */
+// 判断链接或图标地址是否为外部资源。
 export function isExternal(path) {
   return /^(https?:|mailto:|tel:)/.test(path)
 }

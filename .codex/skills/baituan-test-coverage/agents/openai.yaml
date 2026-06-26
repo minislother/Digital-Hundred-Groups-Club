@@ -1,0 +1,4 @@
+interface:
+  display_name: "Baituan Test Coverage"
+  short_description: "Analyze baituan backend coverage by rules"
+  default_prompt: "Use $baituan-test-coverage to analyze backend unit test coverage."

@@ -1,173 +1,153 @@
 <template>
-    <div class="card-container">
-      <div  :key="student.userId" class="card">
-        <h2 class="card-title">成员详情信息</h2>
-        <div class="table-wrapper">
-          <table class="table-content">
-            <tr>
-              <td>学号:</td>
-              <td>{{ student.userId }}</td>
-            </tr>
-            <tr>
-              <td>姓名:</td>
-              <td>{{ student.userName }}</td>
-            </tr>
-            <tr>
-              <td>邮箱:</td>
-              <td>{{ student.email }}</td>
-            </tr>
-            <tr>
-              <td>手机号:</td>
-              <td>{{ student.phone }}</td>
-            </tr>
-            <tr>
-              <td>校区:</td>
-              <td>{{ student.campus }}</td>
-            </tr>
-            <tr>
-              <td>专业:</td>
-              <td>{{ student.major }}</td>
-            </tr>
-            <tr>
-              <td>自我介绍:</td>
-              <td>{{ student.description }}</td>
-            </tr>
-          </table>
-        </div>
-        
+  <div class="detail-page app-container">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Member Detail</p>
+        <h1>成员详情信息</h1>
       </div>
-    </div>
-  </template>
-  
-  <script>
-  import { mapGetters } from 'vuex'
-  import { getStudentDetail } from '@/api/user.js'
-  
-  
-  export default {
-    name: 'Studentdetail',
-    computed: {
-      ...mapGetters([
-        'name'
-      ])
-    },
-    filters: {
-      formatDate: function(value) {
-        const date = new Date(value)
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        const hours = String(date.getHours()).padStart(2, '0')
-        const minutes = String(date.getMinutes()).padStart(2, '0')
-        const seconds = String(date.getSeconds()).padStart(2, '0')
-        return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`
-      }
-    },
-    data() {
-      return {
-        student: '',
-        // isAccepted: '',
-      }
-    },
-    created: function() {
-      const id = this.$route.params.id // 获取路由参数id
-      getStudentDetail(id).then((response) => {
-        this.student = response.data.user
-        // this.isAccepted = response.data.isAccepted;
-      })
-        .catch(error => {
-          console.error(error)
-        })
-        if(this.$store.state.clubid==0) {
-      if(confirm("登陆身份失效，请重新登陆"))
-      {
-        this.reload()
-      }
-      else
-      {
-        window.alert("取消也得重新登陆")
-        this.reload()
-      }
+    </section>
+
+    <el-card class="detail-card">
+      <dl class="detail-grid">
+        <div>
+          <dt>学号</dt>
+          <dd>{{ student.userId || '-' }}</dd>
+        </div>
+        <div>
+          <dt>姓名</dt>
+          <dd>{{ student.userName || '-' }}</dd>
+        </div>
+        <div>
+          <dt>邮箱</dt>
+          <dd>{{ student.email || '-' }}</dd>
+        </div>
+        <div>
+          <dt>手机号</dt>
+          <dd>{{ student.phone || '-' }}</dd>
+        </div>
+        <div>
+          <dt>校区</dt>
+          <dd>{{ student.campus || '-' }}</dd>
+        </div>
+        <div>
+          <dt>专业</dt>
+          <dd>{{ student.major || '-' }}</dd>
+        </div>
+        <div class="full-row">
+          <dt>自我介绍</dt>
+          <dd>{{ student.description || '暂无自我介绍' }}</dd>
+        </div>
+      </dl>
+    </el-card>
+  </div>
+</template>
+
+<script>
+import { mapGetters } from 'vuex'
+import { getStudentDetail } from '@/api/user.js'
+
+export default {
+  name: 'Studentdetail',
+  computed: {
+    ...mapGetters([
+      'name'
+    ])
+  },
+  // 提供组件初始响应式数据。
+  data() {
+    return {
+      student: {}
     }
-    },
-    methods: {
+  },
+  // 组件创建后加载页面初始数据。
+  created() {
+    const id = this.$route.params.id
+    getStudentDetail(id).then((response) => {
+      this.student = response.data.user
+    })
+      .catch(error => {
+        console.error(error)
+      })
+    if (!this.$store.getters.isClubSelected) {
+      this.$message.warning('登录身份失效，请重新登录')
+      this.reload()
+    }
+  },
+  methods: {
+    // 重新加载当前页面数据，保持界面内容最新。
     async reload() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-    },
     }
   }
-  </script>
-  
-  <style>
-  .card-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: -70px;
+}
+</script>
+
+<style lang="scss" scoped>
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-heading {
+  padding: 20px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--bt-shadow);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--bt-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.page-heading h1 {
+  margin: 0;
+  color: var(--bt-text);
+  font-size: 24px;
+}
+
+.detail-card {
+  max-width: 960px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+}
+
+.detail-grid div {
+  padding: 14px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: var(--bt-surface-muted);
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+dt {
+  color: var(--bt-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+dd {
+  margin: 8px 0 0;
+  color: var(--bt-text);
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .card {
-    border: 10px solid #333333;
-    padding: 100px;
-    margin: 80px;
-    width: 60%;
-    height: 200%;
-    text-align: left;
-    margin-bottom: -50px;
-  }
-  
-  .card-title {
-    margin-top: -30px;
-    text-align: center;
-    font-size: 40px;
-    margin-bottom: 50px;
-  }
-  
-  .table-wrapper {
-    border: 1px solid #000;
-    display: flex;
-    justify-content: center;
-    padding: 10px;
-  }
-  
-  .table-content {
-    font-size: 25px;
-    border-collapse: separate;
-    border-spacing: 15px; /* 调整间隔大小，根据需要进行调整 */
-    border-collapse: collapse;
-    width: 100%;
-  }
-  
-  .table-content td {
-    border: 1px solid #000;
-    padding: 8px;
-  }
-  
-  .table-content tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-  
-  .table-content tr:hover {
-    background-color: #ddd;
-  }
-  
-  .button-container {
-    text-align: center;
-    margin-top: 50px;
-  }
-  
-  .edit-button {
-    margin-left: 30px;
-  }
-  
-  .left-button {
-    margin-right: 110px; /* Adjust the margin to create space between the buttons */
-  }
-  
-  .disabled-button {
-    background-color: #cccccc !important;
-    cursor: not-allowed !important;
-  }
-  </style>
-  
+}
+</style>

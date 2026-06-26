@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 
+// 读取并返回业务数据或页面状态。
 export function getGroups(searchInfo) {
   return request({
     url: '/group/all',
@@ -8,6 +9,7 @@ export function getGroups(searchInfo) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getVideo() {
   return request({
     url: '/group/getVideo',
@@ -16,6 +18,7 @@ export function getVideo() {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getWeather() {
   return request({
     url: '/getWeather',
@@ -24,8 +27,8 @@ export function getWeather() {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getTopGroups() {
-  console.error('!!!!!')
   return request({
     url: '/group/top',
     method: 'get',
@@ -33,6 +36,7 @@ export function getTopGroups() {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getApplications(stuNumber) {
   return request({
     url: '/application/myApps',
@@ -41,6 +45,7 @@ export function getApplications(stuNumber) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function postform(form) {
   return request({
     url: '/application/submit',
@@ -49,6 +54,7 @@ export function postform(form) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getAttachmentUrl(groupId) {
   return request({
     url: '/group/getAttachment',
@@ -57,6 +63,7 @@ export function getAttachmentUrl(groupId) {
   })
 }
 
+// 展示弹窗、详情或提示内容。
 export function showGroups(searchInfo) {
   return request({
     url: '/group/all',
@@ -65,6 +72,7 @@ export function showGroups(searchInfo) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getMyGroups(studentId) {
   return request({
     url: '/individualGroup/allGroups',

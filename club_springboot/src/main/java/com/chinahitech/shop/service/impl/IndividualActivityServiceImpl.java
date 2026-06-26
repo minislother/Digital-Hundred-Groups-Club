@@ -31,11 +31,17 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Autowired
     private KafkaProducer kafkaProducer;
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualActivity> getActivityByStuId(String studentId) {
         return individualActivityMapper.getActivityByStuId(studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualActivity> getActivityByStuIdCached(String studentId) {
         requireStudentId(studentId);
@@ -71,11 +77,17 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         evictActivityStudentCache(activityId, studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualActivity> getActivityByActivityId(int activityId) {
         return individualActivityMapper.getActivityByActivityId(activityId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualActivity> getActivityByActivityIdCached(int activityId) {
         requireActivityId(activityId);
@@ -88,11 +100,17 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         return list;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualActivity> getApplyByActivityId(int activityId) {
         return individualActivityMapper.getApplyByActivityId(activityId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualActivity> getApplyByActivityIdCached(int activityId) {
         requireActivityId(activityId);
@@ -105,6 +123,9 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         return list;
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addActivityStudent(String studentId, int activityId, String position, boolean approved) {
@@ -116,17 +137,29 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         individualActivityMapper.insert(ia);
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addActivityStudentAndNotify(int activityId, String studentId, String position) {
         requireActivityStudent(activityId, studentId);
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addActivityStudent(studentId, activityId, position, true);
         sendEvent("add_activity_student", activityId, studentId, null);
         evictActivityStudentCache(activityId, studentId);
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addActivityStudentAndNotify(int activityId, String studentId, String position, String managerId) {
         assertManagedActivity(activityId, managerId);
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addActivityStudentAndNotify(activityId, studentId, position);
     }
 
@@ -150,31 +183,52 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         modifyActivityStudentAndNotify(activityId, studentId, position);
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteActivityStudent(int activityId, String studentId) {
         ensureUpdated(individualActivityMapper.delete(activityId, studentId));
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Override
     public void deleteActivityStudentAndNotify(int activityId, String studentId) {
         requireActivityStudent(activityId, studentId);
+        /**
+         * 删除指定业务数据。
+         */
         deleteActivityStudent(activityId, studentId);
         sendEvent("delete_activity_student", activityId, studentId, null);
         evictActivityStudentCache(activityId, studentId);
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Override
     public void deleteActivityStudentAndNotify(int activityId, String studentId, String managerId) {
         assertManagedActivity(activityId, managerId);
+        /**
+         * 删除指定业务数据。
+         */
         deleteActivityStudentAndNotify(activityId, studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Activity> getAllManagedActivities(String managerId) {
         return individualActivityMapper.getAllManagedActivities(managerId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Activity> getAllManagedActivitiesCached(String managerId) {
         requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
@@ -227,11 +281,17 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         denyApplicationAndNotify(activityId, studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<ActivityNum> getActivityMembers() {
         return individualActivityMapper.getActivityMembers();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<ActivityNum> getActivityMembersCached() {
         String key = "individualActivity:top5:members";
@@ -257,6 +317,9 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         }
     }
 
+    /**
+     * 校验活动 ID 是否有效，无效时抛出业务异常。
+     */
     private void requireActivityId(int activityId) {
         if (activityId <= 0) {
             throw new BusinessException("PARAM_ERROR", "\u6d3b\u52a8ID\u4e0d\u5408\u6cd5");
@@ -280,6 +343,9 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
         }
     }
 
+    /**
+     * 发送业务事件消息，用于异步同步或缓存刷新。
+     */
     private void sendEvent(String type, int activityId, String studentId, Map<String, Object> extra) {
         Map<String, Object> msg = new HashMap<>();
         msg.put("type", type);

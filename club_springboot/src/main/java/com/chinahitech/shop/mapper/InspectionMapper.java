@@ -12,15 +12,27 @@ public interface InspectionMapper extends BaseMapper<Inspection> {
 
     List<Inspection> findAll();
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<Inspection> getBySearchInfo(@Param("searchInfo") String searchInfo);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<Inspection> getByGroup(@Param("groupName") String groupName);
 
     List<Inspection> getByGroupAndYear(@Param("groupName") String groupName,
+                                       /**
+                                        * 读取并返回业务数据或页面状态。
+                                        */
                                        @Param("year") Year year);
 
     List<Inspection> getByYear(@Param("year") Year year);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     Inspection getById(@Param("id") int id);
 
     int addFeedback(@Param("inspectionId") int inspectionId,

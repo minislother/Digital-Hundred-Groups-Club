@@ -1,192 +1,233 @@
 <template>
-  <div>
-    <div class="dashboard-container">
-      <div class="typed-js-container">
-        <vue-typed-js style="margin-left: 20px;" class="mao" :strings="['丰富活动等你参与', '海量社团等你选择','欢迎你登录中山大学社团招新系统']">
-          <h3 class="typing" />
-        </vue-typed-js>
+  <div class="student-dashboard app-container">
+    <section class="hero-panel">
+      <div class="hero-copy">
+        <p class="eyebrow">数字百团</p>
+        <h1>发现适合你的校园社团</h1>
+        <typed-text
+          class="hero-typed"
+          :strings="['丰富活动等你参与', '海量社团等你选择', '欢迎登录中山大学社团招新系统']"
+        />
       </div>
-      <div class="search-container" style="margin-left: 50px;">
-        <el-input @keyup.enter.native="handleSearch" v-model="searchInfo" placeholder="搜索社团" clearable />
-        <el-button icon="el-icon-search" @click="handleSearch" />
-        <el-button style="margin-left: 50px;" @click="showVideoDialog">播放社团宣传视频</el-button>
-        <div class="audio-container" style="margin-left: 50px; display: flex; align-items: center;">
-          <span style="white-space: nowrap;">
-            《山高水长》
-          </span>
-          <audio ref="audio" :src="music_path" controls />
+      <div class="hero-actions">
+        <div class="search-row">
+          <el-input
+            v-model="searchInfo"
+            placeholder="搜索社团名称"
+            clearable
+            @keyup.enter="handleSearch"
+          />
+          <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
         </div>
-        <el-popover
-          placement="bottom"
-          width="200"
-          trigger="click"
-          :content="`天气:${weather.weather}   温度:${weather.temperature}℃     ${weather.remark}`"
-        >
-          <el-button slot="reference" style="margin-left: 50px;">查看天气</el-button>
-        </el-popover>
-        <i class="icon" :class="{'el-icon-arrow-down': carouselVisible, 'el-icon-arrow-up':!carouselVisible}" style="margin-left: 50px; cursor: pointer;" @click="carouselVisible = !carouselVisible"></i>
+        <div class="tool-row">
+          <el-button plain @click="showVideoDialog">播放社团宣传视频</el-button>
+          <el-popover
+            placement="bottom"
+            width="240"
+            trigger="click"
+            :content="weatherText"
+          >
+            <template #reference>
+              <el-button plain>查看天气</el-button>
+            </template>
+          </el-popover>
+          <el-button
+            plain
+            :icon="carouselVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+            @click="carouselVisible = !carouselVisible"
+          >
+            {{ carouselVisible ? '收起轮播' : '展开轮播' }}
+          </el-button>
+        </div>
       </div>
-    </div>
-    <div class="block" v-if="carouselVisible">
-      <el-carousel height="800px">
+    </section>
+
+    <section v-if="carouselVisible" class="carousel-panel">
+      <el-carousel height="360px">
         <el-carousel-item v-for="item in imagebox" :key="item.id">
-          <a :href="getWebsiteURL(item.id)">
-            <img :src="item.idView" class="image">
+          <a :href="getWebsiteURL(item.id)" target="_blank" rel="noopener noreferrer">
+            <img :src="item.idView" :alt="`校园专题轮播图 ${item.id + 1}`" loading="lazy" class="carousel-image">
           </a>
         </el-carousel-item>
       </el-carousel>
-    </div>
-    <el-dialog :visible="videoDialogVisible" @close="handleVideoDialogClose">
-      <div class="video-container">
-        <video ref="videoPlayer" controls style="width: 100%; height: 100%;">
-          <source :src="videoUrl" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+    </section>
+
+    <section class="section-heading">
+      <div>
+        <p class="eyebrow">Club Square</p>
+        <h2>社团广场</h2>
       </div>
-    </el-dialog>
-    <el-row :gutter="30">
-      <el-col v-for="group in groups" :key="group.id" :span="6" :offset="0">
-        <el-card class="group-card" :body-style="{ padding: '20px', height: '200px' }">
-          <div class="group-content">
-            <div class="image-wrapper">
-              <img :src="group.image" class="group-image">
-            </div>
-            <div class="group-details">
-              <div class="group-name">{{ group.name }}</div>
-              <div class="group-buttons">
-                <el-button type="primary" class="group-button" size="mini" @click="redirectToApplication(group.name)">申请加入</el-button>
-                <el-button type="primary" class="group-button" size="mini" @click="showDescription(group)">查看详情</el-button>
-              </div>
+      <span>共 {{ totalItems }} 个社团</span>
+    </section>
+
+    <el-row :gutter="20" class="group-grid">
+      <el-col
+        v-for="group in groups"
+        :key="group.id"
+        :xs="24"
+        :sm="12"
+        :md="8"
+        :lg="6"
+      >
+        <el-card class="group-card" :body-style="{ padding: '0' }">
+          <img :src="group.image" :alt="`${group.name} 封面`" loading="lazy" class="group-image">
+          <div class="group-details">
+            <div class="group-name">{{ group.name }}</div>
+            <div class="group-buttons">
+              <el-button type="primary" size="small" @click="redirectToApplication(group.name)">申请加入</el-button>
+              <el-button size="small" @click="showDescription(group)">查看详情</el-button>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
-    <el-dialog :visible.sync="dialogVisible" title="社团详情" width="30%">
-      <div style="font-weight: bold; font-size: 20px;">{{ currentGroup.description }}</div>
-      <span slot="footer" class="dialog-footer">
-        <el-button
-            v-if="currentGroup.attachment !== null"
-          type="primary"
-          style="margin-left: 50px; margin-top: 15px;"
-          @click="downloadAttachment(currentGroup.id)"
-        >下载社团详情附件</el-button>
-        <el-button type="primary" @click="dialogVisible = false">关闭</el-button>
-      </span>
+
+    <el-dialog v-model="videoDialogVisible" width="720px" @close="handleVideoDialogClose">
+      <div class="video-container">
+        <video ref="videoPlayer" controls>
+          <source :src="videoUrl" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
     </el-dialog>
-    <div style="bottom: 0; left: 0; right: 0;">
-    <el-pagination
-      :current-page="currentPage"
-      :page-sizes="[ 4,8, 16,32]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="totalItems"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    /></div>
+
+    <el-dialog v-model="dialogVisible" title="社团详情" width="520px">
+      <p class="dialog-description">{{ currentGroup.description }}</p>
+      <template #footer>
+        <el-button
+          v-if="currentGroup.attachment !== null"
+          type="primary"
+          @click="downloadAttachment(currentGroup.id)"
+        >
+          下载社团详情附件
+        </el-button>
+        <el-button @click="dialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <div class="pagination-row">
+      <el-pagination
+        :current-page="currentPage"
+        :page-sizes="[4, 8, 16, 32]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="totalItems"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import { getGroups, getVideo, getWeather, getAttachmentUrl } from '@/api/group.js'
+import TypedText from '@/components/TypedText'
 
 export default {
   name: 'Dashboard',
+  components: {
+    TypedText
+  },
   computed: {
     ...mapGetters([
       'name'
-    ]) },
-
+    ]),
+    // 处理当前组件的业务逻辑或用户交互。
+    weatherText() {
+      if (!this.weather) {
+        return '暂无天气信息'
+      }
+      return `天气：${this.weather.weather || '-'}   温度：${this.weather.temperature || '-'}℃   ${this.weather.remark || ''}`
+    }
+  },
+  // 提供组件初始响应式数据。
   data() {
     return {
-      // 音频文件路径
-      music_path: '/山高水长.mp3',
       totalItems: 0,
-      // 是否播放音频
       pageSize: 32,
       currentPage: 1,
-      is_play: false,
       groups: [],
       weather: '',
       dialogVisible: false,
       currentGroup: {
-        description: ''
+        description: '',
+        attachment: null
       },
       searchInfo: '',
       videoDialogVisible: false,
       videoUrl: '',
       imagebox: [
-        { id: 0, idView: require('../../assets/caraousel/走马灯_05.png') },
-        { id: 1, idView: require('../../assets/caraousel/走马灯_06.png') },
-        { id: 2, idView: require('../../assets/caraousel/走马灯_07.png') },
-        { id: 3, idView: require('../../assets/caraousel/走马灯_08.png') }
+        { id: 0, idView: require('../../assets/caraousel/走马灯_05.webp') },
+        { id: 1, idView: require('../../assets/caraousel/走马灯_06.webp') },
+        { id: 2, idView: require('../../assets/caraousel/走马灯_07.webp') },
+        { id: 3, idView: require('../../assets/caraousel/走马灯_08.webp') }
       ],
-      carouselVisible: true,
-      linkbox: [
-        { id: 0, idView: ('https://p0.itc.cn/q_70/images03/20220802/252a97dd74244b92a06da8cd978bb0fb.jpeg') },
-        { id: 1, idView: ('https://huacheng.gz-cmc.com/upload/news/image/2020/07/15/f9ba78f5c0f94f4a9c09b57046aa0ad9.jpeg') },
-        { id: 2, idView: ('https://p3.itc.cn/q_70/images03/20210703/c577b8b0385d480f9ad325b6b9a7f51d.jpeg') },
-        { id: 3, idView: ('https://zt.gaoxiaojob.com/zsdxrjgcxy2103.jpg') }
-      ]
+      carouselVisible: true
     }
   },
-  created: function() {
+  // 组件创建后加载页面初始数据。
+  created() {
     this.searchInfo = this.$route.query.searchInfo
     this.handleSearch()
     this.getWeather()
   },
   methods: {
+    // 读取并返回业务数据或页面状态。
     getWebsiteURL(id) {
-    if (id === 0) {
-      return 'https://ztjy.sysu.edu.cn/'; // 第一个item的id为1，跳转到example.com
-    }
-    else if (id === 1) {
-      return 'https://www.sysu.edu.cn/news/ztjj2/gdzt/zt2023ncjgzhy.htm'; // 第二个item的id为2，跳转到example2.com
-    }
-    else if (id === 2) {
-      return 'https://www.sysu.edu.cn/xxg/zdjj1.htm'; // 第二个item的id为2，跳转到example2.com
-    }
-    else {
-      return 'https://ddhzt.sysu.edu.cn/'; // 其他情况下跳转到默认网站
-    }
-  },
+      if (id === 0) {
+        return 'https://ztjy.sysu.edu.cn/'
+      }
+      if (id === 1) {
+        return 'https://www.sysu.edu.cn/news/ztjj2/gdzt/zt2023ncjgzhy.htm'
+      }
+      if (id === 2) {
+        return 'https://www.sysu.edu.cn/xxg/zdjj1.htm'
+      }
+      return 'https://ddhzt.sysu.edu.cn/'
+    },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`)
       this.pageSize = val
       this.handleSearch()
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`)
       this.currentPage = val
       this.handleSearch()
     },
+    // 展示弹窗、详情或提示内容。
     showDescription(group) {
       this.currentGroup = group
-      this.currentGroup.description = group.description
       this.dialogVisible = true
     },
+    // 展示弹窗、详情或提示内容。
     showVideoDialog() {
       getVideo()
         .then(response => {
           this.videoUrl = response.data.url
-          // 打开弹窗
           this.videoDialogVisible = true
-          // 获取video标签的引用
-          const videoElement = this.$refs.videoPlayer
-          // 播放视频
-          videoElement.play()
+          this.$nextTick(() => {
+            const videoElement = this.$refs.videoPlayer
+            if (videoElement) {
+              videoElement.play()
+            }
+          })
         })
         .catch(error => {
           console.error('获取视频失败:', error)
         })
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleVideoDialogClose() {
       const videoElement = this.$refs.videoPlayer
-      videoElement.pause()
-      videoElement.currentTime = 0
+      if (videoElement) {
+        videoElement.pause()
+        videoElement.currentTime = 0
+      }
       this.videoDialogVisible = false
     },
+    // 处理当前组件的业务逻辑或用户交互。
     redirectToApplication(groupName) {
       this.$router.push({
         name: 'Application',
@@ -195,12 +236,13 @@ export default {
         }
       })
     },
+    // 下载后端提供的附件或模板文件。
     async downloadAttachment(groupId) {
       try {
         const response = await getAttachmentUrl(groupId)
-        if (response.attachment !== '') {
-          const url = response.attachment
-          window.open(url, '_blank')
+        const attachment = response.data?.attachment || response.attachment
+        if (attachment) {
+          window.open(attachment, '_blank')
         } else {
           this.$message.error('无法获取附件 URL')
         }
@@ -209,15 +251,7 @@ export default {
         this.$message.error('下载附件时发生错误')
       }
     },
-    // redirectToShowgroupdetails(groupId,description) {
-    //   this.$router.push({
-    //     name: 'Showgroupdetails',
-    //     params: {
-    //       groupId: groupId,
-    //       description: description
-    //     }
-    //   })
-    // },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
       getGroups(this.searchInfo)
         .then((response) => {
@@ -228,6 +262,7 @@ export default {
           console.error(error)
         })
     },
+    // 读取并返回业务数据或页面状态。
     getWeather() {
       getWeather()
         .then((response) => {
@@ -242,128 +277,176 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.text-center {
-  text-align: center;
-}
-.audio-container{
-  margin-right: 10px;
-  font-size: 18px;
-  line-height: 24px;
-}
-.mao {
-  position: relative;
-  -webkit-background-clip: text;
-  background-clip: text;
-  background-image: linear-gradient(rgb(74, 14, 240), rgb(67, 248, 248));
-  -webkit-text-fill-color: transparent;
-}
-.video-container {
-  width: 100%;
-  height: 100%;
+.student-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-audio {
+.hero-panel,
+.carousel-panel {
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--bt-shadow);
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+  gap: 24px;
+  padding: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--bt-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-copy h1,
+.section-heading h2 {
+  margin: 0;
+  color: var(--bt-text);
+  font-weight: 700;
+}
+
+.hero-copy h1 {
+  font-size: 30px;
+  line-height: 1.25;
+}
+
+.hero-typed {
   display: block;
-  margin: 0 auto;
+  margin-top: 14px;
+  color: var(--bt-text-muted);
+  font-size: 16px;
 }
 
-.dashboard-container {
+.hero-actions {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.dashboard-text {
-  font-size: 18px;
-  font-weight: bold;
-  margin-right: 30px;
-}
-
-.search-container {
-  right: 600px;
+.search-row,
+.tool-row {
   display: flex;
-  align-items: center;
+  gap: 10px;
 }
 
-.video-container {
+.search-row .el-input {
+  flex: 1;
+}
+
+.tool-row {
+  flex-wrap: wrap;
+}
+
+.carousel-panel {
+  overflow: hidden;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+.section-heading {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
 }
 
-.video-container video {
-  max-width: 100%;
-  max-height: 100%;
+.section-heading span {
+  color: var(--bt-text-muted);
+  font-size: 14px;
+}
+
+.group-grid {
+  margin-top: -4px;
 }
 
 .group-card {
-  height: 300px; /* 设置卡片高度 */
-  margin-bottom: 20px; /* 设置卡片间的垂直间距 */
-  width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.group-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.image-wrapper {
-  width: 100%;
-  min-height: 210px;
-  max-height: 210px;
+.group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(27, 31, 36, 0.12) !important;
 }
 
 .group-image {
+  display: block;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
-  border-radius: 8px 8px 8px 8px;
-}
-
-.group-name {
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 3px;
-}
-.group-buttons {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 2px
-}
-
-.group-button {
-  flex-grow: 1;
-  margin: 0 20px;
+  background: var(--bt-surface-muted);
 }
 
 .group-details {
+  padding: 14px;
+}
+
+.group-name {
+  min-height: 24px;
+  color: var(--bt-text);
+  font-size: 16px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-buttons {
   display: flex;
-  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.group-buttons .el-button {
+  flex: 1;
+  margin-left: 0;
+}
+
+.video-container video {
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 8px;
+  background: #000;
+}
+
+.dialog-description {
+  margin: 0;
+  color: var(--bt-text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.pagination-row {
+  display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
-  flex-grow: 1;
-  padding-top: 10px; /* 设置卡片顶部内边距 */
+  padding: 4px 0 24px;
 }
 
-.block {
-  position: relative; /* 设置父容器为相对定位，为绝对定位的图片提供参考 */
+@media (max-width: 900px) {
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
 }
 
-.block .image {
-  position: absolute; /* 将图片设置为绝对定位 */
-  top: 0;
-  left: 0;
-  width: 100%; /* 图片宽度占满父容器 */
-  height: 100%; /* 图片高度占满父容器 */
-  object-fit: cover; /* 按比例缩放图片，以覆盖整个容器 */
-}
-
-.el-pagination {
-  text-align: center;
+@media (max-width: 640px) {
+  .search-row,
+  .tool-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>

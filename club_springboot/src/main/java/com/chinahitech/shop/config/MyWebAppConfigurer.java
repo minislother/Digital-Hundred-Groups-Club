@@ -13,6 +13,9 @@ public class MyWebAppConfigurer implements WebMvcConfigurer {
     @Value("${upload-dir:upload/}")
     private String uploadDir;
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize().toUri().toString();

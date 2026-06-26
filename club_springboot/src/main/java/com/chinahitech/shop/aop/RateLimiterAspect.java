@@ -59,6 +59,9 @@ public class RateLimiterAspect {
         }
     }
 
+    /**
+     * 执行 Redis 滑动窗口脚本并返回限流结果。
+     */
     public Long executeSlidingWindowScript(String key, Long window, Long limit) {
         long now = System.currentTimeMillis();
         try {
@@ -68,11 +71,14 @@ public class RateLimiterAspect {
                     window.toString(), limit.toString(), Long.toString(now)
             );
         } catch (Exception e) {
-            LOG.warn("Redis rate limit failed, request is rejected. key={}", key, e);
-            return 0L;
+            LOG.warn("Redis rate limit failed, request is allowed. key={}", key, e);
+            return 1L;
         }
     }
 
+    /**
+     * 根据限流类型生成 Redis 限流 key。
+     */
     private String buildRateLimitKey(JoinPoint point, RateLimiter.LimitType type, String baseKey) {
         StringBuilder keyBuilder = new StringBuilder(baseKey);
 
@@ -97,6 +103,9 @@ public class RateLimiterAspect {
         return keyBuilder.toString();
     }
 
+    /**
+     * 获取当前请求的客户端 IP 地址。
+     */
     private String getClientIp() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
@@ -114,6 +123,9 @@ public class RateLimiterAspect {
         return ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip) ? request.getRemoteAddr() : ip;
     }
 
+    /**
+     * 获取当前登录用户 ID，用于用户维度限流。
+     */
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().trim().isEmpty()) {

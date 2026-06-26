@@ -33,6 +33,9 @@ public class GroupKafkaConsumer {
             // 根据消息类型处理业务
             switch (type) {
                 case "addGroup":
+                    /**
+                     * 消费社团新增消息，将异步数据写入或同步到业务表。
+                     */
                     handleAddGroup(group);
                     break;
                 default:

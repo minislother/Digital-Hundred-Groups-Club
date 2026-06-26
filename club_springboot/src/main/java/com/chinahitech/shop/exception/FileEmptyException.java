@@ -4,6 +4,9 @@ package com.chinahitech.shop.exception;
  * 上传文件为空或无法读取有效内容时抛出的业务异常。
  */
 public class FileEmptyException extends ServiceException {
+    /**
+     * 创建对应业务异常对象，便于统一异常处理器返回错误信息。
+     */
     public FileEmptyException() {
         super();
     }

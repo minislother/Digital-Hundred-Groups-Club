@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 
+// 读取并返回业务数据或页面状态。
 export function getSeeApplications(groupName) {
     return request({
         url: '/application/recApps',
@@ -8,6 +9,7 @@ export function getSeeApplications(groupName) {
     })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getAppDetails(id) {
     return request({
         url: '/application/recApp',
@@ -16,6 +18,7 @@ export function getAppDetails(id) {
     });
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function acceptApplication(applicationId) {
     return request({
         url: '/application/accept',
@@ -24,6 +27,7 @@ export function acceptApplication(applicationId) {
     })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function rejectApplication(applicationId) {
     return request({
         url: '/application/reject',

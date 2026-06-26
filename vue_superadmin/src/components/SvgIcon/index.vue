@@ -1,12 +1,11 @@
 <template>
-  <div v-if="isExternal" :style="styleExternalIcon" class="svg-external-icon svg-icon" v-on="$listeners" />
-  <svg v-else :class="svgClass" aria-hidden="true" v-on="$listeners">
+  <div v-if="isExternal" :style="styleExternalIcon" class="svg-external-icon svg-icon" v-bind="$attrs" />
+  <svg v-else :class="svgClass" aria-hidden="true" v-bind="$attrs">
     <use :xlink:href="iconName" />
   </svg>
 </template>
 
 <script>
-// doc: https://panjiachen.github.io/vue-element-admin-site/feature/component/svg-icon.html#usage
 import { isExternal } from '@/utils/validate'
 
 export default {
@@ -22,12 +21,15 @@ export default {
     }
   },
   computed: {
+    // 判断链接或图标地址是否为外部资源。
     isExternal() {
       return isExternal(this.iconClass)
     },
+    // 生成 SVG 图标引用名称。
     iconName() {
       return `#icon-${this.iconClass}`
     },
+    // 生成 SVG 图标的样式类名。
     svgClass() {
       if (this.className) {
         return 'svg-icon ' + this.className
@@ -35,6 +37,7 @@ export default {
         return 'svg-icon'
       }
     },
+    // 为外部图标生成背景样式。
     styleExternalIcon() {
       return {
         mask: `url(${this.iconClass}) no-repeat 50% 50%`,

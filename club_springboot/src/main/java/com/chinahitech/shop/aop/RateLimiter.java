@@ -19,7 +19,7 @@ public @interface RateLimiter {
     /**
      * 时间窗口内允许的请求数
      */
-    int limit() default 20;
+    int limit() default 200;
 
     /**
      * 限流提示信息

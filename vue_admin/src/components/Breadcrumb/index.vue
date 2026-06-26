@@ -13,20 +13,24 @@
 import pathToRegexp from 'path-to-regexp'
 
 export default {
+  // 提供组件初始响应式数据。
   data() {
     return {
       levelList: null
     }
   },
   watch: {
+    // 处理当前组件的业务逻辑或用户交互。
     $route() {
       this.getBreadcrumb()
     }
   },
+  // 组件创建后加载页面初始数据。
   created() {
     this.getBreadcrumb()
   },
   methods: {
+    // 读取并返回业务数据或页面状态。
     getBreadcrumb() {
       // only show routes with meta.title
       let matched = this.$route.matched.filter(item => item.meta && item.meta.title)
@@ -38,6 +42,7 @@ export default {
 
       this.levelList = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb !== false)
     },
+    // 处理当前组件的业务逻辑或用户交互。
     isDashboard(route) {
       const name = route && route.name
       if (!name) {
@@ -45,12 +50,14 @@ export default {
       }
       return name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase()
     },
+    // 处理当前组件的业务逻辑或用户交互。
     pathCompile(path) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
       const { params } = this.$route
       var toPath = pathToRegexp.compile(path)
       return toPath(params)
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleLink(item) {
       const { redirect, path } = item
       if (redirect) {

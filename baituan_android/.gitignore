@@ -1,0 +1,11 @@
+.gradle/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+keystore.properties
+signing/*.jks
+release/*.aab
+release/*.apk

@@ -11,14 +11,23 @@ public class StoredFile {
         this.fileUrl = fileUrl;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public String getFileName() {
         return fileName;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public String getFilePath() {
         return filePath;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public String getFileUrl() {
         return fileUrl;
     }

@@ -8,8 +8,8 @@
       </app-link>
     </template>
 
-    <el-submenu v-else ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
-      <template slot="title">
+    <el-sub-menu v-else ref="subMenu" :index="resolvePath(item.path)">
+      <template #title>
         <item v-if="item.meta" :icon="item.meta && item.meta.icon" :title="item.meta.title" />
       </template>
       <sidebar-item
@@ -20,16 +20,24 @@
         :base-path="resolvePath(child.path)"
         class="nest-menu"
       />
-    </el-submenu>
+    </el-sub-menu>
   </div>
 </template>
 
 <script>
-import path from 'path'
 import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
 import FixiOSBug from './FixiOSBug'
+
+// 处理当前组件的业务逻辑或用户交互。
+function resolveRoutePath(basePath, routePath) {
+  const path = routePath || ''
+  if (path.startsWith('/')) {
+    return path
+  }
+  return `${basePath || ''}/${path}`.replace(/\/+/g, '/')
+}
 
 export default {
   name: 'SidebarItem',
@@ -50,13 +58,14 @@ export default {
       default: ''
     }
   },
+  // 提供组件初始响应式数据。
   data() {
-    // To fix https://github.com/PanJiaChen/vue-admin-template/issues/237
     // TODO: refactor with render function
     this.onlyOneChild = null
     return {}
   },
   methods: {
+    // 处理当前组件的业务逻辑或用户交互。
     hasOneShowingChild(children = [], parent) {
       const showingChildren = children.filter(item => {
         if (item.hidden) {
@@ -81,6 +90,7 @@ export default {
 
       return false
     },
+    // 处理当前组件的业务逻辑或用户交互。
     resolvePath(routePath) {
       if (isExternal(routePath)) {
         return routePath
@@ -88,7 +98,7 @@ export default {
       if (isExternal(this.basePath)) {
         return this.basePath
       }
-      return path.resolve(this.basePath, routePath)
+      return resolveRoutePath(this.basePath, routePath)
     }
   }
 }

@@ -8,8 +8,14 @@ import java.util.Date;
 
 public interface StuMapper extends BaseMapper<User> {
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     User getByNum(@Param("num") String num);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     User getByName(@Param("name") String name);
 
     int addStudent(@Param("stuNumber") String stuNumber,

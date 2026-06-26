@@ -2,6 +2,7 @@ import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
+// 创建超级管理员端用户模块的默认状态，确保退出登录后可以恢复到初始值。
 const getDefaultState = () => {
   return {
     token: getToken(),
@@ -13,22 +14,26 @@ const getDefaultState = () => {
 const state = getDefaultState()
 
 const mutations = {
+  // 重置 Vuex 用户状态，避免上一个登录用户的数据残留。
   RESET_STATE: (state) => {
     Object.assign(state, getDefaultState())
   },
+  // 更新当前会话令牌。
   SET_TOKEN: (state, token) => {
     state.token = token
   },
+  // 更新导航栏或用户信息区域展示的姓名。
   SET_NAME: (state, name) => {
     state.name = name
   },
+  // 更新用户头像地址。
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar
   }
 }
 
 const actions = {
-  // user login
+  // 超级管理员登录成功后，将后端返回的 token 同步到 Vuex 和 Cookie。
   login({ commit }, userInfo) {
     const { userName, password } = userInfo
     return new Promise((resolve, reject) => {
@@ -43,7 +48,7 @@ const actions = {
     })
   },
 
-  // get user info
+  // 拉取当前超级管理员的基础信息，用于页面顶部和个人信息展示。
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
@@ -64,11 +69,11 @@ const actions = {
     })
   },
 
-  // user logout
+  // 退出登录并清空本地登录状态。
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
-        removeToken() // must remove  token  first
+        removeToken()
         resetRouter()
         commit('RESET_STATE')
         resolve()
@@ -78,10 +83,10 @@ const actions = {
     })
   },
 
-  // remove token
+  // 仅清理本地 token，常用于登录过期或请求被后端拒绝时。
   resetToken({ commit }) {
     return new Promise(resolve => {
-      removeToken() // must remove  token  first
+      removeToken()
       commit('RESET_STATE')
       resolve()
     })
@@ -94,4 +99,3 @@ export default {
   mutations,
   actions
 }
-

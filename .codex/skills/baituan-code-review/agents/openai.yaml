@@ -1,0 +1,4 @@
+interface:
+  display_name: "Baituan Code Review"
+  short_description: "Review baituan backend diffs by project rules"
+  default_prompt: "Use $baituan-code-review to review the latest backend diff and write CODE_REVIEW_REPORT.md."

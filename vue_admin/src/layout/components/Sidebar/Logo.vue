@@ -22,9 +22,10 @@ export default {
       required: true
     }
   },
+  // 提供组件初始响应式数据。
   data() {
     return {
-      title: 'Vue Admin Template',
+      title: '管理员端',
       logo: 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png'
     }
   }

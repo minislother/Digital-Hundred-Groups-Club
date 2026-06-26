@@ -12,6 +12,9 @@ public class SpringMvcConfig implements WebMvcConfigurer {
     @Resource
     LogInterceptor logInterceptor;
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(logInterceptor)

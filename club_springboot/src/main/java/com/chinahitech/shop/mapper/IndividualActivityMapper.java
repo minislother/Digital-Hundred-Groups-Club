@@ -13,6 +13,9 @@ public interface IndividualActivityMapper {
     List<IndividualActivity> getActivityByStuId(@Param("studentId") String studentId);
 
     IndividualActivity checkExist(@Param("studentId") String studentId,
+                                  /**
+                                   * 新增申请关系数据，将用户申请写入数据库。
+                                   */
                                   @Param("activityId") int activityId);
 
     void insert(IndividualActivity individualActivity);
@@ -20,6 +23,9 @@ public interface IndividualActivityMapper {
     // 管理端：活动成员维护、报名审批和当前管理员负责的活动范围。
     List<IndividualActivity> getActivityByActivityId(@Param("activityId") int activityId);
 
+    /**
+     * 按活动 ID 查询该活动的报名申请列表。
+     */
     List<IndividualActivity> getApplyByActivityId(@Param("activityId") int activityId);
 
     int updatePosition(@Param("activityId") int activityId,
@@ -27,6 +33,9 @@ public interface IndividualActivityMapper {
                        @Param("position") String position);
 
     int delete(@Param("activityId") int activityId,
+               /**
+                * 读取并返回业务数据或页面状态。
+                */
                @Param("studentId") String studentId);
 
     List<Activity> getAllManagedActivities(@Param("managerId") String managerId);

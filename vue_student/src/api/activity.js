@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 
+// 读取并返回业务数据或页面状态。
 export function getActivites(searchInfo) {
     return request({
       url: '/activity/all',
@@ -8,8 +9,8 @@ export function getActivites(searchInfo) {
     })
   }
 
+  // 读取并返回业务数据或页面状态。
   export function getActivitesDetail() {
-    console.error('!!!!!')
     return request({
       url: '/activity/studentDetail',
       method: 'get',
@@ -17,8 +18,8 @@ export function getActivites(searchInfo) {
     })
   }
 
+  // 读取并返回业务数据或页面状态。
   export function getTopActivites() {
-    console.log('!!!!!')
     return request({
       url: '/activity/top',
       method: 'get',

@@ -1,73 +1,53 @@
 <template>
-  <div class="add-activity-form">
-    <br>
-    <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-      <el-form-item label="活动名称" required>
-        <el-col :span="11">
-          <el-form-item prop="name">
-            <el-input v-model="ruleForm.name"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col class="line" :span="2"></el-col>
-        <el-col :span="11">
-          <el-form-item label="组织者" prop="organizer" required>
-            <el-input v-model="ruleForm.organizer"></el-input>
-          </el-form-item>
-        </el-col>
-      </el-form-item>
-      <el-form-item label="活动地点" prop="place">
-        <el-input v-model="ruleForm.place"></el-input>
-      </el-form-item>
-      <el-form-item label="活动时间" prop="time" required>
-        <el-date-picker v-model="ruleForm.time" type="datetime" placeholder="选择日期时间">
-        </el-date-picker>
-      </el-form-item>
-      <!-- <el-form-item label="活动时间" required>
-        <el-col :span="11">
-          <el-form-item prop="date1">
-            <el-date-picker type="date" placeholder="选择日期" v-model="ruleForm.date1"
-              style="width: 100%;"></el-date-picker>
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item prop="date2">
-            <el-time-picker placeholder="选择时间" v-model="ruleForm.date2" style="width: 100%;"></el-time-picker>
-          </el-form-item>
-        </el-col>
-      </el-form-item> -->
-      <el-form-item label="活动安排" prop="arrange">
-        <el-input v-model="ruleForm.arrange"></el-input>
-      </el-form-item>
-      <el-form-item label="活动描述" prop="desc">
-        <el-input type="textarea" v-model="ruleForm.desc"></el-input>
-      </el-form-item>
-      <hr>
-      <!-- <el-form-item label="上传附件">
-        <el-upload class="upload-demo" drag :on-remove="handleRemove" :before-remove="beforeRemove"
-          :action="uploadAction('/activity/uploadZip')" :before-upload="beforeZipUpload">
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传zip文件, 且不超过2MB</div>
-        </el-upload>
-      </el-form-item>
-      <el-form-item label="上传图片">
-        <el-upload class="upload-demo" drag :on-remove="handleRemove" list-type="picture"
-          :action="uploadAction('/activity/uploadPhoto')">
-          <i class="el-icon-upload"></i>
-          <i class="el-icon-picture"></i>
-          <div class="el-upload__text">将图片拖到此处，或<em>点击上传</em></div>
-          <div slot="tip" class="el-upload__tip">只能上传jpg/png文件, 且不超过2MB</div>
-        </el-upload>
-      </el-form-item>
-      <hr> -->
-      <el-form-item>
-        <el-button type="primary" @click="submitActivity('ruleForm')">立即申请</el-button>
+  <div class="app-container activity-form-page">
+    <section class="page-heading">
+      <span class="eyebrow">Activity proposal</span>
+      <h1>发布活动申请</h1>
+      <p>填写活动基本信息后提交给超级管理员审核。信息越完整，审核沟通成本越低。</p>
+    </section>
+
+    <el-form ref="ruleForm" :model="ruleForm" :rules="rules" label-width="112px" class="activity-form">
+      <div class="form-section">
+        <h2>活动信息</h2>
+        <el-form-item label="活动名称" prop="name">
+          <el-input v-model="ruleForm.name" placeholder="例如：春季招新分享会" />
+        </el-form-item>
+        <el-form-item label="组织者" prop="organizer">
+          <el-input v-model="ruleForm.organizer" placeholder="填写负责人或组织部门" />
+        </el-form-item>
+        <el-form-item label="活动地点" prop="place">
+          <el-input v-model="ruleForm.place" placeholder="例如：教学楼 A101" />
+        </el-form-item>
+        <el-form-item label="活动时间" prop="time">
+          <el-date-picker
+            v-model="ruleForm.time"
+            type="datetime"
+            placeholder="选择活动日期和时间"
+            class="full-control"
+          />
+        </el-form-item>
+        <el-form-item label="活动安排" prop="arrange">
+          <el-input v-model="ruleForm.arrange" placeholder="简要说明流程安排" />
+        </el-form-item>
+        <el-form-item label="活动描述" prop="desc">
+          <el-input
+            v-model="ruleForm.desc"
+            type="textarea"
+            :rows="6"
+            maxlength="800"
+            show-word-limit
+            placeholder="说明活动目的、面向对象、报名要求和注意事项"
+          />
+        </el-form-item>
+      </div>
+
+      <div class="form-actions">
+        <el-button type="primary" @click="submitActivity('ruleForm')">提交活动申请</el-button>
         <el-button @click="resetForm('ruleForm')">重置</el-button>
-      </el-form-item>
+      </div>
     </el-form>
   </div>
 </template>
-
 
 <script>
 import { mapGetters } from 'vuex'
@@ -80,19 +60,7 @@ export default {
       'name'
     ])
   },
-  created: function() {
-    if(this.$store.state.clubid==0) {
-      if(confirm("登陆身份失效，请重新登陆"))
-      {
-        this.reload()
-      }
-      else
-      {
-        window.alert("取消也得重新登陆")
-        this.reload()
-      }
-    }
-  },
+  // 提供组件初始响应式数据。
   data() {
     return {
       ruleForm: {
@@ -103,84 +71,96 @@ export default {
         time: '',
         arrange: '',
         desc: '',
-        groupName: this.$store.state.clubname
+        groupName: this.$store.getters.currentClubName
       },
       rules: {
         name: [
           { required: true, message: '请输入活动名称', trigger: 'blur' },
-          { min: 1, max: 15, message: '长度在 1 到 15 个字符', trigger: 'blur' }
+          { min: 1, max: 15, message: '活动名称长度为 1 到 15 个字符', trigger: 'blur' }
         ],
         organizer: [
           { required: true, message: '请输入组织者', trigger: 'blur' },
-          { min: 1, max: 15, message: '长度在 1 到 15 个字符', trigger: 'blur' }
+          { min: 1, max: 15, message: '组织者长度为 1 到 15 个字符', trigger: 'blur' }
         ],
         place: [
           { required: true, message: '请输入活动地点', trigger: 'blur' },
-          { min: 1, max: 31, message: '长度在 1 到 31 个字符', trigger: 'blur' }
+          { min: 1, max: 31, message: '活动地点长度为 1 到 31 个字符', trigger: 'blur' }
         ],
         time: [
           { type: 'date', required: true, message: '请选择活动时间', trigger: 'change' }
         ],
         arrange: [
-          { min: 1, max: 31, message: '长度在 1 到 31 个字符', trigger: 'blur' }
+          { min: 1, max: 31, message: '活动安排长度为 1 到 31 个字符', trigger: 'blur' }
         ]
       }
-    };
+    }
+  },
+  // 组件创建后加载页面初始数据。
+  created() {
+    if (!this.$store.getters.isClubSelected) {
+      this.$confirm('登录身份已失效，请重新登录', '需要重新登录', {
+        confirmButtonText: '重新登录',
+        showCancelButton: false,
+        type: 'warning'
+      }).finally(() => this.reload())
+    }
   },
   methods: {
-    uploadAction(path) {
-      return `${process.env.VUE_APP_BASE_API}${path}`
-    },
+    // 提交表单数据并触发后端业务处理。
     submitActivity(formName) {
       this.$refs[formName].validate((valid) => {
-        if (valid) {
-          console.log(this.ruleForm)
-          addActivity(this.ruleForm).then(response => {
-            console.log(response)
-            this.$message({
-              message: '活动申请成功!',
-              type: 'success'
-            })
-            this.resetForm('ruleForm')
-          }).catch(error => console.log(error))
-          return true
-        } else {
-          this.$message({
-            message: '活动格式错误!',
-            type: 'error'
-          })
-          return false;
+        if (!valid) {
+          this.$message.error('请检查活动信息后再提交')
+          return false
         }
-      });
+
+        addActivity(this.ruleForm).then(() => {
+          this.$message.success('活动申请已提交')
+          this.resetForm('ruleForm')
+        }).catch(error => {
+          console.error(error)
+        })
+      })
     },
+    // 重置表单、状态或本地缓存。
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.$refs[formName].resetFields()
     },
-    beforeRemove(file) {
-      return this.$confirm(`确定移除 ${file.name}?`);
-    },
-    beforeZipUpload(file) {
-      const isZIP = file.type === 'zip';
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isZIP)
-        this.$message.error('上传只能是 ZIP 格式!')
-      if (!isLt2M)
-        this.$message.error('上传大小不能超过 2MB!')
-      return isZIP && isLt2M;
-    },
-    beforePhotoUpload(file) {
-      const isJPG = file.type === 'jpg/png/jpeg';
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isJPG)
-        this.$message.error('上传图片只能是 JPG/PNG 格式!')
-      if (!isLt2M)
-        this.$message.error('上传图片大小不能超过 2MB!')
-      return isJPG && isLt2M;
-    },
+    // 重新加载当前页面数据，保持界面内容最新。
     async reload() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-    },
+    }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.activity-form {
+  max-width: 960px;
+}
+
+.form-section {
+  padding: 24px;
+  margin-bottom: 18px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: var(--bt-radius-lg);
+  background: var(--bt-surface);
+  box-shadow: var(--bt-shadow);
+}
+
+.form-section h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+}
+
+.full-control {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+</style>

@@ -1,59 +1,73 @@
-<template>
-  <div style="margin-left: 1%;">
-    <br>
-    <el-row :gutter="20">
-      <el-col :span="2">
-        <el-tag>活动数：{{ activities.length }}</el-tag>
-      </el-col>
-      <el-col :span="2">
-        <el-tag type="success">已通过： {{ accepted }}</el-tag>
-      </el-col>
-      <el-col :span="2">
-        <el-tag type="danger">已拒绝： {{ rejected }}</el-tag>
-      </el-col>
-      <el-col :span="2">
-        <el-tag type="warning">待审批： {{ toBeAccepted }}</el-tag>
-      </el-col>
-    </el-row>
-    <br>
-    <div class="search-container">
-      <el-input v-model="searchInfo" placeholder="搜索活动" clearable @keyup.enter.native="handleSearch" />
-      <el-button icon="el-icon-search" @click="handleSearch" />
-      <el-button @click="clearSearch">清空搜索</el-button>
-    </div>
+﻿<template>
+  <div class="activity-page app-container">
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span>全部活动</span>
+        <strong>{{ activities.length }}</strong>
+      </div>
+      <div class="stat-card success">
+        <span>已通过</span>
+        <strong>{{ accepted }}</strong>
+      </div>
+      <div class="stat-card danger">
+        <span>已拒绝</span>
+        <strong>{{ rejected }}</strong>
+      </div>
+      <div class="stat-card warning">
+        <span>待审核</span>
+        <strong>{{ toBeAccepted }}</strong>
+      </div>
+    </section>
+
+    <section class="page-toolbar">
+      <div>
+        <p class="eyebrow">Activity Review</p>
+        <h1>活动审批</h1>
+      </div>
+      <div class="search-row">
+        <el-input v-model="searchInfo" placeholder="搜索活动" clearable @keyup.enter="handleSearch" />
+        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+        <el-button @click="clearSearch">重置</el-button>
+      </div>
+    </section>
+
     <el-table :data="activities" style="width: 100%" @row-click="handleRowClick">
-      <el-table-column prop="name" label="活动名" :span="8">
-        <template slot-scope="scope">
-          <span class="text">{{ scope.row.name }}</span>
+      <el-table-column prop="name" label="活动名称" min-width="180">
+        <template #default="scope">
+          <span class="strong-text">{{ scope.row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="id" label="活动编号" :span="4">
-        <template slot-scope="scope">
-          <span class="text">{{ scope.row.id }}</span>
+      <el-table-column prop="id" label="活动编号" min-width="120" />
+      <el-table-column prop="organizer" label="组织者" min-width="150" />
+      <el-table-column prop="time" label="申请时间" min-width="220" sortable>
+        <template #default="scope">
+          <span>{{ formatDate(scope.row.time) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="organizer" label="组织者" :span="2">
-        <template slot-scope="scope">
-          <span class="text">{{ scope.row.organizer }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="time" label="活动时间" span="4" sortable>
-        <template slot-scope="scope">
-          <span class="text">{{ formatDate(scope.row.time) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="isAccepted" label="申请状态" :span="6" sortable>
-        <template slot-scope="scope">
-          <span v-if="scope.row.isAccepted === true" class="text success-text">已批准</span>
-          <span v-else-if="scope.row.isAccepted === false" class="text fail-text">已拒绝</span>
-          <span v-else class="text pending-text">待审核</span>
-          <el-button v-show="scope.row.isAccepted !== true" type="primary" style="float: right;"
-            @click="acceptActivity(scope.row.id)">批准</el-button>
-          <el-button v-show="scope.row.isAccepted === true" type="primary" style="float: right;" disabled>批准</el-button>
-          <el-button v-show="scope.row.isAccepted !== false" type="primary" style="float: right;"
-            @click="rejectActivity(scope.row.id)">拒绝</el-button>
-          <el-button v-show="scope.row.isAccepted === false" type="primary" style="float: right;"
-            disabled>拒绝</el-button>
+      <el-table-column prop="isAccepted" label="状态与操作" min-width="260" sortable>
+        <template #default="scope">
+          <div class="action-cell">
+            <span :class="['status-pill', statusClass(scope.row.isAccepted)]">
+              {{ statusText(scope.row.isAccepted) }}
+            </span>
+            <div class="action-buttons">
+              <el-button
+                size="small"
+                type="primary"
+                :disabled="scope.row.isAccepted === true"
+                @click.stop="acceptActivity(scope.row.id)"
+              >
+                通过
+              </el-button>
+              <el-button
+                size="small"
+                :disabled="scope.row.isAccepted === false"
+                @click.stop="rejectActivity(scope.row.id)"
+              >
+                拒绝
+              </el-button>
+            </div>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -66,6 +80,7 @@ import { searchActivities, getAllApps, acceptActivity, rejectActivity } from '@/
 
 export default {
   name: 'SeeAllActivity',
+  // 提供组件初始响应式数据。
   data() {
     return {
       activities: [],
@@ -76,39 +91,51 @@ export default {
     ...mapGetters([
       'name'
     ]),
+    // 处理当前组件的业务逻辑或用户交互。
     toBeAccepted() {
       return this.activities.filter(a => a.isAccepted === null).length
     },
+    // 处理当前组件的业务逻辑或用户交互。
     accepted() {
       return this.activities.filter(a => a.isAccepted === true).length
     },
+    // 处理当前组件的业务逻辑或用户交互。
     rejected() {
       return this.activities.filter(a => a.isAccepted === false).length
     }
   },
-  created: function () {
-    getAllApps().then((response) => {
-      this.activities = response.data.items
-      console.log(this.activities)
-    })
-      .catch(error => {
-        console.error(error)
-      })
+  // 组件创建后加载页面初始数据。
+  created() {
+    this.fetchActivities()
   },
   methods: {
+    // 从后端接口获取业务数据。
+    fetchActivities() {
+      return getAllApps().then((response) => {
+        this.activities = response.data.items
+      })
+        .catch(error => {
+          console.error(error)
+        })
+    },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleRowClick(row) {
-      const aid = row.id // 获取当前行的id
+      const aid = row.id
       const activity = this.activities.filter(i => i.id === aid)[0]
       this.$router.push({
         name: 'Activitydetail',
-        params: { 'aid': aid, 'activity': activity }
+        params: { aid: aid, activity: activity }
       })
     },
+    // 格式化展示文本，便于页面直接显示。
     formatDate(date) {
-      // 格式化日期时间
+      if (!date) {
+        return '-'
+      }
       const d = new Date(date)
       return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
     },
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
       searchActivities(this.searchInfo)
         .then((response) => {
@@ -118,91 +145,186 @@ export default {
           console.error(error)
         })
     },
+    // 根据筛选条件查询并更新列表结果。
     clearSearch() {
       this.searchInfo = ''
-      this.$router.go()
+      this.fetchActivities()
     },
+    // 处理当前组件的业务逻辑或用户交互。
+    statusText(value) {
+      if (value === true) return '已通过'
+      if (value === false) return '已拒绝'
+      return '待审核'
+    },
+    // 处理当前组件的业务逻辑或用户交互。
+    statusClass(value) {
+      if (value === true) return 'is-success'
+      if (value === false) return 'is-danger'
+      return 'is-warning'
+    },
+    // 处理当前组件的业务逻辑或用户交互。
     acceptActivity(id) {
-      event.stopPropagation()
-      setTimeout(() => {
-        acceptActivity(id)
-          .then((response) => {
-            console.log(response.data)
-            this.$message({
-              message: '批准申请',
-              type: 'success'
-            })
-            this.$router.go()
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      }, 100) // 延迟
+      acceptActivity(id)
+        .then(() => {
+          this.$message.success('活动已通过')
+          this.fetchActivities()
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     },
+    // 处理当前组件的业务逻辑或用户交互。
     rejectActivity(id) {
-      event.stopPropagation()
-      setTimeout(() => {
-        rejectActivity(id)
-          .then((response) => {
-            console.log(response.data)
-            this.$message({
-              message: '拒绝申请',
-              type: 'success'
-            })
-            this.$router.go()
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      }, 100)
+      rejectActivity(id)
+        .then(() => {
+          this.$message.success('活动已拒绝')
+          this.fetchActivities()
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     }
   }
 }
 </script>
 
-<style>
-.el-table th {
-  font-weight: bold;
-  font-size: 18px;
+<style lang="scss" scoped>
+.activity-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.text {
-  font-size: 14px;
-  font-weight: bold;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.el-table .fail-row {
-  background: rgb(250, 231, 231);
+.stat-card {
+  padding: 18px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--bt-shadow);
 }
 
-.el-table .success-row {
-  background: #e1fce8;
+.stat-card span {
+  color: var(--bt-text-muted);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.edit-button {
-  margin-left: 30px;
+.stat-card strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--bt-text);
+  font-size: 28px;
 }
 
-.success-text {
-  color: #4caf50;
+.stat-card.success strong {
+  color: var(--bt-success);
 }
 
-.fail-text {
-  color: #f44336;
+.stat-card.danger strong {
+  color: var(--bt-danger);
 }
 
-.pending-text {
-  color: #ff9800;
+.stat-card.warning strong {
+  color: var(--bt-warning);
 }
 
-.search-container {
-  right: 600px;
+.page-toolbar {
   display: flex;
   align-items: center;
-  width: 35%;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--bt-shadow);
 }
 
-.no-click {
-  pointer-events: none;
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--bt-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.page-toolbar h1 {
+  margin: 0;
+  color: var(--bt-text);
+  font-size: 24px;
+}
+
+.search-row {
+  display: flex;
+  gap: 10px;
+  width: min(560px, 100%);
+}
+
+.search-row .el-input {
+  flex: 1;
+}
+
+.strong-text {
+  font-weight: 700;
+}
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.is-success {
+  color: var(--bt-success);
+  background: #dafbe1;
+}
+
+.is-danger {
+  color: var(--bt-danger);
+  background: #ffebe9;
+}
+
+.is-warning {
+  color: var(--bt-warning);
+  background: #fff8c5;
+}
+
+@media (max-width: 960px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page-toolbar,
+  .action-cell {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search-row {
+    width: 100%;
+  }
 }
 </style>

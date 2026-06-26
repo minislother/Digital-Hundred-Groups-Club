@@ -25,11 +25,20 @@ public interface ActivityMapper {
 
     int countActiveApplications(@Param("activityId") Integer activityId);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<Activity> getMyJoinedActivities(@Param("studentId") Integer studentId);
 
     // Manager side
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<Activity> getActivityByGroupName(@Param("groupName") String groupName);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<Map<String, Object>> getActivityApplicants(@Param("activityId") Integer activityId);
 
     void auditApply(@Param("id") Integer id, @Param("status") Integer status);
@@ -37,6 +46,9 @@ public interface ActivityMapper {
     void insert(Activity activity);
 
     void updateDescription(@Param("groupName") String groupName,
+                           /**
+                            * 更新表单字段或业务数据。
+                            */
                            @Param("activityName") String activityName,
                            @Param("description") String description,
                            @Param("attachment") String attachment,
@@ -44,13 +56,25 @@ public interface ActivityMapper {
 
     void updateAttachment(@Param("name") String name, @Param("attachment") String attachment);
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     void updateImage(@Param("name") String name, @Param("image") String image);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     Activity getActivityById(@Param("id") Integer id);
 
     // Top manager side
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<Activity> getAllApp(@Param("searchInfo") String searchInfo);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     Activity getAppByName(@Param("groupName") String groupName);
 
     void confirmApplication(@Param("activityId") Integer activityId);

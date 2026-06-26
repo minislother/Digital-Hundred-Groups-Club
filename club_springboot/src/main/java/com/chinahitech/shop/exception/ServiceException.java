@@ -7,6 +7,9 @@ public class ServiceException extends RuntimeException {
 
     private final String code;
 
+    /**
+     * 创建对应业务异常对象，便于统一异常处理器返回错误信息。
+     */
     public ServiceException() {
         super();
         this.code = ErrorCode.BUSINESS_ERROR;
@@ -42,6 +45,9 @@ public class ServiceException extends RuntimeException {
         this.code = ErrorCode.BUSINESS_ERROR;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public String getCode() {
         return code;
     }

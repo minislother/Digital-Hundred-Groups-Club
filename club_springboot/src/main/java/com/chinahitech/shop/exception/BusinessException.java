@@ -5,6 +5,9 @@ package com.chinahitech.shop.exception;
  */
 public class BusinessException extends ServiceException {
 
+    /**
+     * 创建对应业务异常对象，便于统一异常处理器返回错误信息。
+     */
     public BusinessException(String message) {
         super(ErrorCode.BUSINESS_ERROR, message);
     }

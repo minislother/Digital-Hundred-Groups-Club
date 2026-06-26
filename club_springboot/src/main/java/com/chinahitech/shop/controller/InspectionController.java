@@ -8,7 +8,6 @@ import com.chinahitech.shop.service.InspectionService;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Year;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/inspection")
@@ -75,11 +72,9 @@ public class InspectionController {
      */
     @RepeatLimit
     @PostMapping("/uploadZip")
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public Result uploadFile(@RequestParam("file") MultipartFile file) {
         StoredFile storedFile = fileStorageService.store(file);
-        Map<String, String> response = new HashMap<>();
-        response.put("fileUrl", storedFile.getFileUrl());
-        return ResponseEntity.ok(response);
+        return Result.ok().data("fileUrl", storedFile.getFileUrl());
     }
 
     /**
@@ -87,14 +82,11 @@ public class InspectionController {
      */
     @RepeatLimit
     @PostMapping("/submitZip")
-    public ResponseEntity<Map<String, String>> submitZip(@RequestParam("inspectionId") int inspectionId,
-                                                         @RequestParam("attachment") String attachment,
-                                                         @RequestParam("groupName") String groupName) {
+    public Result submitZip(@RequestParam("inspectionId") int inspectionId,
+                            @RequestParam("attachment") String attachment,
+                            @RequestParam("groupName") String groupName) {
         inspectionService.modifyAttachment(inspectionId, groupName, attachment);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Successfully updated attachment.");
-        return ResponseEntity.ok(response);
+        return Result.ok().message("Successfully updated attachment.");
     }
 
     /**
@@ -102,12 +94,8 @@ public class InspectionController {
      */
     @RepeatLimit
     @PostMapping("/getAttachment")
-    public ResponseEntity<Map<String, Object>> getAttachment(@RequestParam("id") int id) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", 20000);
-        response.put("success", true);
-        response.put("attachment", inspectionService.getAttachment(id));
-        return ResponseEntity.ok(response);
+    public Result getAttachment(@RequestParam("id") int id) {
+        return Result.ok().data("attachment", inspectionService.getAttachment(id));
     }
 
     /**

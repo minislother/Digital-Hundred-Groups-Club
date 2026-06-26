@@ -1,14 +1,10 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-
-Vue.use(Router)
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 /* Layout */
 import Layout from '@/layout'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
- * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
  *
  * hidden: true                   if set true, item will not show in the sidebar(default is false)
  * alwaysShow: true               if set true, will always show the root menu
@@ -54,7 +50,7 @@ export const constantRoutes = [{
             name: 'Seeapplication',
             component: () =>
                 import ('@/views/seeapplication/index'),
-            meta: { title: '申请列表', icon: 'form' }
+            meta: { title: '入团申请', icon: 'form' }
         }]
     },
 
@@ -119,7 +115,7 @@ export const constantRoutes = [{
             name: 'Groupdetail',
             component: () =>
                 import ('@/views/groupdetail/index'),
-            meta: { title: '社团编辑详情', icon: 'table' }
+            meta: { title: '社团资料', icon: 'table' }
         }]
     },
 
@@ -158,7 +154,7 @@ export const constantRoutes = [{
           name: 'Addactivity',
           component: () =>
             import('@/views/groupactivity/addactivity/index'),
-            meta: { title: '申请活动', icon: 'el-icon-plus' }
+            meta: { title: '发布活动申请', icon: 'el-icon-plus' }
         }]
     },
 
@@ -171,26 +167,29 @@ export const constantRoutes = [{
           name: 'PendingActivity',
           component: () =>
             import('@/views/groupactivity/pendingctivity/index'),
-            meta: { title: '更改活动', icon: 'el-icon-s-check' }
+            meta: { title: '活动变更', icon: 'el-icon-s-check' }
         }]
     },
 
     // 404 page must be placed at the end !!!
-    { path: '*', redirect: '/404', hidden: true }
+    { path: '/:pathMatch(.*)*', redirect: '/404', hidden: true }
 ]
 
-const createRouter = () => new Router({
+// 处理当前组件的业务逻辑或用户交互。
+const buildRouter = () => createRouter({
     // mode: 'history', // require service support
-    scrollBehavior: () => ({ y: 0 }),
+    history: createWebHashHistory(),
+    // 处理当前组件的业务逻辑或用户交互。
+    scrollBehavior: () => ({ top: 0 }),
     routes: constantRoutes
 })
 
-const router = createRouter()
+const router = buildRouter()
+router.options = { routes: constantRoutes }
 
-// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+// 重置表单、状态或本地缓存。
 export function resetRouter() {
-    const newRouter = createRouter()
-    router.matcher = newRouter.matcher // reset router
+    // Routes are static in this app. Keep the exported API for existing callers.
 }
 
 export default router

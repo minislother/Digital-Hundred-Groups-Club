@@ -39,17 +39,29 @@ public class ManagerServiceImpl implements ManagerService {
 
     @Override
     public void register(RegisterUser user) {
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         validateCode(user.getEmail(), user.getValicode());
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addManager(user.getUserId(), user.getPassword(), user.getEmail());
     }
 
     @Override
     public String sendAccountEmail(String userNumber) throws Exception {
         User user = getByUserId(userNumber);
+        /**
+         * 校验输入内容是否满足业务要求。
+         */
         sendValidateEmail(user.getEmail());
         return user.getEmail();
     }
 
+    /**
+     * 校验输入内容是否满足业务要求。
+     */
     @Override
     public void validateCode(String email, String validateCode) {
         Object cached = RedisUtils.get(email);
@@ -58,11 +70,17 @@ public class ManagerServiceImpl implements ManagerService {
         }
     }
 
+    /**
+     * 校验输入内容是否满足业务要求。
+     */
     @Override
     public void sendValidateEmail(String email) throws Exception {
         new EmailService(email).sendEmail();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public User getByUserId(String num) {
         User stu = managerMapper.getByNum(num);
         if (stu == null) {
@@ -85,6 +103,9 @@ public class ManagerServiceImpl implements ManagerService {
     }
 
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     public void addManager(String userId, String lastPwd, String email) {
         Date date = new Date();
 
@@ -103,6 +124,9 @@ public class ManagerServiceImpl implements ManagerService {
     }
 
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updatePassword(String userId, String password){
         User stu = managerMapper.getByNum(userId);
         String salt = stu.getSalt();
@@ -114,10 +138,16 @@ public class ManagerServiceImpl implements ManagerService {
 
         int i = managerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updatePhone(String userId, String phone){
         Date date = new Date();
 
@@ -127,10 +157,16 @@ public class ManagerServiceImpl implements ManagerService {
 
         int i = managerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateDescription(String userId, String description){
         Date date = new Date();
 
@@ -140,10 +176,16 @@ public class ManagerServiceImpl implements ManagerService {
 
         int i = managerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     public void updateNickname(String userId, String nickname){
         Date date = new Date();
 
@@ -153,6 +195,9 @@ public class ManagerServiceImpl implements ManagerService {
 
         int i = managerMapper.updateById(stu);
         if(i != 1){
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }

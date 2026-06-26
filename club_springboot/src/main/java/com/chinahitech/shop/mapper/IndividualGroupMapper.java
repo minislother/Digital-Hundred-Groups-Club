@@ -13,12 +13,18 @@ public interface IndividualGroupMapper {
     List<IndividualGroup> getGroupByStuId(@Param("studentId") String studentId);
 
     IndividualGroup checkExist(@Param("studentId") String studentId,
+                               /**
+                                * 新增申请关系数据，将用户申请写入数据库。
+                                */
                                @Param("groupId") int groupId);
 
     void insert(IndividualGroup individualGroup);
 
     // 管理端：成员维护、审批和当前管理员负责的社团范围。
     List<IndividualGroup> getStudentsByGroup(@Param("groupId") int groupId,
+                                             /**
+                                              * 查询指定社团的入团申请列表。
+                                              */
                                              @Param("searchInfo") String searchInfo);
 
     List<IndividualGroup> getGroupApplyList(@Param("groupId") int groupId);
@@ -32,6 +38,9 @@ public interface IndividualGroupMapper {
                        @Param("position") String position);
 
     int delete(@Param("groupId") int groupId,
+               /**
+                * 读取并返回业务数据或页面状态。
+                */
                @Param("studentId") String studentId);
 
     List<Group> getAllManagedGroups(@Param("managerId") String managerId);
@@ -42,5 +51,8 @@ public interface IndividualGroupMapper {
     // 超级管理员端：全量成员查询和社团人数统计。
     List<IndividualGroup> getAllStudents(@Param("searchInfo") String searchInfo);
 
+    /**
+     * 查询指定社团的成员列表。
+     */
     List<GroupNum> getGroupMembers();
 }

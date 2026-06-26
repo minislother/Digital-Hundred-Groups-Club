@@ -8,7 +8,6 @@ import com.chinahitech.shop.service.StuAppService;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,9 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/application")
@@ -96,18 +93,14 @@ public class StuAppController {
      */
     @RepeatLimit
     @PostMapping("/uploadZip")
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public Result uploadFile(@RequestParam("file") MultipartFile file) {
         String contentType = file.getContentType();
         if (!("application/zip".equals(contentType) || "application/x-zip-compressed".equals(contentType))) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Only zip files are allowed.");
-            return ResponseEntity.badRequest().body(errorResponse);
+            return Result.error().message("Only zip files are allowed.");
         }
 
         StoredFile storedFile = fileStorageService.store(file);
-        Map<String, String> response = new HashMap<>();
-        response.put("fileUrl", storedFile.getFileUrl());
-        return ResponseEntity.ok(response);
+        return Result.ok().data("fileUrl", storedFile.getFileUrl());
     }
 
     /**

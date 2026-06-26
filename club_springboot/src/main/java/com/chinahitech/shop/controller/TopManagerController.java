@@ -13,7 +13,6 @@ import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,9 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/topManager")
@@ -227,14 +224,12 @@ public class TopManagerController {
      */
     @RepeatLimit
     @PostMapping("/uploadExcel")
-    public ResponseEntity<Map<String, String>> uploadExcel(@RequestParam("file") MultipartFile file) {
+    public Result uploadExcel(@RequestParam("file") MultipartFile file) {
         StoredFile storedFile = fileStorageService.store(file);
         topManagerService.enqueueUploadExcel(storedFile.getFilePath());
-
-        Map<String, String> response = new HashMap<>();
-        response.put("fileUrl", storedFile.getFileUrl());
-        response.put("message", "上传成功，已开始导入");
-        return ResponseEntity.ok(response);
+        return Result.ok()
+                .message("上传成功，已开始导入")
+                .data("fileUrl", storedFile.getFileUrl());
     }
 
     /**

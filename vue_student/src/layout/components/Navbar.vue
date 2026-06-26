@@ -1,31 +1,30 @@
 <template>
   <div class="navbar">
     <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
+          <img :src="avatar + '?imageView2/1/w/80/h/80'" class="user-avatar">
           <i class="el-icon-caret-bottom" />
         </div>
-        <el-dropdown-menu slot="dropdown" class="user-dropdown">
-          <router-link to="/">
-            <el-dropdown-item>
-              Home
+        <template #dropdown>
+          <el-dropdown-menu class="user-dropdown">
+            <router-link to="/">
+              <el-dropdown-item>首页</el-dropdown-item>
+            </router-link>
+            <a target="_blank" href="https://www.sysu.edu.cn/">
+              <el-dropdown-item>中大首页</el-dropdown-item>
+            </a>
+            <a target="_blank" href="https://sse.sysu.edu.cn/">
+              <el-dropdown-item>软件工程学院首页</el-dropdown-item>
+            </a>
+            <el-dropdown-item divided @click="logout">
+              <span style="display:block;">退出登录</span>
             </el-dropdown-item>
-          </router-link>
-          <a target="_blank" href="https://www.sysu.edu.cn/">
-            <el-dropdown-item>中大首页</el-dropdown-item>
-          </a>
-          <a target="_blank" href="https://sse.sysu.edu.cn/">
-            <el-dropdown-item>软件工程学院首页</el-dropdown-item>
-          </a>
-          <el-dropdown-item divided @click.native="logout">
-            <span style="display:block;">Log Out</span>
-          </el-dropdown-item>
-        </el-dropdown-menu>
+          </el-dropdown-menu>
+        </template>
       </el-dropdown>
     </div>
   </div>
@@ -48,9 +47,11 @@ export default {
     ])
   },
   methods: {
+    // 切换界面状态或显示模式。
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
+    // 处理当前组件的业务逻辑或用户交互。
     async logout() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
@@ -61,76 +62,74 @@ export default {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 50px;
-  overflow: hidden;
-  position: relative;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  position: sticky;
+  top: 0;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  border-bottom: 1px solid #eaeef2;
+  box-shadow: none;
+  z-index: 10;
 
   .hamburger-container {
-    line-height: 46px;
+    line-height: 56px;
     height: 100%;
     float: left;
     cursor: pointer;
     transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+    -webkit-tap-highlight-color: transparent;
+    border-right: 1px solid #eaeef2;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      background: #f6f8fa;
     }
   }
 
   .breadcrumb-container {
     float: left;
+    flex: 1;
+    min-width: 0;
+    padding-left: 18px;
   }
 
   .right-menu {
+    margin-left: auto;
     float: right;
     height: 100%;
-    line-height: 50px;
+    line-height: 56px;
+    padding-right: 18px;
 
     &:focus {
       outline: none;
     }
 
-    .right-menu-item {
-      display: inline-block;
-      padding: 0 8px;
-      height: 100%;
-      font-size: 18px;
-      color: #5a5e66;
-      vertical-align: text-bottom;
-
-      &.hover-effect {
-        cursor: pointer;
-        transition: background .3s;
-
-        &:hover {
-          background: rgba(0, 0, 0, .025)
-        }
-      }
-    }
-
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 0;
 
       .avatar-wrapper {
-        margin-top: 5px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 0;
         position: relative;
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 1px solid #d0d7de;
+          background: #f6f8fa;
         }
 
         .el-icon-caret-bottom {
           cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
+          position: static;
           font-size: 12px;
+          color: #57606a;
         }
       }
     }

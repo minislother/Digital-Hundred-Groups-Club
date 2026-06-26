@@ -1,14 +1,10 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-
-Vue.use(Router)
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 /* Layout */
 import Layout from '@/layout'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
- * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
  *
  * hidden: true                   if set true, item will not show in the sidebar(default is false)
  * alwaysShow: true               if set true, will always show the root menu
@@ -51,7 +47,7 @@ export const constantRoutes = [
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: '主页', icon: 'dashboard' }
+      meta: { title: '数据总览', icon: 'dashboard' }
     }]
   },
 
@@ -127,7 +123,7 @@ export const constantRoutes = [
     children: [{
       path: 'index',
       name: 'Add',
-      meta: { title: '批量添加', icon: 'nested' },
+      meta: { title: '批量导入', icon: 'nested' },
       component: () => import('@/views/add/index')
     }]
   },
@@ -186,7 +182,7 @@ export const constantRoutes = [
   // },
 
   {
-    path: 'external-link',
+    path: '/external-link',
     component: Layout,
     children: [
       {
@@ -197,20 +193,24 @@ export const constantRoutes = [
   },
 
   // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+  { path: '/:pathMatch(.*)*', redirect: '/404', hidden: true }
 ]
 
-const createRouter = () => new Router({
+// 处理当前组件的业务逻辑或用户交互。
+const buildRouter = () => createRouter({
   // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
+  history: createWebHashHistory(),
+  // 处理当前组件的业务逻辑或用户交互。
+  scrollBehavior: () => ({ top: 0 }),
   routes: constantRoutes
 })
 
-const router = createRouter()
+const router = buildRouter()
+router.options = { routes: constantRoutes }
 
+// 重置表单、状态或本地缓存。
 export function resetRouter() {
-  const newRouter = createRouter()
-  router.matcher = newRouter.matcher // reset router
+  // Routes are static in this app. Keep the exported API for existing callers.
 }
 
 export default router

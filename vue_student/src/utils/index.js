@@ -8,6 +8,7 @@
  * @param {string} cFormat
  * @returns {string | null}
  */
+// 处理当前组件的业务逻辑或用户交互。
 export function parseTime(time, cFormat) {
   if (arguments.length === 0 || !time) {
     return null
@@ -56,6 +57,7 @@ export function parseTime(time, cFormat) {
  * @param {string} option
  * @returns {string}
  */
+// 格式化展示文本，便于页面直接显示。
 export function formatTime(time, option) {
   if (('' + time).length === 10) {
     time = parseInt(time) * 1000
@@ -98,6 +100,7 @@ export function formatTime(time, option) {
  * @param {string} url
  * @returns {Object}
  */
+// 处理当前组件的业务逻辑或用户交互。
 export function param2Obj(url) {
   const search = decodeURIComponent(url.split('?')[1]).replace(/\+/g, ' ')
   if (!search) {

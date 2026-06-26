@@ -32,6 +32,9 @@ public class JwtUtils {
                 .compact();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public static Claims getClaimsByToken(String token) {
         return Jwts.parser()
                 .setSigningKey(getSecret())
@@ -39,6 +42,9 @@ public class JwtUtils {
                 .getBody();
     }
 
+    /**
+     * 从请求头中解析 Bearer Token。
+     */
     public static String resolveToken(String xToken, String authorization) {
         if (xToken != null && !xToken.trim().isEmpty()) {
             return xToken;
@@ -49,6 +55,9 @@ public class JwtUtils {
         return null;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     private static String getSecret() {
         String secret = System.getProperty("jwt.secret");
         if (secret == null || secret.trim().isEmpty()) {
@@ -60,6 +69,9 @@ public class JwtUtils {
         return secret;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     private static long getExpireSeconds() {
         String configured = System.getProperty("jwt.expire-seconds");
         if (configured == null || configured.trim().isEmpty()) {

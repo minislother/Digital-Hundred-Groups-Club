@@ -8,6 +8,9 @@ import java.util.Date;
 
 public interface ManagerMapper extends BaseMapper<User> {
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     User getByNum(@Param("num") String num);
 
     int addManager(@Param("userId") String userId,

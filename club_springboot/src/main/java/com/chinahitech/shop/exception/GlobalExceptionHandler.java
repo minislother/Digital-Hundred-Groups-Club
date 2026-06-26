@@ -40,6 +40,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServiceException.class)
     public Result handleServiceException(ServiceException e, HttpServletRequest request) {
         log.warn("Service exception, path={}, type={}, message={}",
+                /**
+                 * 读取当前请求路径，用于异常日志输出。
+                 */
                 path(request), e.getClass().getSimpleName(), e.getMessage());
         return error(serviceErrorCode(e), messageOrDefault(e, "Operation failed"));
     }

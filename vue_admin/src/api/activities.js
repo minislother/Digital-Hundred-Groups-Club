@@ -21,6 +21,7 @@ export function getMyActivity(groupName) {
     });
 }
 
+// 读取并返回业务数据或页面状态。
 export function getManangerDetails(groupName, activityName) {
     return request({
         url: '/activity/managerDetail',
@@ -29,6 +30,7 @@ export function getManangerDetails(groupName, activityName) {
     });
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function modDesc(groupName, activityName, description, attachment, image) {
     return request({
         url: '/activity/modifyDescription',
@@ -39,6 +41,7 @@ export function modDesc(groupName, activityName, description, attachment, image)
 
 // TODO: modifyInfo, addActivity, deleteActivity with param(activity)
 // the hell who can fix this
+// 处理当前组件的业务逻辑或用户交互。
 export function modifyInfo(activity) {
     // let data = new URLSearchParams();
     // data.append("name", activity.name)
@@ -56,6 +59,7 @@ export function modifyInfo(activity) {
     });
 }
 
+// 新增业务数据或追加界面状态。
 export function addActivity(activity) {
     return request({
         url: '/activity/addActivity',
@@ -64,6 +68,7 @@ export function addActivity(activity) {
     });
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function acceptActivity(activityId) {
     return request({
         url: '/activity/accept',
@@ -72,6 +77,7 @@ export function acceptActivity(activityId) {
     });
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function rejectActivity(activityId) {
     return request({
         url: '/activity/reject',
@@ -81,6 +87,7 @@ export function rejectActivity(activityId) {
 }
 
 // super admin
+// 读取并返回业务数据或页面状态。
 export function getAllApps(searchInfo) {
     return request({
         url: '/activity/allApps',
@@ -89,6 +96,7 @@ export function getAllApps(searchInfo) {
     });
 }
 
+// 读取并返回业务数据或页面状态。
 export function getAppDetail(groupName, activityName) {
     return request({
         url: '/activity/appDetail',

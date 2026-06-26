@@ -107,13 +107,13 @@
 
     <select id="getGroupMembers" resultType="com.chinahitech.shop.bean.notAddedToDatabase.GroupNum">
         select
-            g.id,
-            g.name,
-            count(ig.user_id) as memberNum
+            g.id as groupId,
+            g.name as groupName,
+            count(ig.user_id) as count
         from `group` g
             left join individual_group ig on g.id = ig.group_id
         group by g.id, g.name
-        order by memberNum desc
+        order by count desc
         limit 5
     </select>
 </mapper>

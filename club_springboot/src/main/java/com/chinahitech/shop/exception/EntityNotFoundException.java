@@ -4,6 +4,9 @@ package com.chinahitech.shop.exception;
  * 查询或更新目标实体不存在时抛出的业务异常。
  */
 public class EntityNotFoundException extends ServiceException {
+    /**
+     * 创建对应业务异常对象，便于统一异常处理器返回错误信息。
+     */
     public EntityNotFoundException() {
         super();
     }

@@ -38,11 +38,17 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Autowired
     private KafkaProducer kafkaProducer;
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualGroup> getGroupByStuId(String studentId) {
         return individualGroupMapper.getGroupByStuId(studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Map<String, Object> getStudentGroupsCached(String studentId) {
         requireStudentId(studentId);
@@ -96,11 +102,17 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         evictGroupStudentCache(groupId, studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualGroup> getStudentsByGroup(int groupId, String searchInfo) {
         return individualGroupMapper.getStudentsByGroup(groupId, searchInfo);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualGroup> getStudentsByGroupCached(int groupId, String searchInfo) {
         requireGroupId(groupId);
@@ -113,11 +125,17 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         return list;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualGroup> getGroupApplyList(int groupId) {
         return individualGroupMapper.getGroupApplyList(groupId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualGroup> getGroupApplyListCached(int groupId) {
         requireGroupId(groupId);
@@ -170,6 +188,9 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         rejectJoinAndNotify(groupId, studentId);
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addGroupStudent(int groupId, String studentId, String position) {
@@ -181,17 +202,29 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         individualGroupMapper.insert(ig);
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addGroupStudentAndNotify(int groupId, String studentId, String position) {
         requireGroupStudent(groupId, studentId);
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addGroupStudent(groupId, studentId, position);
         sendEvent("add_group_student", groupId, studentId, null);
         evictGroupStudentCache(groupId, studentId);
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addGroupStudentAndNotify(int groupId, String studentId, String position, String managerId) {
         assertManagedGroup(groupId, managerId);
+        /**
+         * 新增业务数据或追加界面状态。
+         */
         addGroupStudentAndNotify(groupId, studentId, position);
     }
 
@@ -215,6 +248,9 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         modifyGroupStudentAndNotify(groupId, studentId, position);
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteGroupStudent(int groupId, String studentId) {
@@ -222,25 +258,43 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         RedisUtils.del(groupApplyGuardKey(groupId, studentId));
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Override
     public void deleteGroupStudentAndNotify(int groupId, String studentId) {
         requireGroupStudent(groupId, studentId);
+        /**
+         * 删除指定业务数据。
+         */
         deleteGroupStudent(groupId, studentId);
         sendEvent("delete_group_student", groupId, studentId, null);
         evictGroupStudentCache(groupId, studentId);
     }
 
+    /**
+     * 删除指定业务数据。
+     */
     @Override
     public void deleteGroupStudentAndNotify(int groupId, String studentId, String managerId) {
         assertManagedGroup(groupId, managerId);
+        /**
+         * 删除指定业务数据。
+         */
         deleteGroupStudentAndNotify(groupId, studentId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Group> getAllManagedGroups(String managerId) {
         return individualGroupMapper.getAllManagedGroups(managerId);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Group> getAllManagedGroupsCached(String managerId) {
         requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
@@ -276,15 +330,24 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         RedisUtils.del(studentsKey(groupId));
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updatePermission(int groupId, String studentId, int status) {
         ensureUpdated(individualGroupMapper.updateStatus(groupId, studentId, status));
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updatePermissionAndNotify(int groupId, String studentId, int status) {
         requireGroupStudent(groupId, studentId);
+        /**
+         * 更新表单字段或业务数据。
+         */
         updatePermission(groupId, studentId, status);
 
         Map<String, Object> extra = new HashMap<>();
@@ -293,31 +356,55 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         evictGroupStudentCache(groupId, studentId);
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updatePermissionAndNotify(int groupId, String studentId, int status, String managerId) {
         assertManagedGroup(groupId, managerId);
+        /**
+         * 更新表单字段或业务数据。
+         */
         updatePermissionAndNotify(groupId, studentId, status);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<IndividualGroup> getAllStudents(String searchInfo) {
         return individualGroupMapper.getAllStudents(searchInfo);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<GroupNum> getGroupMembers() {
         return individualGroupMapper.getGroupMembers();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<GroupNum> getGroupMembersCached() {
         String key = "individualGroup:top5:members";
         List<GroupNum> list = (List<GroupNum>) RedisUtils.get(key);
-        if (list == null) {
+        if (list == null || hasInvalidGroupMemberStats(list)) {
             list = getGroupMembers();
             RedisUtils.set(key, list, 600);
         }
         return list;
+    }
+
+    private boolean hasInvalidGroupMemberStats(List<GroupNum> list) {
+        for (GroupNum groupNum : list) {
+            if (groupNum == null || groupNum.getGroupName() == null || groupNum.getGroupName().trim().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void requireGroupStudent(int groupId, String studentId) {
@@ -334,6 +421,9 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         }
     }
 
+    /**
+     * 校验社团 ID 是否有效，无效时抛出业务异常。
+     */
     private void requireGroupId(int groupId) {
         if (groupId <= 0) {
             throw new BusinessException("PARAM_ERROR", "\u793e\u56e2ID\u4e0d\u5408\u6cd5");
@@ -357,6 +447,9 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
         }
     }
 
+    /**
+     * 发送业务事件消息，用于异步同步或缓存刷新。
+     */
     private void sendEvent(String type, int groupId, String studentId, Map<String, Object> extra) {
         Map<String, Object> msg = new HashMap<>();
         msg.put("type", type);

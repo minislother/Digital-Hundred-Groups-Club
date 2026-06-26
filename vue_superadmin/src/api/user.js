@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 
+// 处理当前组件的业务逻辑或用户交互。
 export function login(userId, password) {
   const data = new URLSearchParams()
   data.append('userId', userId)
@@ -11,6 +12,7 @@ export function login(userId, password) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getInfo() {
   return request({
     url: '/topManager/info',
@@ -18,12 +20,14 @@ export function getInfo() {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function logout() {
   return request({
     url: '/topManager/logout',
     method: 'post'
   })
 }
+// 读取并返回业务数据或页面状态。
 export function getAllStudent(searchInfo) {
   return request({
     url: '/individualGroup/getAllStudents',
@@ -31,6 +35,7 @@ export function getAllStudent(searchInfo) {
     params: { searchInfo }
   })
 }
+// 展示弹窗、详情或提示内容。
 export function showGroups(searchInfo) {
   return request({
     url: '/group/all',
@@ -39,6 +44,7 @@ export function showGroups(searchInfo) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getGroups(searchInfo) {
   return request({
     url: '/group/all',
@@ -47,6 +53,7 @@ export function getGroups(searchInfo) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function findtop() {
   return request({
     url: '/group/top',
@@ -55,6 +62,7 @@ export function findtop() {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getcount() {
   return request({
     url: '/individualGroup/getGroupMembers',
@@ -63,6 +71,7 @@ export function getcount() {
   })
 }
 
+// 处理文件上传相关逻辑。
 export function uploadfile1(file) {
   return request({
     url: '/topManager/uploadExcel',
@@ -70,10 +79,11 @@ export function uploadfile1(file) {
     headers: new Headers({
       'Content-Type': 'application/json'
     }),
-    data: file 
+    data: file
   })
 }
 
+// 下载后端提供的附件或模板文件。
 export function download1(fileName) {
   return request({
     url: '/topManager/downloadExcel',

@@ -1,6 +1,12 @@
 <template>
   <div :class="classObj" class="app-wrapper">
-    <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
+    <button
+      v-if="device==='mobile'&&sidebar.opened"
+      type="button"
+      class="drawer-bg"
+      aria-label="关闭侧边栏"
+      @click="handleClickOutside"
+    />
     <sidebar class="sidebar-container" />
     <div class="main-container">
       <div :class="{'fixed-header':fixedHeader}">
@@ -24,15 +30,19 @@ export default {
   },
   mixins: [ResizeMixin],
   computed: {
+    // 处理当前组件的业务逻辑或用户交互。
     sidebar() {
       return this.$store.state.app.sidebar
     },
+    // 处理当前组件的业务逻辑或用户交互。
     device() {
       return this.$store.state.app.device
     },
+    // 处理当前组件的业务逻辑或用户交互。
     fixedHeader() {
       return this.$store.state.settings.fixedHeader
     },
+    // 处理当前组件的业务逻辑或用户交互。
     classObj() {
       return {
         hideSidebar: !this.sidebar.opened,
@@ -43,6 +53,7 @@ export default {
     }
   },
   methods: {
+    // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleClickOutside() {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }
@@ -65,8 +76,11 @@ export default {
     }
   }
   .drawer-bg {
+    border: 0;
     background: #000;
+    cursor: pointer;
     opacity: 0.3;
+    padding: 0;
     width: 100%;
     top: 0;
     height: 100%;

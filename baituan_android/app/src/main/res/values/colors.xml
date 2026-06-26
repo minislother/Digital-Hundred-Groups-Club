@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="baituan_primary">#DC2626</color>
+    <color name="baituan_primary_dark">#991B1B</color>
+    <color name="baituan_secondary">#EF4444</color>
+    <color name="baituan_gold">#FBBF24</color>
+    <color name="baituan_background">#FEF2F2</color>
+    <color name="baituan_text">#7F1D1D</color>
+    <color name="baituan_white">#FFFFFF</color>
+</resources>

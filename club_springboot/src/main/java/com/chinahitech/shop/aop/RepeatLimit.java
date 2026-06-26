@@ -14,7 +14,7 @@ public @interface RepeatLimit {
 
     int window() default 10;
 
-    int limit() default 20;
+    int limit() default 200;
 
     String message() default "请求过于频繁，请稍后再试";
 

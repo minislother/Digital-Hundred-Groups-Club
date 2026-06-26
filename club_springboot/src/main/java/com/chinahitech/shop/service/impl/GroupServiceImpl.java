@@ -53,11 +53,17 @@ public class GroupServiceImpl implements GroupService {
         return groups;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Group getByName(String groupName) {
         return groupMapper.getByName(groupName);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Group getCachedGroupDetail(String groupName) {
         String key = groupDetailKey(groupName);
@@ -79,6 +85,9 @@ public class GroupServiceImpl implements GroupService {
         }
 
         Group group = groupMapper.getByName(groupName);
+        /**
+         * 保存业务数据或本地状态。
+         */
         saveGroupDetailCache(key, group);
         return group;
     }
@@ -110,6 +119,9 @@ public class GroupServiceImpl implements GroupService {
         evictGroupCache();
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addHot(String groupName) {
         groupMapper.addHot(groupName);
@@ -117,24 +129,36 @@ public class GroupServiceImpl implements GroupService {
     }
 
     // Manager-facing maintenance.
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateDescription(String groupname, String description, String attachment, String image) {
         groupMapper.updateDescription(groupname, description, attachment, image);
         evictGroupCache();
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateAttachment(String name, String attachment) {
         groupMapper.updateAttachment(name, attachment);
         evictGroupCache();
     }
 
+    /**
+     * 更新表单字段或业务数据。
+     */
     @Override
     public void updateImage(String name, String image) {
         groupMapper.updateImage(name, image);
         evictGroupCache();
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Group getGroupById(Integer id) {
         Group group = groupMapper.getGroupById(id);
@@ -144,17 +168,26 @@ public class GroupServiceImpl implements GroupService {
         return group;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public String getAttachment(Integer id) {
         return getGroupById(id).getAttachment();
     }
 
     // Super-admin approval.
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public List<Group> getAllApp(String searchinfo) {
         return groupMapper.getAllApp(searchinfo);
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Group getAppByName(String groupname) {
         return groupMapper.getAppByName(groupname);
@@ -188,6 +221,9 @@ public class GroupServiceImpl implements GroupService {
         CACHE_REBUILD_EXECUTOR.execute(() -> {
             try {
                 Group fresh = groupMapper.getByName(groupName);
+                /**
+                 * 保存业务数据或本地状态。
+                 */
                 saveGroupDetailCache(key, fresh);
             } finally {
                 RedisUtils.del(lockKey);
@@ -195,6 +231,9 @@ public class GroupServiceImpl implements GroupService {
         });
     }
 
+    /**
+     * 保存业务数据或本地状态。
+     */
     private void saveGroupDetailCache(String key, Group group) {
         if (group == null) {
             RedisUtils.set(key, RedisUtils.NULL_VALUE, GROUP_DETAIL_NULL_TTL_SECONDS);

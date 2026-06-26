@@ -1,0 +1,16 @@
+{
+  "name": "baituan-frontend-monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend-shared",
+    "vue_student",
+    "vue_admin",
+    "vue_superadmin"
+  ],
+  "scripts": {
+    "build:student": "npm --prefix vue_student run build:prod",
+    "build:admin": "npm --prefix vue_admin run build:prod",
+    "build:superadmin": "npm --prefix vue_superadmin run build:prod",
+    "build:frontends": "npm run build:student && npm run build:admin && npm run build:superadmin"
+  }
+}

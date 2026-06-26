@@ -12,6 +12,9 @@ public class MyBatisPlusConfig {
     /**
      * MyBatis-Plus pagination plugin.
      */
+    /**
+     * 创建 MyBatis Plus 分页拦截器。
+     */
     @Bean
     public MybatisPlusInterceptor paginationInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();

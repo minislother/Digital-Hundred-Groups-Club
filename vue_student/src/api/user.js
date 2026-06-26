@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 
+// 处理当前组件的业务逻辑或用户交互。
 export function login(stuNumber,password) {
   const data = new URLSearchParams()
   data.append('stuNumber', stuNumber)
@@ -11,6 +12,7 @@ export function login(stuNumber,password) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function register(data) {
   return request({
     url: '/student/register',
@@ -19,6 +21,7 @@ export function register(data) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function modifyPassword(stuNumber, password) {
   const data = new URLSearchParams()
   data.append('stuNumber', stuNumber)
@@ -30,6 +33,7 @@ export function modifyPassword(stuNumber, password) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function modifyPhone(stuNumber, phone) {
   return request({
       url: '/student/modifyPhone',
@@ -38,6 +42,7 @@ export function modifyPhone(stuNumber, phone) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function modifyDescription(stuNumber, description) {
   return request({
       url: '/student/modifyDescription',
@@ -46,6 +51,7 @@ export function modifyDescription(stuNumber, description) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function modifyNickname(stuNumber, nickname) {
   return request({
       url: '/student/modifyNickname',
@@ -54,6 +60,7 @@ export function modifyNickname(stuNumber, nickname) {
   })
 }
 
+// 校验输入内容是否满足业务要求。
 export function validateEmail(email) {
   return request({
       url: '/student/validateEmail',
@@ -62,6 +69,7 @@ export function validateEmail(email) {
   })
 }
 
+// 读取并返回业务数据或页面状态。
 export function getProfile(stuNumber) {
   return request({
     url: '/student/profile',
@@ -71,6 +79,7 @@ export function getProfile(stuNumber) {
 }
 
 
+// 读取并返回业务数据或页面状态。
 export function getInfo() {
   return request({
     url: '/student/info',
@@ -78,6 +87,7 @@ export function getInfo() {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function logout() {
   return request({
     url: '/student/logout',
@@ -85,6 +95,7 @@ export function logout() {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function verifyemail(stuNumber) {
   return request({
     url: '/student/getEmail',
@@ -93,6 +104,7 @@ export function verifyemail(stuNumber) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function verifycode(email, validateCode) {
   return request({
     url: '/student/getValidate',
@@ -101,6 +113,7 @@ export function verifycode(email, validateCode) {
   })
 }
 
+// 处理当前组件的业务逻辑或用户交互。
 export function modifypas(stuNumber,password) {
   const data = new URLSearchParams()
   data.append('stuNumber', stuNumber)

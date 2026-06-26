@@ -32,6 +32,9 @@ public class ScanExcel {
     private static final String HEADER_ALT_NAME = "\u540d\u5b57";
     private static final String HEADER_PASSWORD = "\u5bc6\u7801";
 
+    /**
+     * 读取文件、接口响应或本地缓存数据。
+     */
     public List<User> readExcel(MultipartFile file) throws Exception {
         int res = checkFile(file);
         if (res == 0) {
@@ -46,6 +49,9 @@ public class ScanExcel {
         throw unsupportedFileTypeException();
     }
 
+    /**
+     * 读取文件、接口响应或本地缓存数据。
+     */
     public List<User> readExcel(File file) throws Exception {
         if (file == null || !file.exists()) {
             throw new FileNotFoundException("File not found");
@@ -79,18 +85,27 @@ public class ScanExcel {
         return 3;
     }
 
+    /**
+     * 读取文件、接口响应或本地缓存数据。
+     */
     public List<User> readXLSX(MultipartFile file) throws IOException {
         try (InputStream inputStream = file.getInputStream()) {
             return read(new XSSFWorkbook(inputStream));
         }
     }
 
+    /**
+     * 读取文件、接口响应或本地缓存数据。
+     */
     public List<User> readXLS(MultipartFile file) throws IOException {
         try (InputStream inputStream = file.getInputStream()) {
             return read(new HSSFWorkbook(inputStream));
         }
     }
 
+    /**
+     * 读取文件、接口响应或本地缓存数据。
+     */
     public List<User> read(Workbook book) throws IOException {
         DataFormatter formatter = new DataFormatter();
         List<User> users = new ArrayList<>();
@@ -120,6 +135,9 @@ public class ScanExcel {
         return users;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     public String getValue(Cell cell, int rowNum, int index, Workbook book, boolean isKey) throws IOException {
         if (cell == null) {
             return null;
@@ -165,6 +183,9 @@ public class ScanExcel {
         return keyMap;
     }
 
+    /**
+     * 读取文件、接口响应或本地缓存数据。
+     */
     private User readUser(Row row, Map<Integer, String> keyMap, DataFormatter formatter) {
         if (row == null) {
             return null;

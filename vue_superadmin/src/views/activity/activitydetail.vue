@@ -1,109 +1,62 @@
 <template>
-  <div>
-    <el-header>
-      <h1>活动详情信息</h1>
-    </el-header>
-    <el-row :gutter="20">
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-wind-power"> 活动名</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.name }}</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-location"> 地点</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.place }}</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-s-custom"> 组织者</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.organizer }}</el-main></div>
-      </el-col>
-    </el-row>
-    <el-row :gutter="20">
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-time"> 申请时间</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.time | formatDate }}</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-set-up"> 事项安排</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.arrange }}</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-open"> 活动状态</el-main></div>
-      </el-col>
-      <el-col :span="4">
-        <div v-if="activity.isAccepted === true" class="grid-content bg-purple-light success-text">
-          <el-main>已批准</el-main>
-        </div>
-        <div v-else-if="activity.isAccepted === false" class="grid-content bg-purple-light fail-text">
-          <el-main>已拒绝</el-main>
-        </div>
-        <div v-else class="grid-content bg-purple-light pending-text"><el-main>待审核</el-main></div>
-      </el-col>
-    </el-row>
-    <el-row :gutter="20">
-      <el-col :span="4">
-        <div class="grid-content bg-purple"><el-main class="el-icon-notebook-2
-"> 描述</el-main></div>
-      </el-col>
-      <el-col :span="20">
-        <div class="grid-content bg-purple-light"><el-main>{{ activity.description }}</el-main></div>
-      </el-col>
-    </el-row>
+  <div class="app-container activity-detail-page">
+    <section class="page-heading">
+      <span class="eyebrow">Activity review</span>
+      <h1>活动详情</h1>
+      <p>核对活动信息、附件与图片后，对活动申请进行审批。</p>
+    </section>
 
-    <div class="button-container">
-      <el-form>
-        <el-button v-if="activity.attachment !== null" type="primary" class="el-icon-folder edit-button left-button"
-          @click="openAttachment()">查看附件</el-button>
-        <el-button v-else type="primary" class="el-icon-folder-delete left-button" disabled> 查看附件</el-button>
-        <el-button v-if="activity.image !== null" type="primary" class="el-icon-picture edit-button left-button"
-          @click="openImage()">查看图片</el-button>
-        <el-button v-else type="primary" class="el-icon-picture-outline left-button" disabled> 查看图片</el-button>
-      </el-form>
-    </div>
+    <section class="detail-card">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span>活动名称</span>
+          <strong>{{ activity.name || '-' }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>地点</span>
+          <strong>{{ activity.place || '-' }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>组织者</span>
+          <strong>{{ activity.organizer || '-' }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>申请时间</span>
+          <strong>{{ formatDate(activity.time) }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>事项安排</span>
+          <strong>{{ activity.arrange || '-' }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>活动状态</span>
+          <span :class="statusClass(activity.isAccepted)">{{ statusText(activity.isAccepted) }}</span>
+        </div>
+      </div>
 
-    <br>
-    <div class="button-container">
-      <el-form>
-        <el-button v-show="activity.isAccepted !== true" type="primary" class="edit-button left-button"
-          @click="acceptActivity">批准申请</el-button>
-        <el-button v-show="activity.isAccepted === true" type="primary" class="edit-button left-button" disabled
-          @click="acceptActivity">批准申请</el-button>
-        <el-button v-show="activity.isAccepted !== false" type="primary" class="edit-button left-button"
-          @click="rejectActivity">拒绝申请</el-button>
-        <el-button v-show="activity.isAccepted === false" type="primary" class="edit-button left-button" disabled
-          @click="rejectActivity">拒绝申请</el-button>
-      </el-form>
-    </div>
+      <div class="description-block">
+        <span>活动描述</span>
+        <p>{{ activity.description || '暂无活动描述。' }}</p>
+      </div>
+
+      <div class="action-row">
+        <el-button :disabled="!activity.attachment" @click="openAttachment">查看附件</el-button>
+        <el-button :disabled="!activity.image" @click="openImage">查看图片</el-button>
+        <el-button type="primary" :disabled="activity.isAccepted === true" @click="acceptActivity">批准申请</el-button>
+        <el-button type="danger" :disabled="activity.isAccepted === false" @click="rejectActivity">拒绝申请</el-button>
+      </div>
+    </section>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+import shared from '@baituan/frontend-shared'
 import { acceptActivity, rejectActivity } from '@/api/activities.js'
 
 export default {
-  name: 'ActivityList',
-  filters: {
-    formatDate: function (value) {
-      const date = new Date(value)
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      const seconds = String(date.getSeconds()).padStart(2, '0')
-      return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`
-    }
-  },
+  name: 'ActivityDetail',
+  // 提供组件初始响应式数据。
   data() {
     return {
       activity: {}
@@ -114,109 +67,111 @@ export default {
       'name'
     ])
   },
-  created: function () {
-    this.activity = this.$route.params.activity // 获取路由参数activity
+  // 组件创建后加载页面初始数据。
+  created() {
+    this.activity = this.$route.params.activity || {}
   },
   methods: {
+    // 格式化展示文本，便于页面直接显示。
+    formatDate(value) {
+      return shared.formatDateTime(value)
+    },
+    // 处理当前组件的业务逻辑或用户交互。
+    statusClass(value) {
+      if (value === true) return 'bt-status is-success'
+      if (value === false) return 'bt-status is-danger'
+      return 'bt-status is-warning'
+    },
+    // 处理当前组件的业务逻辑或用户交互。
+    statusText(value) {
+      if (value === true) return '已批准'
+      if (value === false) return '已拒绝'
+      return '待审核'
+    },
+    // 打开详情、预览或外部资源。
     openAttachment() {
-      window.open(this.activity.attachment)
+      if (this.activity.attachment) window.open(this.activity.attachment)
     },
+    // 打开详情、预览或外部资源。
     openImage() {
-      window.open(this.activity.image)
+      if (this.activity.image) window.open(this.activity.image)
     },
+    // 处理当前组件的业务逻辑或用户交互。
     acceptActivity() {
-      this.$message({
-        message: '批准申请',
-        type: 'success'
-      })
-      setTimeout(() => {
-        acceptActivity(this.activity.id)
-          .then((response) => {
-            console.log(response.data)
-            this.activity.isAccepted = true
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      }, 100) // 延迟
+      acceptActivity(this.activity.id)
+        .then(() => {
+          this.activity.isAccepted = true
+          this.$message.success('活动申请已批准')
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     },
+    // 处理当前组件的业务逻辑或用户交互。
     rejectActivity() {
-      this.$message({
-        message: '拒绝申请',
-        type: 'success'
-      })
-      setTimeout(() => {
-        rejectActivity(this.activity.id)
-          .then((response) => {
-            console.log(response.data)
-            this.activity.isAccepted = false
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      }, 100)
+      rejectActivity(this.activity.id)
+        .then(() => {
+          this.activity.isAccepted = false
+          this.$message.success('活动申请已拒绝')
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     }
   }
 }
 </script>
 
-<style scoped>
-.el-row {
-  margin-bottom: 20px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+<style lang="scss" scoped>
+.detail-card {
+  padding: 24px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: var(--bt-radius-lg);
+  background: var(--bt-surface);
+  box-shadow: var(--bt-shadow);
 }
 
-.el-col {
-  border-radius: 4px;
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
-.bg-purple-dark {
-  background: #99a9bf;
+.detail-item {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--bt-radius);
+  background: var(--bt-surface-soft);
 }
 
-.bg-purple {
-  background: #d3dce6;
+.detail-item span:first-child,
+.description-block span {
+  color: var(--bt-text-muted);
+  font-size: 14px;
 }
 
-.bg-purple-light {
-  background: #e5e9f2;
+.detail-item strong {
+  font-size: 17px;
 }
 
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
+.description-block {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: var(--bt-radius);
 }
 
-.row-bg {
-  padding: 10px 0;
-  background-color: #f9fafc;
+.description-block p {
+  margin: 8px 0 0;
+  color: var(--bt-text);
+  line-height: 1.7;
 }
 
-.button-container {
-  text-align: center;
-  margin-top: 50px;
-}
-
-.edit-button {
-  margin-left: 30px;
-}
-
-.left-button {
-  margin-right: 120px;
-}
-
-.success-text {
-  color: #4caf50;
-}
-
-.fail-text {
-  color: #f44336;
-}
-
-.pending-text {
-  color: #ff9800;
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
 }
 </style>

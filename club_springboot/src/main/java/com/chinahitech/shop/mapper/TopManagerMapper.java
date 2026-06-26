@@ -9,12 +9,24 @@ import java.util.List;
 
 public interface TopManagerMapper extends BaseMapper<User> {
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     User getTopManagerByNum(@Param("num") String num);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     User getUserByNum(@Param("num") String num);
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<User> getAllUsers();
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     List<User> getUser(@Param("userName") String userName);
 
     int addManager(@Param("userId") String userId,
@@ -48,6 +60,9 @@ public interface TopManagerMapper extends BaseMapper<User> {
                     @Param("modifyTime") Date modifyTime);
 
     int updatePermission(@Param("userId") String userId,
+                         /**
+                          * 读取并返回业务数据或页面状态。
+                          */
                          @Param("status") int status,
                          @Param("modifyTime") Date modifyTime);
 

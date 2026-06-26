@@ -1,100 +1,84 @@
 <template>
-  <div class="card-container">
-    <div :key="applications.applicationId" class="card">
-      <h2 class="card-title">申请详情信息</h2>
-      <div class="table-wrapper">
-        <table class="table-content">
-          <tr>
-            <td>申请编号:</td>
-            <td>{{ applications.applicationId }}</td>
-          </tr>
-          <tr>
-            <td>社团名称:</td>
-            <td>{{ applications.groupName }}</td>
-          </tr>
-          <tr>
-            <td>姓名:</td>
-            <td>{{ applications.stuName }}</td>
-          </tr>
-          <tr>
-            <td>学号:</td>
-            <td>{{ applications.stuNumber }}</td>
-          </tr>
-          <tr>
-            <td>手机号:</td>
-            <td>{{ applications.phone }}</td>
-          </tr>
-          <tr>
-            <td>性别:</td>
-            <td>{{ applications.gender }}</td>
-          </tr>
-          <tr>
-            <td>专业:</td>
-            <td>{{ applications.major }}</td>
-          </tr>
-          <tr>
-            <td>自我介绍:</td>
-            <td>{{ applications.selfIntro }}</td>
-          </tr>
-          <tr>
-            <td>申请时间:</td>
-            <td>{{ applications.createTime | formatDate }}</td>
-          </tr>
-          <tr>
-            <td>申请状态:</td>
-            <td v-if="applications.isAccepted === true">已批准</td>
-            <td v-else-if="applications.isAccepted === false">已拒绝</td>
-            <td v-else>待审核</td>
-          </tr>
-        </table>
+  <div class="detail-page app-container">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Application Detail</p>
+        <h1>申请详情信息</h1>
       </div>
-      <div class="button-container">
-        <el-form>
-          <el-button
-            v-if="applications.attachment !== null"
-            type="primary"
-            class="edit-button left-button"
-            @click="openAttachment()"
-          >查看附件</el-button>
+      <span :class="['status-pill', statusClass(applications.isAccepted)]">
+        {{ statusText(applications.isAccepted) }}
+      </span>
+    </section>
 
-          <el-button
-            v-if="applications.isAccepted === null"
-            type="success"
-            class="edit-button"
-            @click="submitAccept()"
-          >
-            同意申请
-          </el-button>
-          <el-button
-            v-else
-            class="edit-button disabled-button"
-          >
-            同意申请
-          </el-button>
-          <el-button
-            v-if="applications.isAccepted === null"
-            type="danger"
-            class="edit-button"
-            @click="submitReject()"
-          >
-            拒绝申请
-          </el-button>
-          <el-button
-            v-else
-            class="edit-button disabled-button"
-          >
-            拒绝申请
-          </el-button>
-        </el-form>
+    <el-card class="detail-card">
+      <dl class="detail-grid">
+        <div>
+          <dt>申请编号</dt>
+          <dd>{{ applications.applicationId || '-' }}</dd>
+        </div>
+        <div>
+          <dt>社团名称</dt>
+          <dd>{{ applications.groupName || '-' }}</dd>
+        </div>
+        <div>
+          <dt>姓名</dt>
+          <dd>{{ applications.stuName || '-' }}</dd>
+        </div>
+        <div>
+          <dt>学号</dt>
+          <dd>{{ applications.stuNumber || '-' }}</dd>
+        </div>
+        <div>
+          <dt>手机号</dt>
+          <dd>{{ applications.phone || '-' }}</dd>
+        </div>
+        <div>
+          <dt>性别</dt>
+          <dd>{{ applications.gender || '-' }}</dd>
+        </div>
+        <div>
+          <dt>专业</dt>
+          <dd>{{ applications.major || '-' }}</dd>
+        </div>
+        <div>
+          <dt>申请时间</dt>
+          <dd>{{ formatDate(applications.createTime) }}</dd>
+        </div>
+        <div class="full-row">
+          <dt>自我介绍</dt>
+          <dd>{{ applications.selfIntro || '暂无自我介绍' }}</dd>
+        </div>
+      </dl>
+      <div class="button-row">
+        <el-button
+          v-if="applications.attachment !== null"
+          @click="openAttachment()"
+        >
+          查看附件
+        </el-button>
+        <el-button
+          type="success"
+          :disabled="applications.isAccepted !== null"
+          @click="submitAccept()"
+        >
+          同意申请
+        </el-button>
+        <el-button
+          type="danger"
+          :disabled="applications.isAccepted !== null"
+          @click="submitReject()"
+        >
+          拒绝申请
+        </el-button>
       </div>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+import shared from '@baituan/frontend-shared'
 import { getAppDetails, acceptApplication, rejectApplication } from '@/api/seeapplication.js'
-import router from '@/router'
 
 export default {
   name: 'Appdetail',
@@ -103,160 +87,185 @@ export default {
       'name'
     ])
   },
-  filters: {
-    formatDate: function(value) {
-      const date = new Date(value)
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      const seconds = String(date.getSeconds()).padStart(2, '0')
-      return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`
-    }
-  },
+  // 提供组件初始响应式数据。
   data() {
     return {
-      applications: []
-      // isAccepted: '',
+      applications: {}
     }
   },
-  created: function() {
-    const id = this.$route.params.id // 获取路由参数id
+  // 组件创建后加载页面初始数据。
+  created() {
+    const id = this.$route.params.id
     getAppDetails(id).then((response) => {
       this.applications = response.data.items
-      console.log(this.applications)
-      // this.isAccepted = response.data.isAccepted;
     })
       .catch(error => {
         console.error(error)
       })
-      if(this.$store.state.clubid==0) {
-      if(confirm("登陆身份失效，请重新登陆"))
-      {
-        this.reload()
-      }
-      else
-      {
-        window.alert("取消也得重新登陆")
-        this.reload()
-      }
+    if (!this.$store.getters.isClubSelected) {
+      this.$message.warning('登录身份失效，请重新登录')
+      this.reload()
     }
   },
   methods: {
+    // 格式化展示文本，便于页面直接显示。
+    formatDate(value) {
+      return shared.formatDateTime(value)
+    },
+    // 处理当前组件的业务逻辑或用户交互。
+    statusText(value) {
+      if (value === true) return '已批准'
+      if (value === false) return '已拒绝'
+      return '待审核'
+    },
+    // 处理当前组件的业务逻辑或用户交互。
+    statusClass(value) {
+      if (value === true) return 'is-success'
+      if (value === false) return 'is-danger'
+      return 'is-warning'
+    },
+    // 打开详情、预览或外部资源。
     openAttachment() {
-      window.open(applications.attachment)
+      window.open(this.applications.attachment)
     },
+    // 提交表单数据并触发后端业务处理。
     submitAccept() {
-      this.$message({
-        message: '批准申请',
-        type: 'success'
-      })
-      setTimeout(() => {
-        acceptApplication(this.applications.applicationId)
-          .then((response) => {
-            console.log(response.data)
-            // detail.isAccepted = true;
-            router.go() // 刷新当前页面
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      }, 100) // 延迟
+      acceptApplication(this.applications.applicationId)
+        .then(() => {
+          this.$message.success('已同意申请')
+          this.applications.isAccepted = true
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     },
+    // 提交表单数据并触发后端业务处理。
     submitReject() {
-      this.$message({
-        message: '拒绝申请',
-        type: 'success'
-      })
-      setTimeout(() => {
-        rejectApplication(applications.applicationId)
-          .then((response) => {
-            console.log(response.data)
-            // detail.isAccepted = false;
-            router.go() // 刷新当前页面
-          })
-          .catch((error) => {
-            console.error(error)
-          })
-      }, 100) // 延迟
+      rejectApplication(this.applications.applicationId)
+        .then(() => {
+          this.$message.success('已拒绝申请')
+          this.applications.isAccepted = false
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     },
+    // 重新加载当前页面数据，保持界面内容最新。
     async reload() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-    },
+    }
   }
 }
 </script>
 
-<style>
-.card-container {
+<style lang="scss" scoped>
+.detail-page {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-heading {
+  display: flex;
   align-items: center;
-  margin-top: -70px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--bt-shadow);
 }
 
-.card {
-  border: 10px solid #333333;
-  padding: 100px;
-  margin: 80px;
-  width: 60%;
-  height: 200%;
-  text-align: left;
-  margin-bottom: -50px;
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--bt-primary);
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.card-title {
-  margin-top: -30px;
-  text-align: center;
-  font-size: 40px;
-  margin-bottom: 50px;
+.page-heading h1 {
+  margin: 0;
+  color: var(--bt-text);
+  font-size: 24px;
 }
 
-.table-wrapper {
-  border: 1px solid #000;
+.detail-card {
+  max-width: 1040px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+}
+
+.detail-grid div {
+  padding: 14px;
+  border: 1px solid var(--bt-border-muted);
+  border-radius: 8px;
+  background: var(--bt-surface-muted);
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+dt {
+  color: var(--bt-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+dd {
+  margin: 8px 0 0;
+  color: var(--bt-text);
+  line-height: 1.7;
+}
+
+.button-row {
   display: flex;
-  justify-content: center;
-  padding: 10px;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.table-content {
-  font-size: 25px;
-  border-collapse: separate;
-  border-spacing: 15px; /* 调整间隔大小，根据需要进行调整 */
-  border-collapse: collapse;
-  width: 100%;
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.table-content td {
-  border: 1px solid #000;
-  padding: 8px;
+.is-success {
+  color: var(--bt-success);
+  background: #dcfce7;
 }
 
-.table-content tr:nth-child(even) {
-  background-color: #f2f2f2;
+.is-danger {
+  color: var(--bt-danger);
+  background: #fee2e2;
 }
 
-.table-content tr:hover {
-  background-color: #ddd;
+.is-warning {
+  color: var(--bt-warning);
+  background: #fef3c7;
 }
 
-.button-container {
-  text-align: center;
-  margin-top: 50px;
-}
+@media (max-width: 720px) {
+  .page-heading,
+  .button-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-.edit-button {
-  margin-left: 30px;
-}
-
-.left-button {
-  margin-right: 110px; /* Adjust the margin to create space between the buttons */
-}
-
-.disabled-button {
-  background-color: #cccccc !important;
-  cursor: not-allowed !important;
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -20,6 +20,9 @@ public class InspectionServiceImpl implements InspectionService {
     @Autowired
     private InspectionMapper inspectionMapper;
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public Inspection getInspectionById(int id) {
         Inspection inspection = inspectionMapper.getById(id);
@@ -29,6 +32,9 @@ public class InspectionServiceImpl implements InspectionService {
         return inspection;
     }
 
+    /**
+     * 读取并返回业务数据或页面状态。
+     */
     @Override
     public String getAttachment(int id) {
         return getInspectionById(id).getAttachment();
@@ -57,6 +63,9 @@ public class InspectionServiceImpl implements InspectionService {
         return inspectionMapper.getByYear(year);
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addInspection(Inspection inspection) {
         Date date = new Date();
@@ -66,15 +75,24 @@ public class InspectionServiceImpl implements InspectionService {
         inspection.setModifyTime(date);
         int i = inspectionMapper.insert(inspection);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
 
+    /**
+     * 新增业务数据或追加界面状态。
+     */
     @Override
     public void addFeedback(int inspectionId, String groupName, String feedback) {
         Date date = new Date();
         int i = inspectionMapper.addFeedback(inspectionId, groupName, feedback, date);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
@@ -84,6 +102,9 @@ public class InspectionServiceImpl implements InspectionService {
         Date date = new Date();
         int rowsUpdated = inspectionMapper.modifyAttachment(inspectionId, groupName, attachment, date);
         if (rowsUpdated == 0) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
@@ -92,6 +113,9 @@ public class InspectionServiceImpl implements InspectionService {
     public void confirmApplication(int inspectionId) {
         int i = inspectionMapper.confirmApplicationByid(inspectionId);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }
@@ -100,6 +124,9 @@ public class InspectionServiceImpl implements InspectionService {
     public void denyApplication(int inspectionId) {
         int i = inspectionMapper.denyApplicationByid(inspectionId);
         if (i != 1) {
+            /**
+             * 更新表单字段或业务数据。
+             */
             throw new UpdateException("操作失败");
         }
     }

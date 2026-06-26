@@ -22,7 +22,7 @@
 import { mapGetters } from 'vuex'
 import Logo from './Logo'
 import SidebarItem from './SidebarItem'
-import variables from '@/styles/variables.scss'
+import * as variables from '@/styles/variables.scss'
 
 export default {
   components: { SidebarItem, Logo },
@@ -30,9 +30,11 @@ export default {
     ...mapGetters([
       'sidebar'
     ]),
+    // 处理当前组件的业务逻辑或用户交互。
     routes() {
       return this.$router.options.routes
     },
+    // 处理当前组件的业务逻辑或用户交互。
     activeMenu() {
       const route = this.$route
       const { meta, path } = route
@@ -42,12 +44,15 @@ export default {
       }
       return path
     },
+    // 展示弹窗、详情或提示内容。
     showLogo() {
       return this.$store.state.settings.sidebarLogo
     },
+    // 处理当前组件的业务逻辑或用户交互。
     variables() {
       return variables
     },
+    // 处理当前组件的业务逻辑或用户交互。
     isCollapse() {
       return !this.sidebar.opened
     }

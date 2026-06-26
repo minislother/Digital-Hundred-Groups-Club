@@ -62,6 +62,9 @@ public class FileStorageServiceImpl implements FileStorageService {
         return new StoredFile(fileName, targetLocation.toString(), fileUrl);
     }
 
+    /**
+     * 处理文件上传相关逻辑。
+     */
     @Override
     public byte[] readUploadFile(String fileName) throws IOException {
         String safeName = sanitizeFileName(fileName);
