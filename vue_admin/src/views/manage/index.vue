@@ -11,7 +11,7 @@
     <el-row :gutter="20">
       <el-col v-for="manage in manages" :key="manage.id || manage.name" :xs="24" :md="12">
         <el-card class="club-card" :body-style="{ padding: '0' }">
-        <img v-if="manage.image" :src="manage.image" :alt="`${manage.name} 封面`" loading="lazy" class="club-image">
+          <img v-if="manage.image" :src="manage.image" :alt="`${manage.name} 封面`" loading="lazy" class="club-image">
           <div v-else class="club-image placeholder">暂无社团图片</div>
           <div class="club-content">
             <div class="club-title-row">

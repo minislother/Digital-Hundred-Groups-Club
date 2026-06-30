@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 // 处理当前组件的业务逻辑或用户交互。
-export function login(stuNumber,password) {
+export function login(stuNumber, password) {
   const data = new URLSearchParams()
   data.append('stuNumber', stuNumber)
   data.append('password', password)
@@ -27,45 +27,45 @@ export function modifyPassword(stuNumber, password) {
   data.append('stuNumber', stuNumber)
   data.append('password', password)
   return request({
-      url: '/student/modifyPass',
-      method: 'post',
-      data
+    url: '/student/modifyPass',
+    method: 'post',
+    data
   })
 }
 
 // 处理当前组件的业务逻辑或用户交互。
 export function modifyPhone(stuNumber, phone) {
   return request({
-      url: '/student/modifyPhone',
-      method: 'post',
-      params: { stuNumber, phone }
+    url: '/student/modifyPhone',
+    method: 'post',
+    params: { stuNumber, phone }
   })
 }
 
 // 处理当前组件的业务逻辑或用户交互。
 export function modifyDescription(stuNumber, description) {
   return request({
-      url: '/student/modifyDescription',
-      method: 'post',
-      params: { stuNumber, description }
+    url: '/student/modifyDescription',
+    method: 'post',
+    params: { stuNumber, description }
   })
 }
 
 // 处理当前组件的业务逻辑或用户交互。
 export function modifyNickname(stuNumber, nickname) {
   return request({
-      url: '/student/modifyNickname',
-      method: 'post',
-      params: { stuNumber, nickname }
+    url: '/student/modifyNickname',
+    method: 'post',
+    params: { stuNumber, nickname }
   })
 }
 
 // 校验输入内容是否满足业务要求。
 export function validateEmail(email) {
   return request({
-      url: '/student/validateEmail',
-      method: 'post',
-      params: { email }
+    url: '/student/validateEmail',
+    method: 'post',
+    params: { email }
   })
 }
 
@@ -77,7 +77,6 @@ export function getProfile(stuNumber) {
     params: { stuNumber }
   })
 }
-
 
 // 读取并返回业务数据或页面状态。
 export function getInfo() {
@@ -114,7 +113,7 @@ export function verifycode(email, validateCode) {
 }
 
 // 处理当前组件的业务逻辑或用户交互。
-export function modifypas(stuNumber,password) {
+export function modifypas(stuNumber, password) {
   const data = new URLSearchParams()
   data.append('stuNumber', stuNumber)
   data.append('password', password)

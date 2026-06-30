@@ -17,8 +17,8 @@
           <h2>{{ item.title }}</h2>
           <p>{{ item.description }}</p>
           <el-upload
-            class="upload-demo"
             :ref="item.ref"
+            class="upload-demo"
             :action="uploadAction('/topManager/uploadExcel')"
             :limit="1"
             :on-exceed="handleExceed"

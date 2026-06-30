@@ -62,7 +62,7 @@ import { mapGetters } from 'vuex'
 import { getActivites } from '@/api/activity.js'
 
 export default {
-  name: 'activity',
+  name: 'Activity',
   computed: {
     ...mapGetters([
       'userName'

@@ -26,7 +26,7 @@
                 <em>{{ group.hot }}</em>
               </div>
               <div class="rank-bar" aria-hidden="true">
-                <span :style="{ width: getPercent(group.hot, maxHot) + '%' }"></span>
+                <span :style="{ width: getPercent(group.hot, maxHot) + '%' }" />
               </div>
             </article>
           </div>
@@ -50,7 +50,7 @@
                 <em>{{ group.count }} 人</em>
               </div>
               <div class="rank-bar is-green" aria-hidden="true">
-                <span :style="{ width: getPercent(group.count, maxMemberCount) + '%' }"></span>
+                <span :style="{ width: getPercent(group.count, maxMemberCount) + '%' }" />
               </div>
             </article>
           </div>

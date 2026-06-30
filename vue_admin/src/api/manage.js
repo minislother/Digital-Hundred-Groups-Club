@@ -28,7 +28,7 @@ export function redirectToGroupDetail(groupName) {
 }
 
 // 更新表单字段或业务数据。
-export function updateForm(groupname, description, attachment,image) {
+export function updateForm(groupname, description, attachment, image) {
   return request({
     url: '/group/modifydescription',
     method: 'post',

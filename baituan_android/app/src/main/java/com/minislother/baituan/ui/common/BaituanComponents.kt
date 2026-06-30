@@ -57,6 +57,7 @@ fun SectionTitle(title: String, action: String? = null, onAction: (() -> Unit)? 
 fun InfoCard(
     title: String,
     subtitle: String?,
+    modifier: Modifier = Modifier,
     badge: String? = null,
     body: String? = null,
     imageUrl: String? = null,
@@ -64,8 +65,7 @@ fun InfoCard(
     primaryAction: String? = null,
     onPrimaryAction: (() -> Unit)? = null,
     secondaryAction: String? = null,
-    onSecondaryAction: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    onSecondaryAction: (() -> Unit)? = null
 ) {
     val baseUrl = LocalContext.current.getString(R.string.baituan_base_url)
     val resolvedImageUrl = imageUrl.asBackendUrl(baseUrl)

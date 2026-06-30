@@ -1,7 +1,9 @@
 <template>
-  <i v-if="isElementIcon" :class="[icon, 'sub-el-icon']" />
-  <svg-icon v-else-if="icon" :icon-class="icon" />
-  <span v-if="title">{{ title }}</span>
+  <span class="menu-item-content">
+    <i v-if="isElementIcon" :class="[icon, 'sub-el-icon']" />
+    <svg-icon v-else-if="icon" :icon-class="icon" />
+    <span v-if="title">{{ title }}</span>
+  </span>
 </template>
 
 <script>
@@ -31,5 +33,11 @@ export default {
   color: currentColor;
   width: 1em;
   height: 1em;
+}
+
+.menu-item-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

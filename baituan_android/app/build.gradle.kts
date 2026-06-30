@@ -76,6 +76,10 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+
+    lint {
+        disable += "GradleDependency"
+    }
 }
 
 kapt {

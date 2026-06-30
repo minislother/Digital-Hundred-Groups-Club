@@ -11,11 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -105,27 +103,30 @@ class GroupControllerTest {
         when(fileStorageService.store(multipartFile))
                 .thenReturn(new StoredFile("club.zip", "upload/club.zip", "/upload/club.zip"));
 
-        ResponseEntity<Map<String, String>> response = groupController.uploadFile(multipartFile);
+        Result response = groupController.uploadFile(multipartFile);
 
-        assertEquals("/upload/club.zip", response.getBody().get("fileUrl"));
+        assertTrue(response.getSuccess());
+        assertEquals("/upload/club.zip", response.getData().get("fileUrl"));
         verify(fileStorageService).store(multipartFile);
     }
 
     @Test
     @DisplayName("submitZip - updates attachment")
     void testSubmitZip_CallService() {
-        ResponseEntity<Map<String, String>> response = groupController.submitZip("club.zip", "computer");
+        Result response = groupController.submitZip("club.zip", "computer");
 
-        assertEquals("Successfully updated attachment.", response.getBody().get("message"));
+        assertTrue(response.getSuccess());
+        assertEquals("Successfully updated attachment.", response.getMessage());
         verify(groupService).updateAttachment("computer", "club.zip");
     }
 
     @Test
     @DisplayName("submitPhoto - updates image")
     void testSubmitPhoto_CallService() {
-        ResponseEntity<Map<String, String>> response = groupController.submitPhoto("cover.png", "computer");
+        Result response = groupController.submitPhoto("cover.png", "computer");
 
-        assertEquals("Successfully updated image.", response.getBody().get("message"));
+        assertTrue(response.getSuccess());
+        assertEquals("Successfully updated image.", response.getMessage());
         verify(groupService).updateImage("computer", "cover.png");
     }
 
@@ -134,10 +135,11 @@ class GroupControllerTest {
     void testGetAttachment_ReturnAttachment() {
         when(groupService.getAttachment(7)).thenReturn("club.zip");
 
-        ResponseEntity<Map<String, Object>> response = groupController.getAttachment(7);
+        Result response = groupController.getAttachment(7);
 
-        assertEquals(20000, response.getBody().get("code"));
-        assertEquals("club.zip", response.getBody().get("attachment"));
+        assertTrue(response.getSuccess());
+        assertEquals(20000, response.getCode());
+        assertEquals("club.zip", response.getData().get("attachment"));
         verify(groupService).getAttachment(7);
     }
 

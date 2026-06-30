@@ -17,5 +17,5 @@ export function isExternal(path) {
  */
 // 处理当前组件的业务逻辑或用户交互。
 export function validuserName(str) {
-  return str.trim().length === 8;
+  return str.trim().length === 8
 }
