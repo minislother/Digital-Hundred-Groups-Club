@@ -6,6 +6,7 @@ import com.chinahitech.shop.bean.IndividualGroup;
 import com.chinahitech.shop.bean.notAddedToDatabase.GroupNum;
 import com.chinahitech.shop.service.IndividualGroupService;
 import com.chinahitech.shop.utils.PageUtils;
+import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.Result;
 import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +136,11 @@ public class IndividualGroupController {
     public Result getAllManagedGroups(Integer pageNum, Integer pageSize, Authentication authentication) {
         // 管理端查询只允许查看当前登录管理员负责的社团。
         String managerId = SecurityUtils.currentUserId(authentication);
+        if (PageUtils.isPageRequest(pageNum, pageSize)) {
+            PageResult<Group> page = individualGroupService
+                    .getAllManagedGroupsPageCached(managerId, pageNum, pageSize);
+            return PageUtils.ok("items", page);
+        }
         List<Group> groupList = individualGroupService.getAllManagedGroupsCached(managerId);
         return PageUtils.ok("items", groupList, pageNum, pageSize);
     }

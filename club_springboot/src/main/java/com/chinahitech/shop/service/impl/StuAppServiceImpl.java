@@ -2,6 +2,7 @@ package com.chinahitech.shop.service.impl;
 
 import com.chinahitech.shop.bean.StuApp;
 import com.chinahitech.shop.exception.ApplyException;
+import com.chinahitech.shop.exception.EntityNotFoundException;
 import com.chinahitech.shop.exception.InsertException;
 import com.chinahitech.shop.exception.UpdateException;
 import com.chinahitech.shop.mapper.StuAppMapper;
@@ -36,8 +37,9 @@ public class StuAppServiceImpl implements StuAppService {
 
     @Override
     public void insert(StuApp stuApp) {
+        validateApplication(stuApp);
         List<StuApp> appList = stuAppMapper.getByStuAndGroup(stuApp.getStuNumber(), stuApp.getGroupName());
-        if (appList.size() >= 5) {
+        if (appList != null && appList.size() >= 5) {
             throw new ApplyException("操作失败");
         }
         int i = stuAppMapper.insert(stuApp);
@@ -51,6 +53,7 @@ public class StuAppServiceImpl implements StuAppService {
      */
     @Override
     public void submit(StuApp stuApp) {
+        validateApplication(stuApp);
         stuApp.setCreateTime(new Date());
         insert(stuApp);
         groupService.addHot(stuApp.getGroupName());
@@ -76,7 +79,7 @@ public class StuAppServiceImpl implements StuAppService {
      */
     @Override
     public void updateAttachment(int applicationid, String attachment) {
-        StuApp stuApp = queryDetailapp(applicationid);
+        StuApp stuApp = requireApplication(applicationid);
         stuApp.setAttachment(attachment);
 
         int i = stuAppMapper.updateById(stuApp);
@@ -90,7 +93,7 @@ public class StuAppServiceImpl implements StuAppService {
 
     @Override
     public void confirmApplication(Integer applicationid) {
-        StuApp stuApp = queryDetailapp(applicationid);
+        StuApp stuApp = requireApplication(applicationid);
         stuApp.setIsAccepted(true);
 
         int i = stuAppMapper.updateById(stuApp);
@@ -104,7 +107,7 @@ public class StuAppServiceImpl implements StuAppService {
 
     @Override
     public void denyApplication(Integer applicationid) {
-        StuApp stuApp = queryDetailapp(applicationid);
+        StuApp stuApp = requireApplication(applicationid);
         stuApp.setIsAccepted(false);
 
         int i = stuAppMapper.updateById(stuApp);
@@ -114,5 +117,19 @@ public class StuAppServiceImpl implements StuAppService {
              */
             throw new UpdateException("操作失败");
         }
+    }
+
+    private void validateApplication(StuApp stuApp) {
+        if (stuApp == null || stuApp.getStuNumber() == null || stuApp.getGroupName() == null) {
+            throw new ApplyException("申请信息不完整");
+        }
+    }
+
+    private StuApp requireApplication(Integer applicationid) {
+        StuApp stuApp = queryDetailapp(applicationid);
+        if (stuApp == null) {
+            throw new EntityNotFoundException("申请记录不存在");
+        }
+        return stuApp;
     }
 }

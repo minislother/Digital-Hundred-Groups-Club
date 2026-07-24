@@ -2,6 +2,8 @@ package com.chinahitech.shop.controller;
 
 import com.chinahitech.shop.service.IndividualGroupService;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,15 +101,17 @@ class IndividualGroupControllerTest {
     void testGetAllManagedGroups_AuthenticatedManagerId_CallService() {
         // Given - authenticated manager and empty managed group list
         Authentication authentication = new UsernamePasswordAuthenticationToken("manager001", null);
-        when(individualGroupService.getAllManagedGroupsCached("manager001"))
-                .thenReturn(Collections.emptyList());
+        PageResult<com.chinahitech.shop.bean.Group> page = PageUtils.pageResult(
+                Collections.emptyList(), 0, 1, 10);
+        when(individualGroupService.getAllManagedGroupsPageCached("manager001", 1, 10))
+                .thenReturn(page);
 
         // When - manager queries managed groups
         Result result = individualGroupController.getAllManagedGroups(1, 10, authentication);
 
         // Then - service receives authenticated manager id
         assertTrue(result.getSuccess());
-        verify(individualGroupService).getAllManagedGroupsCached("manager001");
+        verify(individualGroupService).getAllManagedGroupsPageCached("manager001", 1, 10);
     }
 
     @Test

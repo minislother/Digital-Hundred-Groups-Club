@@ -11,6 +11,8 @@ import com.chinahitech.shop.mq.KafkaProducer;
 import com.chinahitech.shop.service.GroupService;
 import com.chinahitech.shop.service.IndividualGroupService;
 import com.chinahitech.shop.utils.RedisUtils;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +55,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     public Map<String, Object> getStudentGroupsCached(String studentId) {
         requireStudentId(studentId);
         String key = studentKey(studentId);
-        Map<String, Object> map = (Map<String, Object>) RedisUtils.get(key);
+        Map<String, Object> map = (Map<String, Object>) RedisUtils.getBusinessCache(key);
         if (map == null) {
             List<IndividualGroup> individualGroupList = getGroupByStuId(studentId);
             List<Group> groupList = new ArrayList<>();
@@ -64,7 +66,7 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
             map = new HashMap<>();
             map.put("stuItems", individualGroupList);
             map.put("groupItems", groupList);
-            RedisUtils.set(key, map, 300);
+            RedisUtils.setBusinessCache(key, map, 300);
         }
         return map;
     }
@@ -117,10 +119,10 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     public List<IndividualGroup> getStudentsByGroupCached(int groupId, String searchInfo) {
         requireGroupId(groupId);
         String key = studentsKey(groupId);
-        List<IndividualGroup> list = (List<IndividualGroup>) RedisUtils.get(key);
+        List<IndividualGroup> list = (List<IndividualGroup>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getStudentsByGroup(groupId, searchInfo);
-            RedisUtils.set(key, list, 120);
+            RedisUtils.setBusinessCache(key, list, 120);
         }
         return list;
     }
@@ -140,10 +142,10 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     public List<IndividualGroup> getGroupApplyListCached(int groupId) {
         requireGroupId(groupId);
         String key = applyKey(groupId);
-        List<IndividualGroup> list = (List<IndividualGroup>) RedisUtils.get(key);
+        List<IndividualGroup> list = (List<IndividualGroup>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getGroupApplyList(groupId);
-            RedisUtils.set(key, list, 60);
+            RedisUtils.setBusinessCache(key, list, 60);
         }
         return list;
     }
@@ -299,12 +301,31 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     public List<Group> getAllManagedGroupsCached(String managerId) {
         requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
         String key = managerKey(managerId);
-        List<Group> list = (List<Group>) RedisUtils.get(key);
+        List<Group> list = (List<Group>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getAllManagedGroups(managerId);
-            RedisUtils.set(key, list, 300);
+            RedisUtils.setBusinessCache(key, list, 300);
         }
         return list;
+    }
+
+    @Override
+    public PageResult<Group> getAllManagedGroupsPageCached(String managerId,
+                                                            Integer pageNum,
+                                                            Integer pageSize) {
+        requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
+        int offset = PageUtils.offset(pageNum, pageSize);
+        int limit = PageUtils.limit(pageSize);
+        // 使用 group 前缀，让社团新增、修改和审核时的统一失效逻辑能清除此分页缓存。
+        String key = "group:managed:" + managerId + ':' + offset + ':' + limit;
+        PageResult<Group> page = (PageResult<Group>) RedisUtils.getBusinessCache(key);
+        if (page == null) {
+            List<Group> records = individualGroupMapper.getAllManagedGroupsPage(managerId, offset, limit);
+            long total = individualGroupMapper.countAllManagedGroups(managerId);
+            page = PageUtils.pageResult(records, total, pageNum, pageSize);
+            RedisUtils.setBusinessCache(key, page, 300);
+        }
+        return page;
     }
 
     @Override
@@ -390,10 +411,10 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     @Override
     public List<GroupNum> getGroupMembersCached() {
         String key = "individualGroup:top5:members";
-        List<GroupNum> list = (List<GroupNum>) RedisUtils.get(key);
+        List<GroupNum> list = (List<GroupNum>) RedisUtils.getBusinessCache(key);
         if (list == null || hasInvalidGroupMemberStats(list)) {
             list = getGroupMembers();
-            RedisUtils.set(key, list, 600);
+            RedisUtils.setBusinessCache(key, list, 600);
         }
         return list;
     }

@@ -10,6 +10,14 @@ public interface GroupMapper {
     // Student side
     List<Group> query(@Param("searchInfo") String searchInfo);
 
+    /** 只查询当前页社团，防止分页请求把整张表加载到 JVM。 */
+    List<Group> queryPage(@Param("searchInfo") String searchInfo,
+                          @Param("offset") int offset,
+                          @Param("limit") int limit);
+
+    /** 统计符合学生端筛选条件的社团总数，用于生成分页元数据。 */
+    long countQuery(@Param("searchInfo") String searchInfo);
+
     /**
      * 读取并返回业务数据或页面状态。
      */

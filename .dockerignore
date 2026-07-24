@@ -1,0 +1,27 @@
+# Keep Docker build contexts small and deterministic.
+.git
+.idea
+.agents
+.codex/skills/ui-ux-pro-max/scripts/__pycache__
+
+# Java build outputs
+club_springboot/target
+club_springboot/log
+club_springboot/upload
+
+# Frontend dependencies and build outputs
+**/node_modules
+web_portal/dist
+vue_student/dist
+vue_admin/dist
+vue_superadmin/dist
+frontend-shared/dist
+
+# Android/local build outputs are not needed by web/backend images.
+baituan_android/.gradle
+baituan_android/**/build
+
+# Local runtime and generated files
+outputs
+*.log
+*.diff

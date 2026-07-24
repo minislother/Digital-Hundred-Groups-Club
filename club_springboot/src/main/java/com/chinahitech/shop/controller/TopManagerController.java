@@ -8,6 +8,7 @@ import com.chinahitech.shop.service.FileStorageService;
 import com.chinahitech.shop.service.TopManagerService;
 import com.chinahitech.shop.utils.JwtUtils;
 import com.chinahitech.shop.utils.PageUtils;
+import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.Result;
 import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,6 +196,10 @@ public class TopManagerController {
     @RepeatLimit
     @RequestMapping("/getAllUsers")
     public Result getAllUsers(String searchInfo, Integer pageNum, Integer pageSize) {
+        if (PageUtils.isPageRequest(pageNum, pageSize)) {
+            PageResult<User> page = topManagerService.getAllUsersPage(searchInfo, pageNum, pageSize);
+            return PageUtils.ok("items", page);
+        }
         List<User> users = topManagerService.getAllUsers(searchInfo);
         return PageUtils.ok("items", users, pageNum, pageSize);
     }

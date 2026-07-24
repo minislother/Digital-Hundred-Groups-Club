@@ -85,8 +85,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 ).hasAnyRole("STUDENT", "TOP_MANAGER")
                 .antMatchers(
                         "/activity/addGroup",
+                        "/activity/addActivity",
                         "/activity/managerDetail",
+                        "/activity/myActivity",
+                        "/activity/myApps",
                         "/activity/modifyDescription",
+                        "/activity/modifyInfo",
                         "/activity/uploadZip",
                         "/activity/submitZip",
                         "/activity/uploadPhoto",
@@ -175,12 +179,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             configured = System.getProperty("cors.allowed-origins");
         }
         if (configured == null || configured.trim().isEmpty()) {
+            // 本地开发时浏览器可能使用 localhost 或 127.0.0.1 打开前端；两者对浏览器来说是不同源。
             return Arrays.asList(
                     "http://localhost:9527",
-                    "http://localhost:9528",
-                    "http://localhost:9529",
-                    "http://localhost:9530",
-                    "http://localhost:8080"
+                    "http://localhost:9533",
+                    "http://localhost:9531",
+                    "http://localhost:9532",
+                    "http://localhost:8080",
+                    "http://127.0.0.1:9527",
+                    "http://127.0.0.1:9533",
+                    "http://127.0.0.1:9531",
+                    "http://127.0.0.1:9532",
+                    "http://127.0.0.1:8080"
             );
         }
         return Arrays.asList(configured.split("\\s*,\\s*"));

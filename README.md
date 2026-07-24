@@ -9,6 +9,7 @@
 | 目录/文件 | 说明 |
 | --- | --- |
 | `club_springboot/` | Spring Boot 后端服务，提供登录鉴权、社团、活动、申请、审核、上传等接口 |
+| `web_portal/` | 网页端统一身份入口，先选择学生、社团管理员或超级管理员，再跳转到对应端 |
 | `vue_student/` | 学生网页端，面向社团浏览、活动报名、个人中心等场景 |
 | `vue_admin/` | 社团管理员网页端，面向社团资料、成员、申请、活动管理等场景 |
 | `vue_superadmin/` | 超级管理员网页端，面向学生、管理员、社团、活动、年审和统计管理 |
@@ -120,10 +121,10 @@ mysql -u root -p club < club_finalversion.sql
 club_springboot/src/main/resources/application.properties
 ```
 
-本地运行前至少需要配置数据库密码和 JWT 密钥：
+本地运行前建议配置数据库密码和 JWT 密钥；如果没有设置 `DB_PASSWORD`，开发配置会默认使用 `123456`：
 
 ```powershell
-$env:DB_PASSWORD="你的 MySQL 密码"
+$env:DB_PASSWORD="123456"
 $env:JWT_SECRET="请替换为足够长的随机密钥"
 ```
 
@@ -134,10 +135,12 @@ $env:JWT_SECRET="请替换为足够长的随机密钥"
 | `SERVER_PORT` | `8081` | 后端端口 |
 | `DB_URL` | `jdbc:mysql://localhost:3306/club...` | MySQL 连接地址 |
 | `DB_USERNAME` | `root` | MySQL 用户名 |
-| `DB_PASSWORD` | 无默认值 | MySQL 密码，必须显式配置 |
+| `DB_PASSWORD` | `123456` | MySQL 密码，生产环境必须显式配置 |
 | `JWT_SECRET` | 无默认值 | JWT 签名密钥 |
 | `UPLOAD_DIR` | `upload/` | 文件上传目录 |
 | `REDIS_HOST` | `127.0.0.1` | Redis 地址 |
+| `REDIS_HEALTH_ENABLED` | `false` | 本地健康检查是否纳入 Redis |
+| `RATE_LIMIT_FAIL_OPEN` | `true` | Redis 限流不可用时是否放行请求 |
 | `KAFKA_ENABLED` | `false` | 是否启用 Kafka 业务能力 |
 
 启动后端：
@@ -159,9 +162,23 @@ GET http://localhost:8081/actuator/health
 首次运行前分别安装依赖：
 
 ```bash
-cd vue_student && npm install
+cd web_portal && npm install
+cd ../vue_student && npm install
 cd ../vue_admin && npm install
 cd ../vue_superadmin && npm install
+```
+
+启动统一身份入口：
+
+```bash
+cd web_portal
+npm run dev
+```
+
+默认访问地址：
+
+```text
+http://localhost:9527
 ```
 
 启动学生端：
@@ -171,6 +188,12 @@ cd vue_student
 npm run dev
 ```
 
+默认访问地址：
+
+```text
+http://localhost:9533
+```
+
 启动社团管理员端：
 
 ```bash
@@ -178,11 +201,31 @@ cd vue_admin
 npm run dev
 ```
 
+默认访问地址：
+
+```text
+http://localhost:9531
+```
+
 启动超级管理员端：
 
 ```bash
 cd vue_superadmin
 npm run dev
+```
+
+默认访问地址：
+
+```text
+http://localhost:9532
+```
+
+统一入口的跳转地址可以通过环境变量调整：
+
+```bash
+VUE_APP_STUDENT_URL=https://student.example.com/#/login
+VUE_APP_ADMIN_URL=https://admin.example.com/#/login
+VUE_APP_SUPERADMIN_URL=https://superadmin.example.com/#/login
 ```
 
 也可以在根目录使用聚合构建脚本：
@@ -231,7 +274,8 @@ mvn test
 网页端检查和构建：
 
 ```bash
-cd vue_student && npm run lint && npm run build:prod
+cd web_portal && npm run lint && npm run build:prod
+cd ../vue_student && npm run lint && npm run build:prod
 cd ../vue_admin && npm run lint && npm run build:prod
 cd ../vue_superadmin && npm run lint && npm run build:prod
 ```
@@ -292,3 +336,37 @@ deploy/production.md
 ## 说明
 
 本项目是校园社团管理系统实践项目。若用于真实生产环境，请根据学校实际组织架构、权限边界、数据合规要求和部署环境继续完善安全策略、审计日志、备份策略和运维监控。
+## Docker 商用部署入口
+
+项目已补充 Docker Compose 部署方案，适合后续商用部署前的服务器演练和环境标准化。
+
+核心文件：
+
+```text
+docker-compose.yml
+deploy/docker/backend.Dockerfile
+deploy/docker/frontend.Dockerfile
+deploy/nginx/docker.conf
+deploy/env/docker.env.example
+deploy/production.md
+```
+
+基本流程：
+
+```powershell
+Copy-Item deploy/env/docker.env.example .env
+# 修改 .env 中的数据库密码、Redis 密码、JWT_SECRET 等敏感配置
+docker compose up -d --build mysql redis backend frontend
+```
+
+本地默认访问：
+
+```text
+统一入口: http://localhost:9527
+学生端: http://localhost:9533
+管理员端: http://localhost:9531
+超级管理员端: http://localhost:9532
+后端健康检查: http://localhost:8081/actuator/health
+```
+
+如果 Docker Desktop 无法启动，请先看 `deploy/production.md` 中的 “Docker Desktop 本机排障”。

@@ -3,6 +3,7 @@ package com.chinahitech.shop.service;
 import com.chinahitech.shop.bean.Activity;
 import com.chinahitech.shop.bean.IndividualActivity;
 import com.chinahitech.shop.bean.notAddedToDatabase.ActivityNum;
+import com.chinahitech.shop.utils.PageResult;
 
 import java.util.List;
 
@@ -108,6 +109,9 @@ public interface IndividualActivityService {
      * 从缓存优先读取指定管理员有权管理的活动列表。
      */
     List<Activity> getAllManagedActivitiesCached(String managerId);
+
+    /** 查询并缓存管理员活动当前页。 */
+    PageResult<Activity> getAllManagedActivitiesPageCached(String managerId, Integer pageNum, Integer pageSize);
 
     /**
      * 通过学生的活动报名申请。

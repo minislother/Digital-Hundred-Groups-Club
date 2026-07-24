@@ -24,10 +24,24 @@ public interface TopManagerMapper extends BaseMapper<User> {
      */
     List<User> getAllUsers();
 
+    /** 只读取当前页用户，避免超级管理员列表把十万级用户全部加载到 JVM。 */
+    List<User> getAllUsersPage(@Param("offset") int offset, @Param("limit") int limit);
+
+    /** 统计平台用户总数。 */
+    long countAllUsers();
+
     /**
      * 读取并返回业务数据或页面状态。
      */
     List<User> getUser(@Param("userName") String userName);
+
+    /** 按用户名筛选并分页。 */
+    List<User> getUserPage(@Param("userName") String userName,
+                           @Param("offset") int offset,
+                           @Param("limit") int limit);
+
+    /** 统计符合用户名筛选条件的用户数。 */
+    long countUser(@Param("userName") String userName);
 
     int addManager(@Param("userId") String userId,
                    @Param("password") String password,

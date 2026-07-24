@@ -12,8 +12,8 @@ const name = defaultSettings.title || '数字百团超级管理员端' // page t
 // use administrator privileges to execute the command line.
 // For example, Mac: sudo npm run
 // You can change the port by the following methods:
-// port = 9528 npm run dev OR npm run dev --port = 9528
-const port = process.env.port || process.env.npm_config_port || 9528 // dev port
+// port = 9532 npm run dev OR npm run dev --port = 9532
+const port = process.env.port || process.env.npm_config_port || 9532 // dev port
 
 // All configuration item explanations can be find in https://cli.vuejs.org/config/
 module.exports = {

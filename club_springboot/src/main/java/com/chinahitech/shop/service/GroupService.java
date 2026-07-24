@@ -1,6 +1,7 @@
 package com.chinahitech.shop.service;
 
 import com.chinahitech.shop.bean.Group;
+import com.chinahitech.shop.utils.PageResult;
 
 import java.util.List;
 
@@ -20,6 +21,9 @@ public interface GroupService {
      * 从缓存优先读取学生端社团列表，缓存缺失时回源查询。
      */
     List<Group> queryCached(String searchInfo);
+
+    /** 查询并缓存指定页社团，只把当前页记录保存在 Redis 中。 */
+    PageResult<Group> queryPageCached(String searchInfo, Integer pageNum, Integer pageSize);
 
     /**
      * 根据社团名称查询社团详情。

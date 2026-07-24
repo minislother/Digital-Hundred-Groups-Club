@@ -45,6 +45,14 @@ public interface IndividualGroupMapper {
 
     List<Group> getAllManagedGroups(@Param("managerId") String managerId);
 
+    /** 按页查询管理员负责的社团。 */
+    List<Group> getAllManagedGroupsPage(@Param("managerId") String managerId,
+                                        @Param("offset") int offset,
+                                        @Param("limit") int limit);
+
+    /** 统计管理员负责的社团总数。 */
+    long countAllManagedGroups(@Param("managerId") String managerId);
+
     int countManagedGroup(@Param("groupId") int groupId,
                           @Param("managerId") String managerId);
 

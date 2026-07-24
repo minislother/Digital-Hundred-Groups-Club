@@ -40,6 +40,14 @@ public interface IndividualActivityMapper {
 
     List<Activity> getAllManagedActivities(@Param("managerId") String managerId);
 
+    /** 按页查询管理员负责的活动。 */
+    List<Activity> getAllManagedActivitiesPage(@Param("managerId") String managerId,
+                                               @Param("offset") int offset,
+                                               @Param("limit") int limit);
+
+    /** 统计管理员负责的活动总数。 */
+    long countAllManagedActivities(@Param("managerId") String managerId);
+
     int countManagedActivity(@Param("activityId") int activityId,
                              @Param("managerId") String managerId);
 

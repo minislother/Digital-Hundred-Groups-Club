@@ -5,6 +5,8 @@ import com.chinahitech.shop.bean.notAddedToDatabase.RegisterUser;
 import com.chinahitech.shop.utils.EmailService;
 import com.chinahitech.shop.utils.JwtUtils;
 import com.chinahitech.shop.utils.PasswordUtil;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.RedisUtils;
 import com.chinahitech.shop.utils.ScanExcel;
 
@@ -261,6 +263,24 @@ public class TopManagerServiceImpl implements TopManagerService {
         } else {
             return topManagerMapper.getUser(searchInfo);
         }
+    }
+
+    /**
+     * 用户列表直接在 MySQL 中分页。用户权限和资料变化频繁且属于敏感数据，
+     * 当前不放入 Redis，避免复杂失效规则导致权限展示过期。
+     */
+    @Override
+    public PageResult<User> getAllUsersPage(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = PageUtils.offset(pageNum, pageSize);
+        int limit = PageUtils.limit(pageSize);
+        boolean noSearch = searchInfo == null || searchInfo.trim().isEmpty();
+        List<User> records = noSearch
+                ? topManagerMapper.getAllUsersPage(offset, limit)
+                : topManagerMapper.getUserPage(searchInfo, offset, limit);
+        long total = noSearch
+                ? topManagerMapper.countAllUsers()
+                : topManagerMapper.countUser(searchInfo);
+        return PageUtils.pageResult(records, total, pageNum, pageSize);
     }
 
 

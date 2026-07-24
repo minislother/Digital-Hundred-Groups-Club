@@ -4,6 +4,7 @@ import com.chinahitech.shop.exception.RateLimitException;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -45,6 +47,12 @@ class RateLimiterAspectTest {
 
     @InjectMocks
     private RateLimiterAspect rateLimiterAspect;
+
+    @BeforeEach
+    void setUp() {
+        // 单元测试不会读取 Spring @Value，这里显式模拟本地默认的 Redis 异常放行策略。
+        ReflectionTestUtils.setField(rateLimiterAspect, "failOpen", true);
+    }
 
     @AfterEach
     void tearDown() {
@@ -86,6 +94,26 @@ class RateLimiterAspectTest {
 
         // Then - request is allowed so Redis outages do not block login or normal APIs
         assertEquals(1L, result);
+    }
+
+    @Test
+    @DisplayName("executeSlidingWindowScript - fail closed rethrows Redis exception")
+    void testExecuteSlidingWindowScript_FailClosed_RethrowException() {
+        // Given - production can disable fail-open when Redis is required for strict rate limiting
+        ReflectionTestUtils.setField(rateLimiterAspect, "failOpen", false);
+        when(stringRedisTemplate.execute(
+                any(DefaultRedisScript.class),
+                anyList(),
+                anyString(),
+                anyString(),
+                anyString()
+        )).thenThrow(new RuntimeException("redis down"));
+
+        // When & Then - Redis exceptions are propagated when fail-open is disabled
+        assertThrows(
+                RuntimeException.class,
+                () -> rateLimiterAspect.executeSlidingWindowScript("rate:test", 10L, 1L)
+        );
     }
 
     @Test

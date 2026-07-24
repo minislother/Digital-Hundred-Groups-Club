@@ -3,9 +3,9 @@
     <section class="bt-auth-shell" aria-labelledby="student-login-title">
       <aside class="bt-auth-brand">
         <div>
-          <p class="bt-auth-kicker">Student Pass</p>
-          <h1>数字百团学生入口</h1>
-          <p>浏览校园社团、提交加入申请、报名活动并查看个人申请进度，一个入口完成学生侧常用操作。</p>
+          <p class="bt-auth-kicker">Student Workspace</p>
+          <h1>学生服务工作台</h1>
+          <p>面向在校学生，集中处理社团发现、入团申请、活动报名和个人进度追踪，让校园社团服务更清晰。</p>
         </div>
         <div class="bt-auth-meta" aria-label="学生端能力">
           <span>社团发现</span>
@@ -23,20 +23,20 @@
           auto-complete="on"
           label-position="top"
         >
-          <h2 id="student-login-title">学生登录</h2>
-          <p class="bt-auth-subtitle">使用学号和密码进入数字百团。忘记密码时，可通过绑定邮箱找回。</p>
+          <h2 id="student-login-title">学生端登录</h2>
+          <p class="bt-auth-subtitle">登录后进入学生端，系统会展示相关社团、活动和申请信息。</p>
 
-          <el-form-item label="学号" prop="userName">
+          <el-form-item label="学生账号" prop="userName">
             <el-input
               ref="userName"
               v-model="loginForm.userName"
-              placeholder="请输入 8 位学号"
+              placeholder="请输入学生账号或 8 位学号"
               name="userName"
               type="text"
               tabindex="1"
               auto-complete="username"
             />
-            <p class="bt-auth-helper">学号需为 8 位数字。</p>
+            <p class="bt-auth-helper">请输入学生账号或 8 位学号。</p>
           </el-form-item>
 
           <el-form-item label="密码" prop="password">
@@ -51,16 +51,12 @@
               show-password
               @keyup.enter="handleLogin"
             />
-            <p class="bt-auth-helper">密码不少于 6 位，请注意区分大小写。</p>
+            <p class="bt-auth-helper">密码不少于 6 位。</p>
           </el-form-item>
 
           <el-button :loading="loading" type="primary" class="bt-auth-submit" @click.prevent="handleLogin">
-            登录
+            进入学生端
           </el-button>
-          <div class="bt-auth-actions">
-            <el-button text @click="showRegister">注册账号</el-button>
-            <el-button text @click="retrievePWD">忘记密码</el-button>
-          </div>
         </el-form>
       </div>
     </section>

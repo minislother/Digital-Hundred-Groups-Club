@@ -76,6 +76,22 @@
            or organizer = #{managerId}
     </select>
 
+    <select id="getAllManagedActivitiesPage" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where create_user = #{managerId}
+           or organizer = #{managerId}
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countAllManagedActivities" resultType="long">
+        select count(1)
+        from activity
+        where create_user = #{managerId}
+           or organizer = #{managerId}
+    </select>
+
     <select id="countManagedActivity" resultType="int">
         select count(1)
         from activity

@@ -2,6 +2,8 @@ package com.chinahitech.shop.controller;
 
 import com.chinahitech.shop.service.IndividualActivityService;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,14 +101,16 @@ class IndividualActivityControllerTest {
     void testGetAllManagedActivities_AuthenticatedManagerId_CallService() {
         // Given - authenticated manager and empty managed activity list
         Authentication authentication = new UsernamePasswordAuthenticationToken("manager001", null);
-        when(individualActivityService.getAllManagedActivitiesCached("manager001"))
-                .thenReturn(Collections.emptyList());
+        PageResult<com.chinahitech.shop.bean.Activity> page = PageUtils.pageResult(
+                Collections.emptyList(), 0, 1, 10);
+        when(individualActivityService.getAllManagedActivitiesPageCached("manager001", 1, 10))
+                .thenReturn(page);
 
         // When - manager queries managed activities
         Result result = individualActivityController.getAllManagedActivities(1, 10, authentication);
 
         // Then - service receives authenticated manager id
         assertTrue(result.getSuccess());
-        verify(individualActivityService).getAllManagedActivitiesCached("manager001");
+        verify(individualActivityService).getAllManagedActivitiesPageCached("manager001", 1, 10);
     }
 }

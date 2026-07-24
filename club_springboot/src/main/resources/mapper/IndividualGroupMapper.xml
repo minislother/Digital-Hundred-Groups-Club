@@ -86,6 +86,22 @@
            or leader = #{managerId}
     </select>
 
+    <select id="getAllManagedGroupsPage" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where create_user = #{managerId}
+           or leader = #{managerId}
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countAllManagedGroups" resultType="long">
+        select count(1)
+        from `group`
+        where create_user = #{managerId}
+           or leader = #{managerId}
+    </select>
+
     <select id="countManagedGroup" resultType="int">
         select count(1)
         from `group`

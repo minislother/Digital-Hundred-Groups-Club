@@ -10,6 +10,8 @@ import com.chinahitech.shop.mapper.IndividualActivityMapper;
 import com.chinahitech.shop.mq.KafkaProducer;
 import com.chinahitech.shop.service.IndividualActivityService;
 import com.chinahitech.shop.utils.RedisUtils;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,10 +48,10 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     public List<IndividualActivity> getActivityByStuIdCached(String studentId) {
         requireStudentId(studentId);
         String key = studentKey(studentId);
-        List<IndividualActivity> list = (List<IndividualActivity>) RedisUtils.get(key);
+        List<IndividualActivity> list = (List<IndividualActivity>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getActivityByStuId(studentId);
-            RedisUtils.set(key, list, 300);
+            RedisUtils.setBusinessCache(key, list, 300);
         }
         return list;
     }
@@ -92,10 +94,10 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     public List<IndividualActivity> getActivityByActivityIdCached(int activityId) {
         requireActivityId(activityId);
         String key = studentsKey(activityId);
-        List<IndividualActivity> list = (List<IndividualActivity>) RedisUtils.get(key);
+        List<IndividualActivity> list = (List<IndividualActivity>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getActivityByActivityId(activityId);
-            RedisUtils.set(key, list, 120);
+            RedisUtils.setBusinessCache(key, list, 120);
         }
         return list;
     }
@@ -115,10 +117,10 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     public List<IndividualActivity> getApplyByActivityIdCached(int activityId) {
         requireActivityId(activityId);
         String key = applyKey(activityId);
-        List<IndividualActivity> list = (List<IndividualActivity>) RedisUtils.get(key);
+        List<IndividualActivity> list = (List<IndividualActivity>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getApplyByActivityId(activityId);
-            RedisUtils.set(key, list, 60);
+            RedisUtils.setBusinessCache(key, list, 60);
         }
         return list;
     }
@@ -233,12 +235,32 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     public List<Activity> getAllManagedActivitiesCached(String managerId) {
         requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
         String key = "individualActivity:manager:" + managerId;
-        List<Activity> list = (List<Activity>) RedisUtils.get(key);
+        List<Activity> list = (List<Activity>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getAllManagedActivities(managerId);
-            RedisUtils.set(key, list, 300);
+            RedisUtils.setBusinessCache(key, list, 300);
         }
         return list;
+    }
+
+    @Override
+    public PageResult<Activity> getAllManagedActivitiesPageCached(String managerId,
+                                                                  Integer pageNum,
+                                                                  Integer pageSize) {
+        requireText(managerId, "\u7ba1\u7406\u5458ID\u4e0d\u80fd\u4e3a\u7a7a");
+        int offset = PageUtils.offset(pageNum, pageSize);
+        int limit = PageUtils.limit(pageSize);
+        // activity 前缀会被活动资料变更时的统一缓存失效逻辑清理。
+        String key = "activity:managed:" + managerId + ':' + offset + ':' + limit;
+        PageResult<Activity> page = (PageResult<Activity>) RedisUtils.getBusinessCache(key);
+        if (page == null) {
+            List<Activity> records = individualActivityMapper
+                    .getAllManagedActivitiesPage(managerId, offset, limit);
+            long total = individualActivityMapper.countAllManagedActivities(managerId);
+            page = PageUtils.pageResult(records, total, pageNum, pageSize);
+            RedisUtils.setBusinessCache(key, page, 300);
+        }
+        return page;
     }
 
     @Override
@@ -295,10 +317,10 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     public List<ActivityNum> getActivityMembersCached() {
         String key = "individualActivity:top5:members";
-        List<ActivityNum> list = (List<ActivityNum>) RedisUtils.get(key);
+        List<ActivityNum> list = (List<ActivityNum>) RedisUtils.getBusinessCache(key);
         if (list == null) {
             list = getActivityMembers();
-            RedisUtils.set(key, list, 600);
+            RedisUtils.setBusinessCache(key, list, 600);
         }
         return list;
     }

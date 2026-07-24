@@ -8,6 +8,7 @@ import com.chinahitech.shop.mapper.IndividualGroupMapper;
 import com.chinahitech.shop.mq.KafkaProducer;
 import com.chinahitech.shop.service.GroupService;
 import com.chinahitech.shop.utils.RedisUtils;
+import com.chinahitech.shop.utils.PageResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,6 +68,24 @@ class IndividualGroupServiceImplTest {
     @AfterEach
     void tearDown() {
         ReflectionTestUtils.setField(RedisUtils.class, "redisTemplate", null);
+    }
+
+    @Test
+    @DisplayName("分页查询管理员社团 - 缓存未命中时只读取当前页")
+    void testGetAllManagedGroupsPageCached_CacheMiss_QueryCurrentPage() {
+        Group group = new Group();
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("group:managed:manager001:10:10")).thenReturn(null);
+        when(individualGroupMapper.getAllManagedGroupsPage("manager001", 10, 10))
+                .thenReturn(Collections.singletonList(group));
+        when(individualGroupMapper.countAllManagedGroups("manager001")).thenReturn(1000L);
+
+        PageResult<Group> page = individualGroupService
+                .getAllManagedGroupsPageCached("manager001", 2, 10);
+
+        assertEquals(1, page.getRecords().size());
+        assertEquals(1000L, page.getTotal());
+        verify(individualGroupMapper).getAllManagedGroupsPage("manager001", 10, 10);
     }
 
     @Test

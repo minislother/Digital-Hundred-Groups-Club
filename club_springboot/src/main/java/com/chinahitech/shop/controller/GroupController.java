@@ -6,6 +6,7 @@ import com.chinahitech.shop.bean.notAddedToDatabase.StoredFile;
 import com.chinahitech.shop.service.FileStorageService;
 import com.chinahitech.shop.service.GroupService;
 import com.chinahitech.shop.utils.PageUtils;
+import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +35,10 @@ public class GroupController {
     @RepeatLimit
     @RequestMapping("/all")
     public Result getAll(String searchInfo, Integer pageNum, Integer pageSize) {
+        if (PageUtils.isPageRequest(pageNum, pageSize)) {
+            PageResult<Group> page = groupService.queryPageCached(searchInfo, pageNum, pageSize);
+            return PageUtils.ok("items", page);
+        }
         List<Group> groups = groupService.queryCached(searchInfo);
         return PageUtils.ok("items", groups, pageNum, pageSize);
     }

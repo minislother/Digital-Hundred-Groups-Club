@@ -6,6 +6,7 @@ import com.chinahitech.shop.constant.MqTopics;
 import com.chinahitech.shop.exception.BusinessException;
 import com.chinahitech.shop.mapper.IndividualActivityMapper;
 import com.chinahitech.shop.mq.KafkaProducer;
+import com.chinahitech.shop.utils.PageResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,22 @@ class IndividualActivityServiceImplTest {
 
     @InjectMocks
     private IndividualActivityServiceImpl individualActivityService;
+
+    @Test
+    @DisplayName("分页查询管理员活动 - 缓存未命中时只读取当前页")
+    void testGetAllManagedActivitiesPageCached_CacheMiss_QueryCurrentPage() {
+        Activity activity = new Activity();
+        when(individualActivityMapper.getAllManagedActivitiesPage("manager001", 10, 10))
+                .thenReturn(Collections.singletonList(activity));
+        when(individualActivityMapper.countAllManagedActivities("manager001")).thenReturn(5000L);
+
+        PageResult<Activity> page = individualActivityService
+                .getAllManagedActivitiesPageCached("manager001", 2, 10);
+
+        assertEquals(1, page.getRecords().size());
+        assertEquals(5000L, page.getTotal());
+        verify(individualActivityMapper).getAllManagedActivitiesPage("manager001", 10, 10);
+    }
 
     @Test
     @DisplayName("申请加入活动 - 成功写入待审核记录并发送通知")
@@ -149,6 +166,65 @@ class IndividualActivityServiceImplTest {
                 () -> individualActivityService.confirmApplicationAndNotify(7, "1001")
         );
         assertEquals("NOT_FOUND", exception.getCode());
+        verify(kafkaProducer, never()).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), any(String.class));
+    }
+
+    @Test
+    @DisplayName("拒绝活动申请 - 成功更新状态并发送通知")
+    void testDenyApplicationAndNotify_Success_UpdateStatusAndSendEvent() {
+        // Given - 拒绝申请时 Mapper 成功更新一条记录。
+        when(individualActivityMapper.updateStatus(7, "1001", -1)).thenReturn(1);
+
+        // When - 管理员拒绝学生活动报名。
+        individualActivityService.denyApplicationAndNotify(7, "1001");
+
+        // Then - 状态应写为拒绝，并发送业务事件。
+        verify(individualActivityMapper).updateStatus(7, "1001", -1);
+        verify(kafkaProducer).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), contains("reject_apply"));
+    }
+
+    @Test
+    @DisplayName("修改活动成员职位 - 成功更新职位并发送通知")
+    void testModifyActivityStudentAndNotify_Success_UpdatePositionAndSendEvent() {
+        // Given - 活动成员关系存在，职位更新成功。
+        when(individualActivityMapper.updatePosition(7, "1001", "摄影负责人")).thenReturn(1);
+
+        // When - 修改成员在活动中的职位。
+        individualActivityService.modifyActivityStudentAndNotify(7, "1001", "摄影负责人");
+
+        // Then - 写入新职位并发送通知。
+        verify(individualActivityMapper).updatePosition(7, "1001", "摄影负责人");
+        verify(kafkaProducer).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), contains("modify_activity_student"));
+    }
+
+    @Test
+    @DisplayName("修改活动成员职位 - 成员不存在时抛出异常")
+    void testModifyActivityStudentAndNotify_NoRowsUpdated_ThrowException() {
+        // Given - Mapper 更新 0 行，表示目标成员关系不存在。
+        when(individualActivityMapper.updatePosition(7, "1001", "摄影负责人")).thenReturn(0);
+
+        // When & Then - 不允许把不存在的成员修改视为成功。
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> individualActivityService.modifyActivityStudentAndNotify(7, "1001", "摄影负责人")
+        );
+        assertEquals("NOT_FOUND", exception.getCode());
+        verify(kafkaProducer, never()).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), any(String.class));
+    }
+
+    @Test
+    @DisplayName("删除活动成员 - 非活动管理员抛出异常")
+    void testDeleteActivityStudentAndNotify_NotManaged_ThrowException() {
+        // Given - 当前账号无权管理目标活动。
+        when(individualActivityMapper.countManagedActivity(7, "manager002")).thenReturn(0);
+
+        // When & Then - 权限校验失败时不能删除成员。
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> individualActivityService.deleteActivityStudentAndNotify(7, "1001", "manager002")
+        );
+        assertEquals("FORBIDDEN", exception.getCode());
+        verify(individualActivityMapper, never()).delete(7, "1001");
         verify(kafkaProducer, never()).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), any(String.class));
     }
 

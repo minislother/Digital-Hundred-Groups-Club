@@ -12,6 +12,15 @@ dist/
 club_springboot/log/
 club_springboot/upload/
 *.log
+.env
+.env.local
+.env.*.local
+!.env.example
+!deploy/env/*.example
 
 # Generated review/diff artifacts
 *.diff
+
+# Local diagnostics, test reports, and Python caches
+outputs/
+**/__pycache__/

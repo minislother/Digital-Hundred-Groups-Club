@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -29,6 +30,13 @@ public class RateLimiterAspect {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * 本地开发环境可能没有启动 Redis。为避免登录接口因为限流组件不可用而失败，默认采用放行策略；
+     * 生产环境如果要求 Redis 异常时直接拒绝请求，可设置 RATE_LIMIT_FAIL_OPEN=false。
+     */
+    @Value("${app.rate-limit.fail-open:true}")
+    private boolean failOpen;
 
     private static final DefaultRedisScript<Long> SLIDING_WINDOW_SCRIPT;
 
@@ -71,8 +79,13 @@ public class RateLimiterAspect {
                     window.toString(), limit.toString(), Long.toString(now)
             );
         } catch (Exception e) {
-            LOG.warn("Redis rate limit failed, request is allowed. key={}", key, e);
-            return 1L;
+            if (failOpen) {
+                // Redis 未启动时只记录摘要，避免登录接口每次请求都输出整段堆栈。
+                LOG.warn("Redis rate limit unavailable, request is allowed. key={}, cause={}",
+                        key, e.getMessage());
+                return 1L;
+            }
+            throw e;
         }
     }
 

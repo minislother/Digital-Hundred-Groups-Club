@@ -32,6 +32,22 @@
         order by hot desc, id desc
     </select>
 
+    <select id="queryPage" resultType="com.chinahitech.shop.bean.Group">
+        select *
+        from `group`
+        where is_accepted = 1
+        <include refid="GroupSearchCondition"/>
+        order by hot desc, id desc
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countQuery" resultType="long">
+        select count(1)
+        from `group`
+        where is_accepted = 1
+        <include refid="GroupSearchCondition"/>
+    </select>
+
     <select id="getByName" resultType="com.chinahitech.shop.bean.Group">
         select *
         from `group`

@@ -8,6 +8,8 @@ import com.chinahitech.shop.mapper.GroupMapper;
 import com.chinahitech.shop.mq.KafkaProducer;
 import com.chinahitech.shop.service.GroupService;
 import com.chinahitech.shop.utils.CacheData;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.RedisUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
@@ -45,12 +47,28 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<Group> queryCached(String searchInfo) {
         String key = "group:all:" + (searchInfo == null ? "" : searchInfo);
-        List<Group> groups = (List<Group>) RedisUtils.get(key);
+        List<Group> groups = (List<Group>) RedisUtils.getBusinessCache(key);
         if (groups == null) {
             groups = query(searchInfo);
-            RedisUtils.set(key, groups, 300);
+            RedisUtils.setBusinessCache(key, groups, 300);
         }
         return groups;
+    }
+
+    @Override
+    public PageResult<Group> queryPageCached(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = PageUtils.offset(pageNum, pageSize);
+        int limit = PageUtils.limit(pageSize);
+        String normalizedSearch = searchInfo == null ? "" : searchInfo.trim();
+        String key = "group:page:" + normalizedSearch + ':' + offset + ':' + limit;
+        PageResult<Group> page = (PageResult<Group>) RedisUtils.getBusinessCache(key);
+        if (page == null) {
+            List<Group> records = groupMapper.queryPage(searchInfo, offset, limit);
+            long total = groupMapper.countQuery(searchInfo);
+            page = PageUtils.pageResult(records, total, pageNum, pageSize);
+            RedisUtils.setBusinessCache(key, page, 300);
+        }
+        return page;
     }
 
     /**
@@ -67,7 +85,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Group getCachedGroupDetail(String groupName) {
         String key = groupDetailKey(groupName);
-        Object cached = RedisUtils.get(key);
+        Object cached = RedisUtils.getBusinessCache(key);
         if (RedisUtils.NULL_VALUE.equals(cached)) {
             return null;
         }
@@ -100,10 +118,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<Group> queryTopCached() {
         String key = "group:top";
-        List<Group> groups = (List<Group>) RedisUtils.get(key);
+        List<Group> groups = (List<Group>) RedisUtils.getBusinessCache(key);
         if (groups == null) {
             groups = queryTop();
-            RedisUtils.set(key, groups, 120);
+            RedisUtils.setBusinessCache(key, groups, 120);
         }
         return groups;
     }
@@ -236,10 +254,11 @@ public class GroupServiceImpl implements GroupService {
      */
     private void saveGroupDetailCache(String key, Group group) {
         if (group == null) {
-            RedisUtils.set(key, RedisUtils.NULL_VALUE, GROUP_DETAIL_NULL_TTL_SECONDS);
+            RedisUtils.setBusinessCache(key, RedisUtils.NULL_VALUE, GROUP_DETAIL_NULL_TTL_SECONDS);
             return;
         }
-        RedisUtils.set(key, new CacheData<>(group, LocalDateTime.now().plusMinutes(GROUP_DETAIL_LOGICAL_TTL_MINUTES)));
+        RedisUtils.setBusinessCache(key,
+                new CacheData<>(group, LocalDateTime.now().plusMinutes(GROUP_DETAIL_LOGICAL_TTL_MINUTES)));
     }
 
     private void evictGroupCache() {

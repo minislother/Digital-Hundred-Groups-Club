@@ -23,21 +23,31 @@ public final class PageUtils {
                 .data("page", page);
     }
 
-    private static boolean isPageRequest(Integer pageNum, Integer pageSize) {
+    /**
+     * 将 Service 已经在数据库中分页的结果包装成统一响应，避免 Controller 再次切页。
+     */
+    public static <T> Result ok(String itemKey, PageResult<T> page) {
+        return Result.ok()
+                .data(itemKey, page.getRecords())
+                .data("page", page);
+    }
+
+    /** 判断调用方是否明确请求分页；未传分页参数时继续兼容旧的全量接口行为。 */
+    public static boolean isPageRequest(Integer pageNum, Integer pageSize) {
         return pageNum != null || pageSize != null;
     }
 
-    private static <T> PageResult<T> page(List<T> source, Integer pageNum, Integer pageSize) {
-        List<T> safeSource = safeList(source);
+    /**
+     * 根据数据库返回的当前页记录和总行数构造分页元数据。
+     */
+    public static <T> PageResult<T> pageResult(List<T> records, long total,
+                                                Integer pageNum, Integer pageSize) {
         int normalizedPageNum = normalizePageNum(pageNum);
         int normalizedPageSize = normalizePageSize(pageSize);
-        int total = safeSource.size();
         int pages = total == 0 ? 0 : (int) Math.ceil((double) total / normalizedPageSize);
-        int fromIndex = Math.min((normalizedPageNum - 1) * normalizedPageSize, total);
-        int toIndex = Math.min(fromIndex + normalizedPageSize, total);
 
         PageResult<T> page = new PageResult<>();
-        page.setRecords(safeSource.subList(fromIndex, toIndex));
+        page.setRecords(safeList(records));
         page.setTotal(total);
         page.setPageNum(normalizedPageNum);
         page.setPageSize(normalizedPageSize);
@@ -45,6 +55,28 @@ public final class PageUtils {
         page.setHasPrevious(normalizedPageNum > 1 && total > 0);
         page.setHasNext(normalizedPageNum < pages);
         return page;
+    }
+
+    /** 计算 SQL OFFSET，页码和每页数量会先按系统上限进行归一化。 */
+    public static int offset(Integer pageNum, Integer pageSize) {
+        return (normalizePageNum(pageNum) - 1) * normalizePageSize(pageSize);
+    }
+
+    /** 返回限制在 1 到 100 之间的数据库分页大小。 */
+    public static int limit(Integer pageSize) {
+        return normalizePageSize(pageSize);
+    }
+
+    private static <T> PageResult<T> page(List<T> source, Integer pageNum, Integer pageSize) {
+        List<T> safeSource = safeList(source);
+        int normalizedPageNum = normalizePageNum(pageNum);
+        int normalizedPageSize = normalizePageSize(pageSize);
+        int total = safeSource.size();
+        int fromIndex = Math.min((normalizedPageNum - 1) * normalizedPageSize, total);
+        int toIndex = Math.min(fromIndex + normalizedPageSize, total);
+
+        return pageResult(safeSource.subList(fromIndex, toIndex), total,
+                normalizedPageNum, normalizedPageSize);
     }
 
     private static int normalizePageNum(Integer pageNum) {

@@ -6,6 +6,7 @@ import com.chinahitech.shop.bean.IndividualActivity;
 import com.chinahitech.shop.bean.notAddedToDatabase.ActivityNum;
 import com.chinahitech.shop.service.IndividualActivityService;
 import com.chinahitech.shop.utils.PageUtils;
+import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.Result;
 import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +113,11 @@ public class IndividualActivityController {
     public Result getAllManagedActivities(Integer pageNum, Integer pageSize, Authentication authentication) {
         // 管理端查询只允许查看当前登录管理员负责的活动。
         String managerId = SecurityUtils.currentUserId(authentication);
+        if (PageUtils.isPageRequest(pageNum, pageSize)) {
+            PageResult<Activity> page = individualActivityService
+                    .getAllManagedActivitiesPageCached(managerId, pageNum, pageSize);
+            return PageUtils.ok("items", page);
+        }
         List<Activity> activityList = individualActivityService.getAllManagedActivitiesCached(managerId);
         return PageUtils.ok("items", activityList, pageNum, pageSize);
     }

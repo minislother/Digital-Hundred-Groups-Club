@@ -19,7 +19,7 @@
   --bt-danger-soft: #fff0f0;
   --bt-campus-gold: #c58b16;
   --bt-campus-green: #0f766e;
-  --bt-focus: rgba(37, 99, 235, 0.22);
+  --bt-focus: rgba(37, 99, 235, 0.16);
   --bt-radius: 8px;
   --bt-radius-lg: 12px;
   --bt-space-1: 4px;
@@ -324,7 +324,7 @@ body {
 
 #app .el-input__wrapper.is-focus,
 #app .el-textarea__inner:focus {
-  box-shadow: 0 0 0 1px var(--bt-primary) inset, 0 0 0 3px var(--bt-focus);
+  box-shadow: 0 0 0 1px #0969da inset, 0 0 0 3px rgba(9, 105, 218, 0.12);
 }
 
 #app .el-button {
@@ -355,11 +355,16 @@ body {
 #app a:focus-visible,
 #app button:focus-visible,
 #app [role="button"]:focus-visible,
-#app .el-input__inner:focus,
 #app .el-checkbox__input:focus-visible .el-checkbox__inner,
 #app .el-radio__input:focus-visible .el-radio__inner {
-  outline: 3px solid var(--bt-focus) !important;
+  outline: 2px solid rgba(9, 105, 218, 0.36) !important;
   outline-offset: 2px;
+}
+
+#app .el-input__inner:focus,
+#app .bt-auth-form .el-input__inner:focus,
+#app .bt-auth-dialog-grid .el-input__inner:focus {
+  outline: none !important;
 }
 
 #app .el-tag {
@@ -457,10 +462,9 @@ body {
   padding: 32px 20px;
   overflow: auto;
   background:
-    radial-gradient(circle at 10% 12%, rgba(14, 165, 233, 0.12), transparent 28%),
-    radial-gradient(circle at 88% 18%, rgba(34, 197, 94, 0.12), transparent 24%),
+    linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0 25%, transparent 25% 50%, rgba(34, 197, 94, 0.08) 50% 75%, transparent 75%),
     linear-gradient(180deg, #f8fbff 0%, #eef6f8 100%);
-  background-size: auto;
+  background-size: 34px 34px, auto;
 }
 
 #app .bt-auth-shell {
@@ -470,9 +474,9 @@ body {
   grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1fr);
   overflow: hidden;
   border: 1px solid var(--bt-border-muted);
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--bt-surface);
-  box-shadow: 0 24px 70px rgba(31, 41, 55, 0.16);
+  box-shadow: 0 18px 56px rgba(31, 41, 55, 0.14);
 }
 
 #app .bt-auth-brand {
@@ -485,7 +489,7 @@ body {
   color: #fff;
   background:
     linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.72)),
-    linear-gradient(135deg, #0f172a 0%, #0f766e 62%, #2563eb 100%);
+    linear-gradient(135deg, #0f172a 0%, #0e7490 58%, #166534 100%);
 }
 
 #app .bt-auth-brand::after {
@@ -579,21 +583,22 @@ body {
 #app .bt-auth-dialog-grid .el-input__wrapper {
   min-height: 48px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #fff !important;
-  box-shadow: 0 0 0 1px #b8c4d4 inset !important;
-  transition: box-shadow .2s ease, background-color .2s ease;
+  box-shadow: 0 0 0 1px #d0d7de inset !important;
+  transition: box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
 }
 
 #app .bt-auth-form .el-input__wrapper:hover,
 #app .bt-auth-dialog-grid .el-input__wrapper:hover {
-  box-shadow: 0 0 0 1px #64748b inset !important;
+  box-shadow: 0 0 0 1px #8c959f inset !important;
 }
 
 #app .bt-auth-form .el-input__wrapper.is-focus,
+#app .bt-auth-form .el-input__wrapper:focus-within,
 #app .bt-auth-dialog-grid .el-input__wrapper.is-focus {
   background: #fff !important;
-  box-shadow: 0 0 0 1px var(--bt-primary) inset, 0 0 0 4px var(--bt-focus) !important;
+  box-shadow: 0 0 0 1px #0969da inset, 0 0 0 3px rgba(9, 105, 218, 0.12) !important;
 }
 
 #app .bt-auth-form .el-input__inner,
@@ -671,6 +676,25 @@ body {
   margin-top: 14px;
   color: var(--bt-text-muted);
   font-size: 14px;
+}
+
+#app .bt-auth-link-row .el-button {
+  min-height: auto;
+  padding: 0;
+  color: var(--bt-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+#app .bt-auth-link-row .el-button:hover,
+#app .bt-auth-link-row .el-button:focus {
+  color: var(--bt-primary-hover);
+  background: transparent;
+  box-shadow: none;
+}
+
+#app .bt-auth-link-separator {
+  color: var(--bt-text-subtle);
 }
 
 @media (max-width: 860px) {

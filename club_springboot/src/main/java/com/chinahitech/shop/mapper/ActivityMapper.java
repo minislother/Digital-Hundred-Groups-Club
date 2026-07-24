@@ -11,6 +11,14 @@ public interface ActivityMapper {
     // Student side
     List<Activity> query(@Param("searchInfo") String searchInfo);
 
+    /** 只查询当前页活动，避免在 Java 内存中对全表结果切页。 */
+    List<Activity> queryPage(@Param("searchInfo") String searchInfo,
+                             @Param("offset") int offset,
+                             @Param("limit") int limit);
+
+    /** 统计符合学生端筛选条件的活动总数。 */
+    long countQuery(@Param("searchInfo") String searchInfo);
+
     Activity getActivityByNameAndGroupName(@Param("activityName") String activityName,
                                            @Param("groupName") String groupName);
 

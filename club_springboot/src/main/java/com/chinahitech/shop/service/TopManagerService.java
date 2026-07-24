@@ -1,6 +1,7 @@
 package com.chinahitech.shop.service;
 
 import com.chinahitech.shop.bean.User;
+import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.bean.notAddedToDatabase.RegisterUser;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -84,6 +85,9 @@ public interface TopManagerService {
      * 查询平台全部用户，可按条件筛选。
      */
     List<User> getAllUsers(String searchInfo);
+
+    /** 在数据库中分页查询用户，避免将完整用户表加载到应用内存。 */
+    PageResult<User> getAllUsersPage(String searchInfo, Integer pageNum, Integer pageSize);
 
     /**
      * 直接新增用户账号。

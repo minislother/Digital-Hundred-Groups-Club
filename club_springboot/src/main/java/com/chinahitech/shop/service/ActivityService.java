@@ -1,6 +1,7 @@
 package com.chinahitech.shop.service;
 
 import com.chinahitech.shop.bean.Activity;
+import com.chinahitech.shop.utils.PageResult;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,9 @@ public interface ActivityService {
      * 从缓存优先读取学生端活动列表，缓存缺失时回源查询。
      */
     List<Activity> queryCached(String searchInfo);
+
+    /** 查询并缓存指定页活动，避免缓存和反序列化整张活动表。 */
+    PageResult<Activity> queryPageCached(String searchInfo, Integer pageNum, Integer pageSize);
 
     /**
      * 根据活动名称和所属社团名称查询活动详情。

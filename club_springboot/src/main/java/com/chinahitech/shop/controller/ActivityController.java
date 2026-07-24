@@ -7,6 +7,7 @@ import com.chinahitech.shop.exception.BusinessException;
 import com.chinahitech.shop.service.ActivityService;
 import com.chinahitech.shop.service.FileStorageService;
 import com.chinahitech.shop.utils.PageUtils;
+import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.Result;
 import com.chinahitech.shop.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/activity")
@@ -38,6 +40,10 @@ public class ActivityController {
     @RepeatLimit
     @RequestMapping("/all")
     public Result getAll(String searchInfo, Integer pageNum, Integer pageSize) {
+        if (PageUtils.isPageRequest(pageNum, pageSize)) {
+            PageResult<Activity> page = activityService.queryPageCached(searchInfo, pageNum, pageSize);
+            return PageUtils.ok("items", page);
+        }
         List<Activity> activities = activityService.queryCached(searchInfo);
         return PageUtils.ok("items", activities, pageNum, pageSize);
     }
@@ -59,6 +65,16 @@ public class ActivityController {
     @PostMapping("/addGroup")
     public Result addActivity(@RequestBody Activity group) {
         activityService.insert(group);
+        return Result.ok();
+    }
+
+    /**
+     * 管理端兼容旧前端路径：发布活动申请，等价于新增活动记录。
+     */
+    @RepeatLimit
+    @PostMapping("/addActivity")
+    public Result addManagerActivity(@RequestBody Activity activity) {
+        activityService.insert(activity);
         return Result.ok();
     }
 
@@ -110,6 +126,36 @@ public class ActivityController {
             throw new BusinessException("PARAM_ERROR", "参数不能为空");
         }
         activityService.updateDescription(groupName, activityName, description, attachment, image);
+        return Result.ok();
+    }
+
+    /**
+     * 管理端兼容旧前端路径：按社团查询活动列表，并支持前端传入关键字筛选。
+     */
+    @RepeatLimit
+    @PostMapping("/myActivity")
+    public Result getMyActivity(String groupName, String searchInfo, Integer pageNum, Integer pageSize) {
+        List<Activity> activities = filterActivities(activityService.getActivityByGroupName(groupName), searchInfo);
+        return PageUtils.ok("items", activities, pageNum, pageSize);
+    }
+
+    /**
+     * 管理端兼容旧前端路径：活动变更页读取本社活动列表。
+     */
+    @RepeatLimit
+    @PostMapping("/myApps")
+    public Result getMyApps(String groupName, String searchInfo, Integer pageNum, Integer pageSize) {
+        List<Activity> activities = filterActivities(activityService.getActivityByGroupName(groupName), searchInfo);
+        return PageUtils.ok("items", activities, pageNum, pageSize);
+    }
+
+    /**
+     * 管理端兼容旧前端路径：保存活动基础信息修改。
+     */
+    @RepeatLimit
+    @PostMapping("/modifyInfo")
+    public Result modifyInfo(@RequestBody Activity activity) {
+        activityService.modifyInfo(activity);
         return Result.ok();
     }
 
@@ -247,6 +293,22 @@ public class ActivityController {
 
     private Result fileResponse(StoredFile storedFile) {
         return Result.ok().data("fileUrl", storedFile.getFileUrl());
+    }
+
+    private List<Activity> filterActivities(List<Activity> activities, String searchInfo) {
+        if (searchInfo == null || searchInfo.trim().isEmpty()) {
+            return activities;
+        }
+        String keyword = searchInfo.trim().toLowerCase();
+        return activities.stream()
+                .filter(activity -> containsIgnoreCase(activity.getName(), keyword)
+                        || containsIgnoreCase(activity.getOrganizer(), keyword)
+                        || containsIgnoreCase(activity.getGroupName(), keyword))
+                .collect(Collectors.toList());
+    }
+
+    private boolean containsIgnoreCase(String value, String keyword) {
+        return value != null && value.toLowerCase().contains(keyword);
     }
 
     private Integer currentStudentId(Authentication authentication) {

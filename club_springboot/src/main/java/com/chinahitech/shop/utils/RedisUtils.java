@@ -1,6 +1,7 @@
 package com.chinahitech.shop.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
@@ -20,6 +21,7 @@ public class RedisUtils {
     public static final String NULL_VALUE = "__NULL__";
 
     private static RedisTemplate<String, Object> redisTemplate;
+    private static volatile boolean businessCacheEnabled = true;
 
     /**
      * 更新对象属性或页面状态值。
@@ -27,6 +29,36 @@ public class RedisUtils {
     @Resource
     public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
         RedisUtils.redisTemplate = redisTemplate;
+    }
+
+    /**
+     * 配置业务查询缓存是否启用。该开关只影响查询结果缓存，不影响限流、验证码、
+     * 报名防重复和分布式锁等必须依赖 Redis 的功能。
+     */
+    @Value("${app.business-cache.enabled:true}")
+    public void setBusinessCacheEnabled(boolean enabled) {
+        RedisUtils.businessCacheEnabled = enabled;
+    }
+
+    /**
+     * 读取业务查询缓存；关闭缓存时直接返回未命中，让 Service 回源数据库。
+     */
+    public static Object getBusinessCache(String key) {
+        return businessCacheEnabled ? get(key) : null;
+    }
+
+    /**
+     * 写入永久业务查询缓存；关闭缓存时执行成功的空操作，避免影响主业务流程。
+     */
+    public static boolean setBusinessCache(String key, Object value) {
+        return !businessCacheEnabled || set(key, value);
+    }
+
+    /**
+     * 写入带过期时间的业务查询缓存；关闭缓存时不访问 Redis。
+     */
+    public static boolean setBusinessCache(String key, Object value, long time) {
+        return !businessCacheEnabled || set(key, value, time);
     }
 
     public static boolean del(String key) {

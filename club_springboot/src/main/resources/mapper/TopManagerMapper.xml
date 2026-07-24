@@ -22,11 +22,36 @@
         order by status
     </select>
 
+    <select id="getAllUsersPage" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        order by status, user_id
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countAllUsers" resultType="long">
+        select count(1) from `user`
+    </select>
+
     <select id="getUser" resultType="com.chinahitech.shop.bean.User">
         select *
         from `user`
         where user_name = #{userName}
         order by status
+    </select>
+
+    <select id="getUserPage" resultType="com.chinahitech.shop.bean.User">
+        select *
+        from `user`
+        where user_name = #{userName}
+        order by status, user_id
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countUser" resultType="long">
+        select count(1)
+        from `user`
+        where user_name = #{userName}
     </select>
 
     <insert id="addManager">

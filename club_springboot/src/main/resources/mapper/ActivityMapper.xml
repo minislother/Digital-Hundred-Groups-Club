@@ -32,6 +32,22 @@
         order by hot desc, id desc
     </select>
 
+    <select id="queryPage" resultType="com.chinahitech.shop.bean.Activity">
+        select *
+        from activity
+        where is_accepted = 1
+        <include refid="ActivitySearchCondition"/>
+        order by hot desc, id desc
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countQuery" resultType="long">
+        select count(1)
+        from activity
+        where is_accepted = 1
+        <include refid="ActivitySearchCondition"/>
+    </select>
+
     <select id="getActivityByNameAndGroupName" resultType="com.chinahitech.shop.bean.Activity">
         select *
         from activity
@@ -96,7 +112,6 @@
         select *
         from activity
         where group_name = #{groupName}
-          and name = #{activityName}
         order by time desc, id desc
     </select>
 

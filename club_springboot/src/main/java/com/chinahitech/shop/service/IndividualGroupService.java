@@ -3,6 +3,7 @@ package com.chinahitech.shop.service;
 import com.chinahitech.shop.bean.Group;
 import com.chinahitech.shop.bean.IndividualGroup;
 import com.chinahitech.shop.bean.notAddedToDatabase.GroupNum;
+import com.chinahitech.shop.utils.PageResult;
 
 import java.util.List;
 import java.util.Map;
@@ -139,6 +140,9 @@ public interface IndividualGroupService {
      * 从缓存优先读取指定管理员有权管理的社团列表。
      */
     List<Group> getAllManagedGroupsCached(String managerId);
+
+    /** 查询并缓存管理员社团当前页，避免反序列化完整管理范围。 */
+    PageResult<Group> getAllManagedGroupsPageCached(String managerId, Integer pageNum, Integer pageSize);
 
     /**
      * 将社团管理员身份转交给指定用户。

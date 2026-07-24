@@ -8,6 +8,8 @@ import com.chinahitech.shop.mapper.ActivityMapper;
 import com.chinahitech.shop.mq.KafkaProducer;
 import com.chinahitech.shop.service.ActivityService;
 import com.chinahitech.shop.utils.CacheData;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.RedisUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -61,10 +63,10 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public List<Activity> queryCached(String searchInfo) {
         String key = "activity:all:" + (searchInfo == null ? "" : searchInfo);
-        List<Activity> activities = (List<Activity>) RedisUtils.get(key);
+        List<Activity> activities = (List<Activity>) RedisUtils.getBusinessCache(key);
         if (activities == null) {
             activities = query(searchInfo);
-            RedisUtils.set(key, activities, 300);
+            RedisUtils.setBusinessCache(key, activities, 300);
         }
         return activities;
     }
@@ -83,7 +85,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public Activity getCachedActivityDetail(String activityName, String groupName) {
         String key = activityDetailKey(groupName, activityName);
-        Object cached = RedisUtils.get(key);
+        Object cached = RedisUtils.getBusinessCache(key);
 
         if (RedisUtils.NULL_VALUE.equals(cached)) {
             return null;
@@ -117,10 +119,10 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public List<Activity> queryTopCached() {
         String key = "activity:top";
-        List<Activity> activities = (List<Activity>) RedisUtils.get(key);
+        List<Activity> activities = (List<Activity>) RedisUtils.getBusinessCache(key);
         if (activities == null) {
             activities = queryTop();
-            RedisUtils.set(key, activities, 120);
+            RedisUtils.setBusinessCache(key, activities, 120);
         }
         return activities;
     }
@@ -192,8 +194,25 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public void insert(Activity activity) {
+        validateActivityForSave(activity, false);
         activityMapper.insert(activity);
         evictActivityCache();
+    }
+
+    @Override
+    public PageResult<Activity> queryPageCached(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = PageUtils.offset(pageNum, pageSize);
+        int limit = PageUtils.limit(pageSize);
+        String normalizedSearch = searchInfo == null ? "" : searchInfo.trim();
+        String key = "activity:page:" + normalizedSearch + ':' + offset + ':' + limit;
+        PageResult<Activity> page = (PageResult<Activity>) RedisUtils.getBusinessCache(key);
+        if (page == null) {
+            List<Activity> records = activityMapper.queryPage(searchInfo, offset, limit);
+            long total = activityMapper.countQuery(searchInfo);
+            page = PageUtils.pageResult(records, total, pageNum, pageSize);
+            RedisUtils.setBusinessCache(key, page, 300);
+        }
+        return page;
     }
 
     /**
@@ -281,12 +300,38 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public void modifyInfo(Activity activity) {
+        validateActivityForSave(activity, true);
         activityMapper.modifyInfo(activity);
         /**
          * 清空表单、状态或本地缓存。
          */
         clearActivityApplyGuard(activity.getId());
         evictActivityCache();
+    }
+
+    /**
+     * 活动发布和修改都必须带上能定位业务归属的核心字段，避免空对象被误当成成功保存。
+     */
+    private void validateActivityForSave(Activity activity, boolean requireId) {
+        if (activity == null) {
+            throw new BusinessException("活动信息不能为空");
+        }
+        if (requireId && activity.getId() <= 0) {
+            throw new BusinessException("活动编号不能为空");
+        }
+        if (isBlank(activity.getName())) {
+            throw new BusinessException("活动名称不能为空");
+        }
+        if (isBlank(activity.getGroupName())) {
+            throw new BusinessException("所属社团不能为空");
+        }
+    }
+
+    /**
+     * 统一判断字符串是否为空，避免每个校验点重复编写 null 和 trim 逻辑。
+     */
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     private Long tryApplyGuard(Integer activityId, Integer studentId, int limit, int dbCount) {
@@ -365,14 +410,14 @@ public class ActivityServiceImpl implements ActivityService {
      */
     private void saveActivityDetailCache(String key, Activity activity) {
         if (activity == null) {
-            RedisUtils.set(key, RedisUtils.NULL_VALUE, ACTIVITY_DETAIL_NULL_TTL_SECONDS);
+            RedisUtils.setBusinessCache(key, RedisUtils.NULL_VALUE, ACTIVITY_DETAIL_NULL_TTL_SECONDS);
             return;
         }
         CacheData<Activity> cacheData = new CacheData<>(
                 activity,
                 LocalDateTime.now().plusMinutes(ACTIVITY_DETAIL_LOGICAL_TTL_MINUTES)
         );
-        RedisUtils.set(key, cacheData);
+        RedisUtils.setBusinessCache(key, cacheData);
     }
 
     private void evictActivityCache() {

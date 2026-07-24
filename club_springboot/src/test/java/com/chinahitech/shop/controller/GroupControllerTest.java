@@ -5,6 +5,8 @@ import com.chinahitech.shop.bean.notAddedToDatabase.StoredFile;
 import com.chinahitech.shop.service.FileStorageService;
 import com.chinahitech.shop.service.GroupService;
 import com.chinahitech.shop.utils.Result;
+import com.chinahitech.shop.utils.PageResult;
+import com.chinahitech.shop.utils.PageUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,13 +44,14 @@ class GroupControllerTest {
     void testGetAll_ReturnPagedGroups() {
         Group group = new Group();
         group.setName("computer");
-        when(groupService.queryCached("com")).thenReturn(Collections.singletonList(group));
+        PageResult<Group> page = PageUtils.pageResult(Collections.singletonList(group), 1, 1, 10);
+        when(groupService.queryPageCached("com", 1, 10)).thenReturn(page);
 
         Result result = groupController.getAll("com", 1, 10);
 
         assertTrue(result.getSuccess());
         assertSame(group, ((java.util.List<?>) result.getData().get("items")).get(0));
-        verify(groupService).queryCached("com");
+        verify(groupService).queryPageCached("com", 1, 10);
     }
 
     @Test
