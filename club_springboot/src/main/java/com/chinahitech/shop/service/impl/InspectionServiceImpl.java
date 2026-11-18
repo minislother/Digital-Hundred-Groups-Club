@@ -130,4 +130,44 @@ public class InspectionServiceImpl implements InspectionService {
             throw new UpdateException("操作失败");
         }
     }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Inspection> getByGroupPage(String groupName, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = inspectionMapper.getByGroupPage(groupName, offset, limit);
+        long total = inspectionMapper.getByGroupCount(groupName);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Inspection> getByGroupAndYearPage(String groupName, java.time.Year year, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = inspectionMapper.getByGroupAndYearPage(groupName, year, offset, limit);
+        long total = inspectionMapper.getByGroupAndYearCount(groupName, year);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Inspection> getByYearPage(java.time.Year year, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = inspectionMapper.getByYearPage(year, offset, limit);
+        long total = inspectionMapper.getByYearCount(year);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Inspection> getBySearchInfoPage(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = inspectionMapper.getBySearchInfoPage(searchInfo, offset, limit);
+        long total = inspectionMapper.getBySearchInfoCount(searchInfo);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
 }

@@ -95,7 +95,7 @@ public class TopManagerServiceImpl implements TopManagerService {
      */
     @Override
     public void validateCode(String email, String validateCode) {
-        Object cached = RedisUtils.get(email);
+        Object cached = RedisUtils.get(com.chinahitech.shop.utils.ContactCipher.verificationKey(email));
         if (!Objects.equals(cached == null ? null : cached.toString(), validateCode)) {
             throw new ServiceException("验证码错误");
         }
@@ -112,6 +112,10 @@ public class TopManagerServiceImpl implements TopManagerService {
     /**
      * 读取并返回业务数据或页面状态。
      */
+    public User getContactUser(String userId) {
+        return topManagerMapper.getUserByNum(userId);
+    }
+
     public User getByUserId(String num) {
         User stu = topManagerMapper.getTopManagerByNum(num);
         if (stu == null) {
@@ -313,6 +317,11 @@ public class TopManagerServiceImpl implements TopManagerService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void updateUserInfo(User user){
+        // 列表掩码不是有效联系方式；拒绝写回，要求显式提交完整的新值。
+        if ((user.getPhone() != null && user.getPhone().contains("*")) ||
+                (user.getEmail() != null && user.getEmail().contains("*"))) {
+            throw new com.chinahitech.shop.exception.BusinessException("PARAM_ERROR", "请提交完整联系方式，不可保存脱敏值");
+        }
         Date date = new Date();
 
         user.setModifyTime(date);

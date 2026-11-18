@@ -87,4 +87,14 @@ class PageUtilsTest {
     private static <T> PageResult<T> getPage(Result result) {
         return (PageResult<T>) result.getData().get("page");
     }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("数据库分页 - 拒绝整数溢出与深分页")
+    void testOffset_DeepOrOverflow_Rejects() {
+        // Given / When / Then
+        org.junit.jupiter.api.Assertions.assertEquals(10000, PageUtils.offset(101, 100));
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.chinahitech.shop.exception.BusinessException.class,
+                () -> PageUtils.offset(Integer.MAX_VALUE, 100));
+    }
 }

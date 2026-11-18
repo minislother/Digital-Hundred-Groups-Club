@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.tika.Tika;
 
 /**
  * 本地文件存储实现，校验上传文件类型并保存到配置的上传目录。
@@ -27,7 +28,7 @@ import java.util.Set;
 public class FileStorageServiceImpl implements FileStorageService {
 
     private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(
-            Arrays.asList("jpg", "jpeg", "png", "gif", "zip", "xls", "xlsx", "txt")
+            Arrays.asList("jpg", "jpeg", "png", "gif", "zip", "xls", "xlsx", "doc", "docx", "ppt", "pptx", "pdf", "txt")
     );
 
     @Value("${upload-dir}")
@@ -79,12 +80,37 @@ public class FileStorageServiceImpl implements FileStorageService {
         return FileUtil.readBytes(filePath.toString());
     }
 
+    @Override
+    public String extractText(String fileUrl) {
+        if (fileUrl == null || fileUrl.trim().isEmpty()) return "";
+        try {
+            String fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+            Path path = Paths.get(uploadDir).toAbsolutePath().normalize().resolve(sanitizeFileName(fileName)).normalize();
+            Path root = Paths.get(uploadDir).toRealPath();
+            // realPath 同时阻止符号链接逃逸；只读取本地上传目录，绝不拉取传入 URL。
+            if (!path.toRealPath().startsWith(root) || !Files.isRegularFile(path)) {
+                throw new IOException("附件不在上传目录内");
+            }
+            if (Files.size(path) > 10L * 1024 * 1024) {
+                throw new IOException("附件超过正文抽取上限10MiB");
+            }
+            Tika tika = new Tika();
+            tika.setMaxStringLength(100000);
+            try (java.io.InputStream input = Files.newInputStream(path)) {
+                return tika.parseToString(input);
+            }
+        } catch (Exception e) {
+            // 不能把解析失败伪装成成功的空正文；后台保留事件，运维可查看失败原因后重试。
+            throw new BusinessException("ATTACHMENT_EXTRACT_FAILED", "附件正文抽取失败", e);
+        }
+    }
+
     private String generateUniqueFileName(String originalFilename) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         String safeName = originalFilename == null || originalFilename.trim().isEmpty()
                 ? "file"
                 : sanitizeFileName(originalFilename);
-        return timestamp + "_" + safeName;
+        return timestamp + "_" + java.util.UUID.randomUUID() + "_" + safeName;
     }
 
     private String sanitizeFileName(String fileName) {

@@ -2,8 +2,8 @@ import { validuserName, isExternal } from '@/utils/validate.js'
 
 describe('Utils:validate', () => {
   it('validuserName', () => {
-    expect(validuserName('admin')).toBe(true)
-    expect(validuserName('editor')).toBe(true)
+    expect(validuserName('20240001')).toBe(true)
+    expect(validuserName(' 20240001 ')).toBe(true)
     expect(validuserName('xxxx')).toBe(false)
   })
   it('isExternal', () => {

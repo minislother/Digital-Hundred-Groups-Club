@@ -1,0 +1,40 @@
+# 与基础、cluster两个文件一起使用，采集凭据从本地文件挂载，不写入仓库。
+services:
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: prod,observability
+  backend-replica:
+    environment:
+      SPRING_PROFILES_ACTIVE: prod,observability
+  gateway:
+    environment:
+      MANAGEMENT_SERVER_PORT: 9090
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    command: ['--config.file=/etc/prometheus/prometheus.yml', '--storage.tsdb.retention.time=15d']
+    volumes:
+      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    secrets: [backend_metrics_token]
+    networks: [app]
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:13.0.12
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set a strong Grafana password}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    ports: ['127.0.0.1:3000:3000']
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/monitoring/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/monitoring/dashboards:/var/lib/grafana/dashboards:ro
+    networks: [app, edge]
+    depends_on: [prometheus]
+    restart: unless-stopped
+secrets:
+  backend_metrics_token:
+    file: ${METRICS_TOKEN_FILE:?Set path to a local TOP_MANAGER JWT file}
+volumes:
+  prometheus_data:
+  grafana_data:

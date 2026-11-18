@@ -14,16 +14,16 @@
 - 后端运行测试：`cd club_springboot && mvn test`
 - 后端本地启动：`cd club_springboot && mvn spring-boot:run`
 - 后端构建打包：`cd club_springboot && mvn package`
-- 统一网页入口安装依赖：`cd web_portal && npm install`
+- 统一网页入口安装依赖：`pnpm install --frozen-lockfile`
 - 统一网页入口启动：`cd web_portal && npm run dev`
 - 统一网页入口构建：`cd web_portal && npm run build:prod`
-- 学生端安装依赖：`cd vue_student && npm install`
+- 学生端安装依赖：`pnpm install --frozen-lockfile`
 - 学生端本地启动：`cd vue_student && npm run dev`
 - 学生端构建打包：`cd vue_student && npm run build:prod`
-- 管理员端安装依赖：`cd vue_admin && npm install`
+- 管理员端安装依赖：`pnpm install --frozen-lockfile`
 - 管理员端本地启动：`cd vue_admin && npm run dev`
 - 管理员端构建打包：`cd vue_admin && npm run build:prod`
-- 超级管理员端安装依赖：`cd vue_superadmin && npm install`
+- 超级管理员端安装依赖：`pnpm install --frozen-lockfile`
 - 超级管理员端本地启动：`cd vue_superadmin && npm run dev`
 - 超级管理员端构建打包：`cd vue_superadmin && npm run build:prod`
 - 前端聚合构建：`npm run build:frontends`
@@ -66,3 +66,10 @@
 - 开发：`.codex/rules/ai-readme/generated/开发指南.md`
 - 业务（人工维护）：`.codex/rules/ai-readme/manual/业务知识.md`
 - 踩坑（人工维护）：`.codex/rules/ai-readme/manual/历史经验.md`
+
+## 升级后的开发环境
+- 业务后端要求 JDK 21；Windows 可用 `club_springboot/scripts/mvn21.ps1 test` 选择本地 JDK 21。
+- 前端使用 Node 22.12+ 和 pnpm 11，根目录执行 `pnpm install --frozen-lockfile`；原 `npm run dev` / `build:frontends` 脚本仍可使用。
+- `baituan_gateway/` 为独立 Spring Cloud 网关；集群部署见 `docker-compose.cluster.yml`，监控见 `docker-compose.monitoring.yml`。
+- TeamRag 配置与权限契约见 `deploy/knowledge.md`。不要把上游密钥放到前端或跳过社团权限校验。
+- Flyway 仅在显式启用 `schema` profile 时接管升级；存量数据库须先核对基线并备份。

@@ -57,4 +57,10 @@ public interface StuAppService {
      * 驳回学生入团申请。
      */
     void denyApplication(Integer applicationid);
+
+    com.chinahitech.shop.utils.PageResult<StuApp> findallPage(Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<StuApp> findMyappPage(String stunumber, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<StuApp> findRecvappPage(String groupName, Integer pageNum, Integer pageSize);
 }

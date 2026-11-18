@@ -20,6 +20,13 @@ public interface IndividualGroupMapper {
 
     void insert(IndividualGroup individualGroup);
 
+    /** 成员和申请使用同一组筛选条件完成数据库分页与计数。 */
+    List<IndividualGroup> getMembershipPage(@Param("groupId") int groupId,
+            @Param("status") int status, @Param("searchInfo") String searchInfo,
+            @Param("offset") int offset, @Param("limit") int limit);
+    long countMembership(@Param("groupId") int groupId,
+            @Param("status") int status, @Param("searchInfo") String searchInfo);
+
     // 管理端：成员维护、审批和当前管理员负责的社团范围。
     List<IndividualGroup> getStudentsByGroup(@Param("groupId") int groupId,
                                              /**
@@ -63,4 +70,21 @@ public interface IndividualGroupMapper {
      * 查询指定社团的成员列表。
      */
     List<GroupNum> getGroupMembers();
+
+    java.util.List<IndividualGroup> getAllStudentsPage(@org.apache.ibatis.annotations.Param("searchInfo") String searchInfo, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getAllStudentsCount(@org.apache.ibatis.annotations.Param("searchInfo") String searchInfo);
+
+    java.util.List<IndividualGroup> studentSlice(@org.apache.ibatis.annotations.Param("studentId") String studentId,
+            @org.apache.ibatis.annotations.Param("beforeId") Long beforeId,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+
+    java.util.List<IndividualGroup> studentPage(@org.apache.ibatis.annotations.Param("studentId") String studentId,
+            @org.apache.ibatis.annotations.Param("offset") int offset, @org.apache.ibatis.annotations.Param("limit") int limit);
+    long countStudent(@org.apache.ibatis.annotations.Param("studentId") String studentId);
+
+    java.util.List<IndividualGroup> memberSlice(@org.apache.ibatis.annotations.Param("resourceId") int resourceId,
+            @org.apache.ibatis.annotations.Param("status") int status,
+            @org.apache.ibatis.annotations.Param("beforeId") Long beforeId,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
 }

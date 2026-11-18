@@ -9,6 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
@@ -45,12 +48,30 @@ class KafkaProducerTest {
         // Given - 准备测试数据和Mock行为
         ReflectionTestUtils.setField(kafkaProducer, "kafkaEnabled", true);
 
+        when(kafkaTemplate.send("activity_topic", "{\"id\":1}"))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
         // When - 执行被测试方法
         boolean result = kafkaProducer.send("activity_topic", "{\"id\":1}");
 
         // Then - 验证结果和交互
         assertTrue(result);
         verify(kafkaTemplate).send("activity_topic", "{\"id\":1}");
+    }
+
+    @Test
+    @DisplayName("发送消息 - Kafka超时标记为确认结果不明")
+    void testSendWithResult_KafkaTimeout_AckUncertain() {
+        // Given
+        ReflectionTestUtils.setField(kafkaProducer, "kafkaEnabled", true);
+        when(kafkaTemplate.send("activity_topic", "{}")).thenReturn(
+                CompletableFuture.failedFuture(new org.apache.kafka.common.errors.TimeoutException("timeout")));
+
+        // When
+        var result = kafkaProducer.sendWithResult("activity_topic", "{}");
+
+        // Then
+        assertEquals(KafkaProducer.SendResult.ACK_UNCERTAIN, result);
     }
 
     @Test

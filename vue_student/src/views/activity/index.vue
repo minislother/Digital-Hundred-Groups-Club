@@ -54,12 +54,13 @@
         <el-button @click="dialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+    <el-button v-if="hasNext" :loading="loading" @click="loadMore">加载更多活动</el-button>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-import { getActivites } from '@/api/activity.js'
+import { searchActivitySlice } from '@/api/activity.js'
 
 export default {
   name: 'Activity',
@@ -72,6 +73,10 @@ export default {
   data() {
     return {
       activites: [],
+      nextCursor: null,
+      hasNext: false,
+      loading: false,
+      searchVersion: 0,
       dialogVisible: false,
       currentActivity: {
         organizer: ''
@@ -102,15 +107,26 @@ export default {
       })
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
-    handleSearch() {
-      getActivites(this.searchInfo)
-        .then((response) => {
-          this.totalItems = response.data.items.length
-          this.activites = response.data.items.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-        })
-        .catch((error) => {
-          console.error(error)
-        })
+    async handleSearch() {
+      this.searchVersion += 1
+      this.loading = false
+      this.nextCursor = null
+      this.activites = []
+      await this.loadMore()
+    },
+    async loadMore() {
+      if (this.loading) return
+      this.loading = true
+      const version = this.searchVersion
+      try {
+        const response = await searchActivitySlice(this.searchInfo, this.nextCursor, this.pageSize)
+        if (version !== this.searchVersion) return
+        this.activites.push(...response.data.items)
+        this.nextCursor = response.data.nextCursor
+        this.hasNext = response.data.hasNext
+      } finally {
+        if (version === this.searchVersion) this.loading = false
+      }
     },
     // 处理当前组件的业务逻辑或用户交互。
     redirectToShowactivitydetails(activityId) {

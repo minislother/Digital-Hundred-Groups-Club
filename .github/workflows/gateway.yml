@@ -1,0 +1,28 @@
+name: Gateway verification
+on:
+  push:
+    paths: ['baituan_gateway/**', 'docker-compose.cluster.yml', 'deploy/consul/**', '.github/workflows/gateway.yml']
+  pull_request:
+    paths: ['baituan_gateway/**', 'docker-compose.cluster.yml', 'deploy/consul/**', '.github/workflows/gateway.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: baituan_gateway/pom.xml
+      - run: mvn -B -f baituan_gateway/pom.xml package
+      - run: python3 baituan_gateway/scripts/smoke_test.py
+      - run: python3 baituan_gateway/scripts/smoke_test.py --consul
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gateway-runtime-log
+          path: baituan_gateway/smoke-runtime.log

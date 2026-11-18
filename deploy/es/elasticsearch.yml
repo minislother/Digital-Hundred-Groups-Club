@@ -1,0 +1,7 @@
+cluster.name: baituan-search
+discovery.type: single-node
+xpack.security.enabled: false
+ingest.geoip.downloader.enabled: false
+http.host: 0.0.0.0
+path.data: /usr/share/elasticsearch/data
+path.logs: /usr/share/elasticsearch/logs

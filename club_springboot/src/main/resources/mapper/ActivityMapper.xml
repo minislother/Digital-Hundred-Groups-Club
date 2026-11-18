@@ -2,6 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.chinahitech.shop.mapper.ActivityMapper">
+    <resultMap id="contactApplicant" type="map" autoMapping="true">
+        <result column="user_name" property="user_name" typeHandler="com.chinahitech.shop.utils.NameTypeHandler"/>
+        <result column="email" property="email" typeHandler="com.chinahitech.shop.utils.EmailTypeHandler"/>
+        <result column="phone" property="phone" typeHandler="com.chinahitech.shop.utils.PhoneTypeHandler"/>
+    </resultMap>
+
+
+    <select id="getActivityForUpdate" resultType="com.chinahitech.shop.bean.Activity">
+        select * from activity where id = #{id} for update
+    </select>
+    <select id="getApplicationById" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select id, activity_id, user_id as student_id, status from individual_activity where id = #{id}
+    </select>
 
     <sql id="ActivitySearchCondition">
         <if test="searchInfo != null and searchInfo != ''">
@@ -115,7 +128,7 @@
         order by time desc, id desc
     </select>
 
-    <select id="getActivityApplicants" resultType="map">
+    <select id="getActivityApplicants" resultMap="contactApplicant">
         select
             ia.*,
             u.user_name,
@@ -254,4 +267,73 @@
             is_accepted = #{isAccepted}
         where id = #{id}
     </update>
+    <sql id="getActivityByGroupNamePageQuery">select *
+        from activity
+        where group_name = #{groupName}
+        <include refid="ActivitySearchCondition"/></sql>
+    <select id="getActivityByGroupNamePage" resultType="com.chinahitech.shop.bean.Activity">
+        <include refid="getActivityByGroupNamePageQuery"/>
+        order by time desc, id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getActivityByGroupNameCount" resultType="long">
+        select count(*) from activity
+        where group_name = #{groupName}
+        <include refid="ActivitySearchCondition"/>
+    </select>
+    <sql id="getAllAppPageQuery">select *
+        from activity
+        where 1 = 1
+        <include refid="ActivityAppSearchCondition"/></sql>
+    <select id="getAllAppPage" resultType="com.chinahitech.shop.bean.Activity">
+        <include refid="getAllAppPageQuery"/>
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getAllAppCount" resultType="long">
+        select count(*) from activity
+        where 1 = 1
+        <include refid="ActivityAppSearchCondition"/>
+    </select>
+    <sql id="getMyJoinedActivitiesPageQuery">select a.*
+        from activity a
+            inner join individual_activity ia on a.id = ia.activity_id
+        where ia.user_id = #{studentId}
+          and ia.status = 1</sql>
+    <select id="getMyJoinedActivitiesPage" resultType="com.chinahitech.shop.bean.Activity">
+        <include refid="getMyJoinedActivitiesPageQuery"/>
+        order by a.time desc, a.id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getMyJoinedActivitiesCount" resultType="long">
+        select count(*) from activity a
+            inner join individual_activity ia on a.id = ia.activity_id
+        where ia.user_id = #{studentId}
+          and ia.status = 1
+    </select>
+    <sql id="getActivityApplicantsPageQuery">select
+            ia.*,
+            u.user_name,
+            u.email,
+            u.phone
+        from individual_activity ia
+            left join `user` u on ia.user_id = u.user_id
+        where ia.activity_id = #{activityId}</sql>
+    <select id="getActivityApplicantsPage" resultMap="contactApplicant">
+        <include refid="getActivityApplicantsPageQuery"/>
+        order by ia.id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getActivityApplicantsCount" resultType="long">
+        select count(*) from individual_activity ia
+            left join `user` u on ia.user_id = u.user_id
+        where ia.activity_id = #{activityId}
+    </select>
+
+    <select id="searchSlice" resultType="com.chinahitech.shop.bean.Activity">
+        select * from activity where is_accepted = 1
+        <include refid="ActivitySearchCondition"/>
+        <if test="beforeId != null">and id &lt; #{beforeId}</if>
+        order by id desc limit #{limit}
+    </select>
 </mapper>

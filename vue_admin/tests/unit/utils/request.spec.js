@@ -1,43 +1,15 @@
-let mockResponseRejected
-
-const mockMessage = jest.fn()
-const mockConfirm = jest.fn(() => new Promise(() => {}))
-const mockDispatch = jest.fn()
-
-jest.mock('axios', () => ({
-  create: jest.fn(() => ({
-    interceptors: {
-      request: {
-        use: jest.fn()
-      },
-      response: {
-        use: jest.fn((fulfilled, rejected) => {
-          mockResponseRejected = rejected
-        })
-      }
-    }
-  }))
-}))
-
-jest.mock('element-ui', () => ({
-  Message: mockMessage,
-  MessageBox: {
-    confirm: mockConfirm
-  }
-}))
-
-jest.mock('@/store', () => ({
-  getters: {
-    token: ''
-  },
-  dispatch: mockDispatch
-}))
-
-jest.mock('@/utils/auth', () => ({
-  getToken: jest.fn(() => 'token')
-}))
-
-require('@/utils/request')
+import '@/utils/request'
+const mocks = vi.hoisted(() => ({ message: vi.fn(), confirm: vi.fn(() => new Promise(() => {})), dispatch: vi.fn(), rejected: null }))
+vi.mock('axios', () => ({ default: { create: () => ({ interceptors: {
+  request: { use: vi.fn() }, response: { use: (ok, rejected) => { mocks.rejected = rejected } }
+} }) } }))
+vi.mock('element-plus', () => ({ ElMessage: mocks.message, ElMessageBox: { confirm: mocks.confirm } }))
+vi.mock('@/store', () => ({ default: { dispatch: mocks.dispatch } }))
+vi.mock('@/utils/auth', () => ({ getToken: () => 'token' }))
+const mockMessage = mocks.message
+const mockConfirm = mocks.confirm
+const mockDispatch = mocks.dispatch
+const mockResponseRejected = (...args) => mocks.rejected(...args)
 
 describe('Utils:request auth errors', () => {
   beforeEach(() => {

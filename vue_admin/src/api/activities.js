@@ -1,23 +1,24 @@
 import request from '@/utils/request'
 
 // 本社未审核的活动
-export function getMyApps(searchInfo, groupName) {
+export function getMyApps(searchInfo, groupName, pagination = { pageNum: 1, pageSize: 20 }) {
   const data = new URLSearchParams()
   data.append('searchInfo', searchInfo)
   data.append('groupName', groupName)
   return request({
     url: '/activity/myApps',
     method: 'post',
+    params: pagination,
     data: data
   })
 }
 
 // 本社审核通过和不通过的活动
-export function getMyActivity(groupName) {
+export function getMyActivity(groupName, pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
     url: '/activity/myActivity',
     method: 'post',
-    params: { groupName }
+    params: { groupName , ...pagination }
   })
 }
 
@@ -88,11 +89,11 @@ export function rejectActivity(activityId) {
 
 // super admin
 // 读取并返回业务数据或页面状态。
-export function getAllApps(searchInfo) {
+export function getAllApps(searchInfo, pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
     url: '/activity/allApps',
     method: 'post',
-    params: { searchInfo }
+    params: { searchInfo , ...pagination }
   })
 }
 

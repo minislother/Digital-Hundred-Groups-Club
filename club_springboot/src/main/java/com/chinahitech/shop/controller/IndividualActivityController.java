@@ -37,14 +37,13 @@ public class IndividualActivityController {
     @RequestMapping("/allActivities")
     public Result getIndividualActivity(Integer pageNum, Integer pageSize, Authentication authentication) {
         String studentId = SecurityUtils.currentUserId(authentication);
-        List<IndividualActivity> list = individualActivityService.getActivityByStuIdCached(studentId);
-        return PageUtils.ok("items", list, pageNum, pageSize);
+        return PageUtils.ok("items", individualActivityService.getActivityByStuIdPage(studentId, pageNum, pageSize));
     }
 
     /**
      * 当前登录学生申请报名指定活动。
      */
-    @RepeatLimit
+    @RepeatLimit(failOpenOnRedisError = true)
     @PostMapping("/joinActivity")
     public Result joinActivity(int activityId, Authentication authentication) {
         String studentId = SecurityUtils.currentUserId(authentication);
@@ -58,8 +57,7 @@ public class IndividualActivityController {
     @RepeatLimit
     @RequestMapping("/getAllStudents")
     public Result getStudentsByActivity(int activityId, Integer pageNum, Integer pageSize) {
-        List<IndividualActivity> list = individualActivityService.getActivityByActivityIdCached(activityId);
-        return PageUtils.ok("items", list, pageNum, pageSize);
+        return PageUtils.ok("items", individualActivityService.getActivityByActivityIdPage(activityId, pageNum, pageSize));
     }
 
     /**
@@ -68,8 +66,7 @@ public class IndividualActivityController {
     @RepeatLimit
     @RequestMapping("/getAllApplyStudents")
     public Result getAllApplyStudents(int activityId, Integer pageNum, Integer pageSize) {
-        List<IndividualActivity> list = individualActivityService.getApplyByActivityIdCached(activityId);
-        return PageUtils.ok("items", list, pageNum, pageSize);
+        return PageUtils.ok("items", individualActivityService.getApplyByActivityIdPage(activityId, pageNum, pageSize));
     }
 
     /**
@@ -113,13 +110,9 @@ public class IndividualActivityController {
     public Result getAllManagedActivities(Integer pageNum, Integer pageSize, Authentication authentication) {
         // 管理端查询只允许查看当前登录管理员负责的活动。
         String managerId = SecurityUtils.currentUserId(authentication);
-        if (PageUtils.isPageRequest(pageNum, pageSize)) {
-            PageResult<Activity> page = individualActivityService
-                    .getAllManagedActivitiesPageCached(managerId, pageNum, pageSize);
-            return PageUtils.ok("items", page);
-        }
-        List<Activity> activityList = individualActivityService.getAllManagedActivitiesCached(managerId);
-        return PageUtils.ok("items", activityList, pageNum, pageSize);
+        PageResult<Activity> page = individualActivityService
+                .getAllManagedActivitiesPageCached(managerId, pageNum, pageSize);
+        return PageUtils.ok("items", page);
     }
 
     /**
@@ -153,5 +146,18 @@ public class IndividualActivityController {
     public Result getActivityMembers() {
         List<ActivityNum> list = individualActivityService.getActivityMembersCached();
         return Result.ok().data("items", list);
+    }
+
+    /** 当前登录学生的游标列表，适合连续翻页。 */
+    @RepeatLimit
+    @RequestMapping("/studentSlice")
+    public Result studentSlice(Long beforeId, Integer pageSize, Authentication authentication) {
+        return individualActivityService.studentSlice(SecurityUtils.currentUserId(authentication), beforeId, pageSize);
+    }
+
+    @RepeatLimit
+    @RequestMapping("/memberSlice")
+    public Result memberSlice(int resourceId, int status, Long beforeId, Integer pageSize, Authentication authentication) {
+        return individualActivityService.memberSlice(resourceId, status, beforeId, pageSize, SecurityUtils.currentUserId(authentication));
     }
 }

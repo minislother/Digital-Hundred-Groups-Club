@@ -35,12 +35,8 @@ public class GroupController {
     @RepeatLimit
     @RequestMapping("/all")
     public Result getAll(String searchInfo, Integer pageNum, Integer pageSize) {
-        if (PageUtils.isPageRequest(pageNum, pageSize)) {
-            PageResult<Group> page = groupService.queryPageCached(searchInfo, pageNum, pageSize);
-            return PageUtils.ok("items", page);
-        }
-        List<Group> groups = groupService.queryCached(searchInfo);
-        return PageUtils.ok("items", groups, pageNum, pageSize);
+        PageResult<Group> page = groupService.queryPageCached(searchInfo, pageNum, pageSize);
+        return PageUtils.ok("items", page);
     }
 
     /**
@@ -159,8 +155,7 @@ public class GroupController {
     @RepeatLimit
     @RequestMapping("/allApps")
     public Result getAllApps(String searchinfo, Integer pageNum, Integer pageSize) {
-        List<Group> groups = groupService.getAllApp(searchinfo);
-        return PageUtils.ok("items", groups, pageNum, pageSize);
+        return PageUtils.ok("items", groupService.getAllAppPage(searchinfo, pageNum, pageSize));
     }
 
     /**

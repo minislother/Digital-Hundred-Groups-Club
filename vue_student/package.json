@@ -4,18 +4,19 @@
   "description": "数字百团学生端前端应用",
   "author": "Pan <panfree23@gmail.com>",
   "scripts": {
-    "dev": "vue-cli-service serve",
-    "build:prod": "vue-cli-service build",
-    "build:stage": "vue-cli-service build --mode staging",
-    "preview": "node build/index.js --preview",
+    "dev": "vite --host 127.0.0.1",
+    "build:prod": "vite build --mode production",
+    "build:stage": "vite build --mode staging",
+    "preview": "vite preview --host 127.0.0.1",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml",
     "lint": "eslint --ext .js,.vue src",
-    "test:unit": "jest --clearCache && vue-cli-service test:unit",
-    "test:ci": "npm run lint && npm run test:unit"
+    "test:unit": "vitest run",
+    "test:ci": "npm run lint && npm run test:unit",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@baituan/frontend-shared": "file:../frontend-shared",
-    "axios": "^0.21.4",
+    "axios": "^1.13.2",
     "core-js": "^3.49.0",
     "js-cookie": "2.2.0",
     "normalize.css": "7.0.0",
@@ -24,38 +25,32 @@
     "vue": "^3.4.38",
     "vue-router": "^4.4.5",
     "vuex": "^4.1.0",
-    "element-plus": "^2.8.4"
+    "element-plus": "^2.8.4",
+    "pinia": "^3.0.4"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-plugin-unit-jest": "^5.0.8",
-    "@vue/cli-service": "^5.0.8",
     "@vue/test-utils": "^2.4.6",
     "autoprefixer": "9.5.1",
     "babel-eslint": "10.1.0",
-    "babel-jest": "23.6.0",
-    "babel-plugin-dynamic-import-node": "2.3.3",
     "chalk": "2.4.2",
-    "connect": "3.6.6",
     "eslint": "6.7.2",
     "eslint-plugin-vue": "6.2.2",
     "mockjs": "1.0.1-beta3",
-    "runjs": "4.3.2",
-    "sass": "1.26.8",
-    "sass-loader": "8.0.2",
-    "serve-static": "1.13.2",
-    "svg-sprite-loader": "^6.0.11",
+    "sass": "^1.97.3",
     "svgo": "1.2.2",
-    "@vue/compiler-sfc": "^3.4.38"
+    "@vue/compiler-sfc": "^3.4.38",
+    "vite": "7.3.1",
+    "@vitejs/plugin-vue": "6.0.3",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18",
+    "jsdom": "27.0.1"
   },
   "browserslist": [
     "> 1%",
     "last 2 versions"
   ],
   "engines": {
-    "node": ">=8.9",
-    "npm": ">= 3.0.0"
+    "node": ">=22.12.0"
   },
   "license": "MIT"
 }

@@ -154,4 +154,14 @@ public interface IndividualActivityService {
      * 从缓存优先读取各活动成员数量统计。
      */
     List<ActivityNum> getActivityMembersCached();
+
+    com.chinahitech.shop.utils.PageResult<IndividualActivity> getActivityByStuIdPage(String studentId, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<IndividualActivity> getActivityByActivityIdPage(int activityId, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<IndividualActivity> getApplyByActivityIdPage(int activityId, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.Result studentSlice(String studentId, Long beforeId, Integer pageSize);
+
+    com.chinahitech.shop.utils.Result memberSlice(int resourceId, int status, Long beforeId, Integer pageSize, String managerId);
 }

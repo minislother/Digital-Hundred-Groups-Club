@@ -4,37 +4,37 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
     /**
      * 配置 Spring Security 的登录、权限和跨域策略。
      */
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .cors()
-                .configurationSource(corsConfigurationSource())
-                .and()
-                .csrf().disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                .antMatchers(
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/knowledge/**").hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
+                        "/actuator/prometheus").hasRole("TOP_MANAGER")
+                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                .requestMatchers(
                         "/student/login",
                         "/student/register",
                         "/student/getEmail",
@@ -47,19 +47,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/topManager/login",
                         "/topManager/getEmail",
                         "/topManager/getValidate",
-                        "/topManager/validateEmail",
-                        "/upload/*.jpg",
-                        "/upload/*.jpeg",
-                        "/upload/*.png",
-                        "/upload/*.gif",
-                        "/upload/**/*.jpg",
-                        "/upload/**/*.jpeg",
-                        "/upload/**/*.png",
-                        "/upload/**/*.gif"
+                        "/topManager/validateEmail"
+
+
+
+
+
+
+
+
                 ).permitAll()
-                .antMatchers("/upload/**").hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
-                .antMatchers(
+                .requestMatchers(request -> request.getRequestURI().matches("/upload/.*\\.(jpg|jpeg|png|gif)" )).permitAll()
+                .requestMatchers("/upload/**").hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
+                .requestMatchers(
                         "/activity/all",
+                        "/activity/search",
+                        "/activity/searchSlice",
                         "/activity/studentDetail",
                         "/activity/getVideo",
                         "/activity/top",
@@ -71,7 +74,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/weather/**",
                         "/videotest.mp4"
                 ).hasAnyRole("STUDENT", "MANAGER", "TOP_MANAGER")
-                .antMatchers(
+                .requestMatchers(
                         "/activity/applyJoin",
                         "/activity/myJoinedActivities",
                         "/application/myApps",
@@ -83,7 +86,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/individualGroup/allGroups",
                         "/individualGroup/applyJoinGroup"
                 ).hasAnyRole("STUDENT", "TOP_MANAGER")
-                .antMatchers(
+                .requestMatchers(
                         "/activity/addGroup",
                         "/activity/addActivity",
                         "/activity/managerDetail",
@@ -129,8 +132,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/individualGroup/transferStatus",
                         "/individualGroup/updatePermission"
                 ).hasAnyRole("MANAGER", "TOP_MANAGER")
-                .antMatchers(
+                .requestMatchers(
                         "/activity/allApps",
+                        "/search/index/rebuildActivities",
+                        "/search/index/status",
                         "/activity/appDetail",
                         "/activity/accept",
                         "/activity/reject",
@@ -144,19 +149,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/individualGroup/getAllStudents",
                         "/individualGroup/getGroupMembers"
                 ).hasRole("TOP_MANAGER")
-                .antMatchers("/student/**").hasAnyRole("STUDENT", "TOP_MANAGER")
-                .antMatchers("/manager/**").hasAnyRole("MANAGER", "TOP_MANAGER")
-                .antMatchers("/topManager/**").hasRole("TOP_MANAGER")
-                .anyRequest().denyAll()
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint((request, response, authException) -> {
+                .requestMatchers("/student/**").hasAnyRole("STUDENT", "TOP_MANAGER")
+                .requestMatchers("/manager/**").hasAnyRole("MANAGER", "TOP_MANAGER")
+                .requestMatchers("/topManager/**").hasRole("TOP_MANAGER")
+                .anyRequest().denyAll())
+                .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"code\":50008,\"message\":\"未认证或登录已过期\"}");
-                })
-                .and()
+                }))
                 .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
     private CorsConfigurationSource corsConfigurationSource() {

@@ -51,9 +51,9 @@ public class GroupKafkaConsumer {
         try {
             Map<String, Object> map = JSONUtil.toBean(message, Map.class);
             String pattern = String.valueOf(map.getOrDefault("pattern", "group:*"));
-            RedisUtils.del(pattern);
+            if (!RedisUtils.del(pattern)) { throw new IllegalStateException("缓存删除失败: " + pattern); }
         } catch (Exception e) {
-            log.error("Group cache evict retry failed. message={}", message, e);
+            throw new IllegalStateException("Group cache evict retry failed", e);
         }
     }
 

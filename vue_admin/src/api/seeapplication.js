@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 读取并返回业务数据或页面状态。
-export function getSeeApplications(groupName) {
+export function getSeeApplications(groupName, pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
     url: '/application/recApps',
     method: 'post',
-    params: { groupName }
+    params: { groupName , ...pagination }
   })
 }
 

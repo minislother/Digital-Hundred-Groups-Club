@@ -1,25 +1,18 @@
-local students_key = KEYS[1]
-local count_key = KEYS[2]
-local student_id = ARGV[1]
+-- 有序集合保存每个预占的独立截止时间，哈希保存同次报名的令牌。
+local student = ARGV[1]
 local limit = tonumber(ARGV[2])
-local db_count = tonumber(ARGV[3])
-local ttl = tonumber(ARGV[4])
-
-if redis.call('EXISTS', count_key) == 0 then
-  redis.call('SET', count_key, db_count)
+local ttl = tonumber(ARGV[3])
+local now = tonumber(redis.call('TIME')[1])
+local expired = redis.call('ZRANGEBYSCORE', KEYS[1], '-inf', now, 'LIMIT', 0, 100)
+for _, member in ipairs(expired) do
+    redis.call('HDEL', KEYS[2], member)
+    redis.call('ZREM', KEYS[1], member)
 end
-
-if redis.call('SISMEMBER', students_key, student_id) == 1 then
-  return 1
-end
-
-local current = tonumber(redis.call('GET', count_key) or db_count)
-if limit > 0 and current >= limit then
-  return 2
-end
-
-redis.call('SADD', students_key, student_id)
-redis.call('INCR', count_key)
-redis.call('EXPIRE', students_key, ttl)
-redis.call('EXPIRE', count_key, ttl)
-return 0
+local deadline = tonumber(redis.call('ZSCORE', KEYS[1], student))
+if deadline and deadline > now then return 3 end
+if limit > 0 and redis.call('ZCOUNT', KEYS[1], '(' .. now, '+inf') >= limit then return 2 end
+redis.call('ZADD', KEYS[1], now + ttl, student)
+redis.call('HSET', KEYS[2], student, ARGV[4])
+redis.call('EXPIRE', KEYS[1], ttl)
+redis.call('EXPIRE', KEYS[2], ttl)
+return 1

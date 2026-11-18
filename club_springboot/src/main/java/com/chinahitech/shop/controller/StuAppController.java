@@ -32,8 +32,7 @@ public class StuAppController {
     @RepeatLimit
     @RequestMapping("/all")
     public Result getAll(Integer pageNum, Integer pageSize) {
-        List<StuApp> stuApps = stuAppService.query();
-        return PageUtils.ok("items", stuApps, pageNum, pageSize);
+        return PageUtils.ok("items", stuAppService.findallPage(pageNum, pageSize));
     }
 
     /**
@@ -42,8 +41,7 @@ public class StuAppController {
     @RepeatLimit
     @PostMapping("/myApps")
     public Result getMyApps(String stuNumber, Integer pageNum, Integer pageSize) {
-        List<StuApp> stuApps = stuAppService.queryMyapp(stuNumber);
-        return PageUtils.ok("items", stuApps, pageNum, pageSize);
+        return PageUtils.ok("items", stuAppService.findMyappPage(stuNumber, pageNum, pageSize));
     }
 
     /**
@@ -62,8 +60,7 @@ public class StuAppController {
     @RepeatLimit
     @PostMapping("/recApps")
     public Result getRecApps(String groupName, Integer pageNum, Integer pageSize) {
-        List<StuApp> stuApps = stuAppService.queryRecvapp(groupName);
-        return PageUtils.ok("items", stuApps, pageNum, pageSize);
+        return PageUtils.ok("items", stuAppService.findRecvappPage(groupName, pageNum, pageSize));
     }
 
     /**

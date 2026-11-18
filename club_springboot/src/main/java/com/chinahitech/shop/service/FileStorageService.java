@@ -18,4 +18,7 @@ public interface FileStorageService {
      * 读取已上传文件内容。
      */
     byte[] readUploadFile(String fileName) throws IOException;
+
+    /** 提取已上传文档的纯文本，供搜索索引使用；图片和不支持的格式返回空文本。 */
+    String extractText(String fileUrl);
 }

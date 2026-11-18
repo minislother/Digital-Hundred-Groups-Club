@@ -12,7 +12,7 @@ import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.RedisUtils;
 import org.springframework.stereotype.Service;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,11 @@ import java.util.concurrent.Executors;
  * 社团业务实现，处理社团列表/详情缓存、社团资料维护和社团审核通知。
  */
 @Service
+@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
 public class GroupServiceImpl implements GroupService {
+
+    @Resource
+    private com.chinahitech.shop.service.CacheInvalidationService invalidation;
 
     private static final String GROUP_CACHE_PATTERN = "group:*";
     private static final long GROUP_DETAIL_LOGICAL_TTL_MINUTES = 10L;
@@ -258,15 +262,20 @@ public class GroupServiceImpl implements GroupService {
             return;
         }
         RedisUtils.setBusinessCache(key,
-                new CacheData<>(group, LocalDateTime.now().plusMinutes(GROUP_DETAIL_LOGICAL_TTL_MINUTES)));
+                new CacheData<>(group, LocalDateTime.now().plusMinutes(GROUP_DETAIL_LOGICAL_TTL_MINUTES)), 1200);
     }
 
     private void evictGroupCache() {
-        if (!RedisUtils.del(GROUP_CACHE_PATTERN)) {
-            Map<String, Object> msg = new HashMap<>();
-            msg.put("type", "group_cache_evict");
-            msg.put("pattern", GROUP_CACHE_PATTERN);
-            kafkaProducer.send(MqTopics.GROUP_CACHE, JSONUtil.toJsonStr(msg));
-        }
+        invalidation.evict(GROUP_CACHE_PATTERN);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Group> getAllAppPage(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = groupMapper.getAllAppPage(searchInfo, offset, limit);
+        long total = groupMapper.getAllAppCount(searchInfo);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
     }
 }

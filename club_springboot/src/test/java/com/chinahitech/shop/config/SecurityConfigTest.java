@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -153,6 +153,27 @@ class SecurityConfigTest {
         return JwtUtils.generateToken("1001", role);
     }
 
+    @Test @DisplayName("活动搜索 - 匿名拒绝，三个登录角色均可访问")
+    void testSearch_Authorization() throws Exception {
+        // Given / When / Then - 经过真实 JWT 过滤器和 SecurityConfig。
+        mockMvc.perform(get("/activity/search")).andExpect(status().isUnauthorized());
+        for (String role : new String[]{JwtUtils.ROLE_STUDENT, JwtUtils.ROLE_MANAGER, JwtUtils.ROLE_TOP_MANAGER}) {
+            mockMvc.perform(get("/activity/search").header("X-Token", token(role))).andExpect(status().isOk());
+        }
+    }
+
+    @Test @DisplayName("索引回填 - 仅超级管理员可操作")
+    void testSearchRebuild_Authorization() throws Exception {
+        // Given / When / Then
+        mockMvc.perform(post("/search/index/rebuildActivities")).andExpect(status().isUnauthorized());
+        for (String role : new String[]{JwtUtils.ROLE_STUDENT, JwtUtils.ROLE_MANAGER}) {
+            mockMvc.perform(post("/search/index/rebuildActivities").header("X-Token", token(role)))
+                    .andExpect(status().isForbidden());
+        }
+        mockMvc.perform(post("/search/index/rebuildActivities").header("X-Token", token(JwtUtils.ROLE_TOP_MANAGER)))
+                .andExpect(status().isOk());
+    }
+
     @SpringBootConfiguration
     @EnableAutoConfiguration
     @Import(SecurityConfig.class)
@@ -161,6 +182,12 @@ class SecurityConfigTest {
 
     @RestController
     static class TestEndpoints {
+
+        @GetMapping("/activity/search")
+        String search() { return "ok"; }
+
+        @PostMapping("/search/index/rebuildActivities")
+        String rebuild() { return "queued"; }
 
         @PostMapping(value = "/topManager/register", produces = MediaType.TEXT_PLAIN_VALUE)
         String topManagerRegister() {

@@ -22,7 +22,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/activity")
@@ -34,18 +33,24 @@ public class ActivityController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private com.chinahitech.shop.service.ActivitySearchService activitySearchService;
+
+    /** Elasticsearch 多字段搜索；ES 未启用或不可用时自动回退 MySQL。 */
+    @RepeatLimit
+    @RequestMapping("/search")
+    public Result search(String keyword, Integer pageNum, Integer pageSize) {
+        return activitySearchService.searchPage(keyword, pageNum, pageSize);
+    }
+
     /**
      * 查询活动列表，支持按关键字筛选，并对结果做分页返回。
      */
     @RepeatLimit
     @RequestMapping("/all")
     public Result getAll(String searchInfo, Integer pageNum, Integer pageSize) {
-        if (PageUtils.isPageRequest(pageNum, pageSize)) {
-            PageResult<Activity> page = activityService.queryPageCached(searchInfo, pageNum, pageSize);
-            return PageUtils.ok("items", page);
-        }
-        List<Activity> activities = activityService.queryCached(searchInfo);
-        return PageUtils.ok("items", activities, pageNum, pageSize);
+        PageResult<Activity> page = activityService.queryPageCached(searchInfo, pageNum, pageSize);
+        return PageUtils.ok("items", page);
     }
 
     /**
@@ -135,8 +140,7 @@ public class ActivityController {
     @RepeatLimit
     @PostMapping("/myActivity")
     public Result getMyActivity(String groupName, String searchInfo, Integer pageNum, Integer pageSize) {
-        List<Activity> activities = filterActivities(activityService.getActivityByGroupName(groupName), searchInfo);
-        return PageUtils.ok("items", activities, pageNum, pageSize);
+        return PageUtils.ok("items", activityService.getActivityByGroupNamePage(groupName, searchInfo, pageNum, pageSize));
     }
 
     /**
@@ -145,8 +149,7 @@ public class ActivityController {
     @RepeatLimit
     @PostMapping("/myApps")
     public Result getMyApps(String groupName, String searchInfo, Integer pageNum, Integer pageSize) {
-        List<Activity> activities = filterActivities(activityService.getActivityByGroupName(groupName), searchInfo);
-        return PageUtils.ok("items", activities, pageNum, pageSize);
+        return PageUtils.ok("items", activityService.getActivityByGroupNamePage(groupName, searchInfo, pageNum, pageSize));
     }
 
     /**
@@ -212,8 +215,7 @@ public class ActivityController {
     @RepeatLimit
     @RequestMapping("/allApps")
     public Result getAllApps(String searchinfo, Integer pageNum, Integer pageSize) {
-        List<Activity> activities = activityService.getAllApp(searchinfo);
-        return PageUtils.ok("items", activities, pageNum, pageSize);
+        return PageUtils.ok("items", activityService.getAllAppPage(searchinfo, pageNum, pageSize));
     }
 
     /**
@@ -249,7 +251,7 @@ public class ActivityController {
     /**
      * 学生报名活动，使用当前登录学生编号提交报名申请。
      */
-    @RepeatLimit
+    @RepeatLimit(failOpenOnRedisError = true)
     @PostMapping("/applyJoin")
     public Result applyJoin(Integer activityId, Authentication authentication) {
         if (activityId == null) {
@@ -267,8 +269,7 @@ public class ActivityController {
     @PostMapping("/myJoinedActivities")
     public Result myJoinedActivities(Integer pageNum, Integer pageSize, Authentication authentication) {
         Integer studentId = currentStudentId(authentication);
-        List<Activity> list = activityService.getMyJoinedActivities(studentId);
-        return PageUtils.ok("items", list, pageNum, pageSize);
+        return PageUtils.ok("items", activityService.getMyJoinedActivitiesPage(studentId, pageNum, pageSize));
     }
 
     /**
@@ -277,8 +278,7 @@ public class ActivityController {
     @RepeatLimit
     @PostMapping("/getActivityApplicants")
     public Result getActivityApplicants(Integer activityId, Integer pageNum, Integer pageSize) {
-        List<Map<String, Object>> list = activityService.getActivityApplicants(activityId);
-        return PageUtils.ok("items", list, pageNum, pageSize);
+        return PageUtils.ok("items", activityService.getActivityApplicantsPage(activityId, pageNum, pageSize));
     }
 
     /**
@@ -295,27 +295,17 @@ public class ActivityController {
         return Result.ok().data("fileUrl", storedFile.getFileUrl());
     }
 
-    private List<Activity> filterActivities(List<Activity> activities, String searchInfo) {
-        if (searchInfo == null || searchInfo.trim().isEmpty()) {
-            return activities;
-        }
-        String keyword = searchInfo.trim().toLowerCase();
-        return activities.stream()
-                .filter(activity -> containsIgnoreCase(activity.getName(), keyword)
-                        || containsIgnoreCase(activity.getOrganizer(), keyword)
-                        || containsIgnoreCase(activity.getGroupName(), keyword))
-                .collect(Collectors.toList());
-    }
-
-    private boolean containsIgnoreCase(String value, String keyword) {
-        return value != null && value.toLowerCase().contains(keyword);
-    }
-
     private Integer currentStudentId(Authentication authentication) {
         try {
             return Integer.valueOf(SecurityUtils.currentUserId(authentication));
         } catch (NumberFormatException e) {
             throw new BusinessException("PARAM_ERROR", "用户编号不合法");
         }
+    }
+
+    @RepeatLimit
+    @RequestMapping("/searchSlice")
+    public Result searchSlice(String keyword, Integer pageSize, String cursor) {
+        return activitySearchService.searchSlice(keyword, pageSize, cursor);
     }
 }

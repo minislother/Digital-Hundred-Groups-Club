@@ -135,7 +135,7 @@ DROP TABLE IF EXISTS `individual_activity`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `individual_activity` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '编号',
-  `user_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '用户编号',
+  `user_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户编号',
   `position` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '用户职位',
   `user_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '用户姓名',
   `status` int DEFAULT NULL COMMENT '权限级别',
@@ -143,9 +143,10 @@ CREATE TABLE `individual_activity` (
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
   `modify_user` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '修改者',
   `modify_time` datetime DEFAULT NULL COMMENT '修改时间',
-  `activity_id` int DEFAULT NULL COMMENT '活动编号',
+  `activity_id` int NOT NULL COMMENT '活动编号',
   `is_accepted` tinyint(1) DEFAULT NULL COMMENT '是否通过',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uk_individual_activity_activity_user` (`activity_id`,`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

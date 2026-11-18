@@ -26,7 +26,11 @@ import Layout from '@/layout'
  * a base page that does not have permission requirements
  * all roles can be accessed
  */
-export const constantRoutes = [
+export const constantRoutes = [{
+  path: '/knowledge', component: Layout,
+  children: [{ path: '', name: 'ClubKnowledge', component: () => import('@/views/knowledge/index'), meta: { title: '社团知识库', icon: 'documentation' } }]
+},
+
   {
     path: '/login',
     component: () => import('@/views/login/index'),
@@ -90,6 +94,17 @@ export const constantRoutes = [
         meta: { title: '活动审批管理', icon: 'el-icon-s-flag' }
       }
     ]
+  },
+
+  {
+    path: '/admission-dead-letters',
+    component: Layout,
+    children: [{
+      path: 'index',
+      name: 'AdmissionDeadLetters',
+      component: () => import('@/views/admission-dead-letters/index'),
+      meta: { title: '报名异常补偿', icon: 'el-icon-warning-outline' }
+    }]
   },
 
   {

@@ -10,9 +10,9 @@
           v-model="searchInfo"
           placeholder="搜索成员姓名或学号"
           clearable
-          @keyup.enter="handleSearch"
+          @keyup.enter="pageNumber = 1; handleSearch()"
         />
-        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="pageNumber = 1; handleSearch()">搜索</el-button>
       </div>
     </section>
 
@@ -33,12 +33,13 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination :current-page="pageNumber" :page-size="20" :total="totalItems"
+      layout="prev, pager, next, total" @current-change="page => { pageNumber = page; handleSearch() }" />
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-import { searchStudent } from '@/api/user.js'
 import { getStudentList } from '@/api/table.js'
 
 export default {
@@ -53,17 +54,13 @@ export default {
     return {
       studentlist: [],
       totalItems: 0,
+      pageNumber: 1,
       searchInfo: ''
     }
   },
   // 组件创建后加载页面初始数据。
   created() {
-    getStudentList(this.$store.getters.currentClubId, null).then((response) => {
-      this.studentlist = response.data.items
-    })
-      .catch(error => {
-        console.error(error)
-      })
+    this.handleSearch()
     if (!this.$store.getters.isClubSelected) {
       this.$message.warning('登录身份失效，请重新登录')
       this.reload()
@@ -79,9 +76,10 @@ export default {
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
-      searchStudent(this.searchInfo)
+      getStudentList(this.$store.getters.currentClubId, this.searchInfo, this.pageNumber, 20)
         .then((response) => {
           this.studentlist = response.data.items
+          this.totalItems = response.data.page.total
         })
         .catch((error) => {
           console.error(error)

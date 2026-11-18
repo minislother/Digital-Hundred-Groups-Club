@@ -1,0 +1,11 @@
+packages:
+  - frontend-shared
+  - web_portal
+  - vue_student
+  - vue_admin
+  - vue_superadmin
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': true
+  core-js: false
+  yorkie: false

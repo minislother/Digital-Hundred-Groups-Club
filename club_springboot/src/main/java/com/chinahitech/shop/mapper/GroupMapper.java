@@ -67,4 +67,10 @@ public interface GroupMapper {
     void confirmApplication(@Param("groupId") Integer groupId);
 
     void denyApplication(@Param("groupId") Integer groupId);
+
+    java.util.List<Group> getAllAppPage(@org.apache.ibatis.annotations.Param("searchInfo") String searchInfo, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getAllAppCount(@org.apache.ibatis.annotations.Param("searchInfo") String searchInfo);
+
+    java.util.List<Group> findByIds(@org.apache.ibatis.annotations.Param("ids") java.util.List<Integer> ids);
 }

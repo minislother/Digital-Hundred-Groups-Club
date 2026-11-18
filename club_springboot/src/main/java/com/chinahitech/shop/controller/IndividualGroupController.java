@@ -35,10 +35,12 @@ public class IndividualGroupController {
      */
     @RepeatLimit
     @RequestMapping("/allGroups")
+    public Result getIndividualGroup(Integer pageNum, Integer pageSize, Authentication authentication) {
+        return individualGroupService.studentGroupsPage(SecurityUtils.currentUserId(authentication), pageNum, pageSize);
+    }
+
     public Result getIndividualGroup(Authentication authentication) {
-        String studentId = SecurityUtils.currentUserId(authentication);
-        Map<String, Object> map = individualGroupService.getStudentGroupsCached(studentId);
-        return Result.ok().data(map);
+        return getIndividualGroup(1, 10, authentication);
     }
 
     /**
@@ -58,8 +60,8 @@ public class IndividualGroupController {
     @RepeatLimit
     @RequestMapping("/getStudentsByGroup")
     public Result getStudentsByGroup(int groupId, String searchInfo, Integer pageNum, Integer pageSize) {
-        List<IndividualGroup> studentList = individualGroupService.getStudentsByGroupCached(groupId, searchInfo);
-        return PageUtils.ok("items", studentList, pageNum, pageSize);
+        return PageUtils.ok("items", individualGroupService.getMembershipPage(
+                groupId, 1, searchInfo, pageNum, pageSize));
     }
 
     /**
@@ -68,8 +70,8 @@ public class IndividualGroupController {
     @RepeatLimit
     @RequestMapping("/getGroupApplyList")
     public Result getGroupApplyList(int groupId, Integer pageNum, Integer pageSize) {
-        List<IndividualGroup> applyList = individualGroupService.getGroupApplyListCached(groupId);
-        return PageUtils.ok("items", applyList, pageNum, pageSize);
+        return PageUtils.ok("items", individualGroupService.getMembershipPage(
+                groupId, 0, null, pageNum, pageSize));
     }
 
     /**
@@ -136,13 +138,9 @@ public class IndividualGroupController {
     public Result getAllManagedGroups(Integer pageNum, Integer pageSize, Authentication authentication) {
         // 管理端查询只允许查看当前登录管理员负责的社团。
         String managerId = SecurityUtils.currentUserId(authentication);
-        if (PageUtils.isPageRequest(pageNum, pageSize)) {
-            PageResult<Group> page = individualGroupService
-                    .getAllManagedGroupsPageCached(managerId, pageNum, pageSize);
-            return PageUtils.ok("items", page);
-        }
-        List<Group> groupList = individualGroupService.getAllManagedGroupsCached(managerId);
-        return PageUtils.ok("items", groupList, pageNum, pageSize);
+        PageResult<Group> page = individualGroupService
+                .getAllManagedGroupsPageCached(managerId, pageNum, pageSize);
+        return PageUtils.ok("items", page);
     }
 
     /**
@@ -174,8 +172,7 @@ public class IndividualGroupController {
     @RepeatLimit
     @RequestMapping("/getAllStudents")
     public Result getAllStudents(String searchInfo, Integer pageNum, Integer pageSize) {
-        List<IndividualGroup> studentList = individualGroupService.getAllStudents(searchInfo);
-        return PageUtils.ok("items", studentList, pageNum, pageSize);
+        return individualGroupService.membershipTreePage(searchInfo, pageNum, pageSize);
     }
 
     /**
@@ -186,5 +183,18 @@ public class IndividualGroupController {
     public Result getGroupMembers() {
         List<GroupNum> groupList = individualGroupService.getGroupMembersCached();
         return Result.ok().data("items", groupList);
+    }
+
+    /** 当前登录学生的游标列表，适合连续翻页。 */
+    @RepeatLimit
+    @RequestMapping("/studentSlice")
+    public Result studentSlice(Long beforeId, Integer pageSize, Authentication authentication) {
+        return individualGroupService.studentSlice(SecurityUtils.currentUserId(authentication), beforeId, pageSize);
+    }
+
+    @RepeatLimit
+    @RequestMapping("/memberSlice")
+    public Result memberSlice(int resourceId, int status, Long beforeId, Integer pageSize, Authentication authentication) {
+        return individualGroupService.memberSlice(resourceId, status, beforeId, pageSize, SecurityUtils.currentUserId(authentication));
     }
 }

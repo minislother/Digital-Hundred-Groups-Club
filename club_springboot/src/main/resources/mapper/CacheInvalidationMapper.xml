@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.CacheInvalidationMapper">
+    <insert id="insert">
+        insert into cache_invalidation_task(id, patterns, next_attempt_at)
+        values(#{id}, #{patterns}, date_add(now(), interval 10 second))
+    </insert>
+    <select id="find" resultType="com.chinahitech.shop.bean.CacheInvalidationTask">
+        select id, patterns from cache_invalidation_task where id = #{id}
+    </select>
+    <select id="findDue" resultType="com.chinahitech.shop.bean.CacheInvalidationTask">
+        select id, patterns from cache_invalidation_task
+        where next_attempt_at &lt;= now() order by next_attempt_at, id limit 20
+    </select>
+    <delete id="complete">delete from cache_invalidation_task where id = #{id}</delete>
+    <update id="defer">
+        update cache_invalidation_task
+        set attempts = attempts + 1,
+            next_attempt_at = date_add(now(), interval 30 second)
+        where id = #{id}
+    </update>
+</mapper>

@@ -2,6 +2,9 @@ package com.chinahitech.shop.constant;
 
 public final class MqTopics {
 
+    public static final String CACHE_RETRY = "cache_invalidation_retry_topic";
+    public static final String ACTIVITY_ADMISSION = "activity_admission_topic";
+
     public static final String ACTIVITY = "activity_topic";
     public static final String ACTIVITY_CACHE = "activity_cache_topic";
     public static final String GROUP = "group_topic";

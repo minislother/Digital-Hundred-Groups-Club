@@ -36,14 +36,14 @@ class IndividualGroupControllerTest {
     void testGetIndividualGroup_AuthenticatedUser_CallServiceWithPrincipal() {
         // Given - authenticated student
         Authentication authentication = new UsernamePasswordAuthenticationToken("1001", null);
-        when(individualGroupService.getStudentGroupsCached("1001")).thenReturn(Collections.emptyMap());
+        when(individualGroupService.studentGroupsPage("1001", 1, 10)).thenReturn(Result.ok());
 
         // When - querying student groups
         Result result = individualGroupController.getIndividualGroup(authentication);
 
         // Then - service receives principal from authentication
         assertTrue(result.getSuccess());
-        verify(individualGroupService).getStudentGroupsCached("1001");
+        verify(individualGroupService).studentGroupsPage("1001", 1, 10);
     }
 
     @Test
@@ -51,7 +51,7 @@ class IndividualGroupControllerTest {
     void testGetIndividualGroup_MissingAuthentication_ThrowException() {
         // When & Then - unauthenticated request is rejected before service call
         assertThrows(RuntimeException.class, () -> individualGroupController.getIndividualGroup(null));
-        verify(individualGroupService, never()).getStudentGroupsCached("1001");
+        verify(individualGroupService, never()).studentGroupsPage("1001", 1, 10);
     }
 
     @Test

@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 根据筛选条件查询并更新列表结果。
-export function searchActivities(searchInfo) {
+export function searchActivities(searchInfo, pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
-    url: '/activity/all',
+    url: '/activity/allApps',
     method: 'post',
-    params: { searchInfo }
+    params: { searchinfo: searchInfo, ...pagination }
   })
 }
 
@@ -63,12 +63,25 @@ export function rejectActivity(activityId) {
   })
 }
 
+export function listAdmissionDeadLetters() {
+  return request({ url: '/admin/activity-admission/dead-letters', method: 'get' })
+}
+
+export function retryAdmissionDeadLetter(id) {
+  return request({ url: `/admin/activity-admission/dead-letters/${id}/retry`, method: 'post' })
+}
+
+export function resolveAdmissionDeadLetter(id) {
+  return request({ url: `/admin/activity-admission/dead-letters/${id}/resolve`, method: 'post' })
+}
+
 // super admin
 // 读取并返回业务数据或页面状态。
-export function getAllApps() {
+export function getAllApps(pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
     url: '/activity/allApps',
-    method: 'post'
+    method: 'post',
+    params: pagination
   })
 }
 

@@ -30,4 +30,16 @@ public interface StuAppMapper extends BaseMapper<StuApp> {
     int confirmApplicationByid(@Param("applicationId") Integer applicationId);
 
     int denyApplicationByid(@Param("applicationId") Integer applicationId);
+
+    java.util.List<StuApp> findallPage(@org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long findallCount();
+
+    java.util.List<StuApp> findMyappPage(@org.apache.ibatis.annotations.Param("stunumber") String stunumber, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long findMyappCount(@org.apache.ibatis.annotations.Param("stunumber") String stunumber);
+
+    java.util.List<StuApp> findRecvappPage(@org.apache.ibatis.annotations.Param("groupName") String groupName, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long findRecvappCount(@org.apache.ibatis.annotations.Param("groupName") String groupName);
 }

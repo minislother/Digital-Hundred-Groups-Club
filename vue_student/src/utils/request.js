@@ -8,7 +8,8 @@ const service = shared.createRequest({
   axios,
   MessageBox,
   Message,
-  store,
+  // 延迟读取状态容器，避免 ESM 下 store → API → request 的循环初始化。
+  store: { dispatch: (...args) => store.dispatch(...args) },
   getToken,
   baseURL: process.env.VUE_APP_BASE_API
 })

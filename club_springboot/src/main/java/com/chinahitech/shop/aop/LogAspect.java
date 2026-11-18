@@ -19,9 +19,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
@@ -37,11 +37,11 @@ public class LogAspect {
     private static final String[] SENSITIVE_FIELDS = {
             "password", "salt", "valicode", "validateCode", "token",
             "userId", "userNumber", "studentId", "stuNumber", "stunumber",
-            "phone", "email"
+            "phone", "email", "userName", "username"
     };
     private static final Set<String> SENSITIVE_FIELD_NAMES = new HashSet<>(Arrays.asList(
             "password", "pwd", "salt", "valicode", "validatecode", "token",
-            "userid", "usernumber", "studentid", "stunumber", "phone", "email"
+            "userid", "usernumber", "studentid", "stunumber", "phone", "email", "userName", "username"
     ));
 
     /**

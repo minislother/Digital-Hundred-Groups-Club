@@ -1,0 +1,57 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+spring:
+  application:
+    name: baituan-gateway
+  profiles:
+    default: local
+  cloud:
+    consul:
+      enabled: false
+    circuitbreaker:
+      bulkhead:
+        resilience4j:
+          # Gateway request concurrency is governed by rate limiting and backend capacity.
+          # Avoid the default per-circuit bulkhead rejecting concurrent reactive requests.
+          enabled: false
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 15s
+          metrics:
+            enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+resilience4j:
+  timelimiter:
+    instances:
+      clubBackend:
+        timeoutDuration: 20s
+      knowledgeBackend:
+        timeoutDuration: 200s
+  circuitbreaker:
+    instances:
+      clubBackend:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    redis:
+      enabled: false
+app:
+  gateway:
+    rate-limit-enabled: ${GATEWAY_RATE_LIMIT_ENABLED:false}

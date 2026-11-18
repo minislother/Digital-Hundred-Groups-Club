@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Map;
 
 @Slf4j
@@ -24,7 +24,7 @@ public class UserImportKafkaConsumer {
             String filePath = String.valueOf(map.get("filePath"));
             topManagerService.importExcelFile(filePath);
         } catch (Exception e) {
-            log.error("User import message consume failed. message={}", message, e);
+            log.error("User import message consume failed; payload omitted. type={}", e.getClass().getSimpleName());
         }
     }
 }

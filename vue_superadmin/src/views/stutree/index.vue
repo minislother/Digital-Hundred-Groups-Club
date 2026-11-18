@@ -7,7 +7,7 @@
       </div>
       <el-input
         v-model="filterText"
-        placeholder="输入社团、姓名或学号筛选"
+        placeholder="筛选当前页的社团、姓名或学号"
         clearable
       />
     </section>
@@ -39,19 +39,22 @@
         <el-button @click="dialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+    <el-pagination :current-page="pageNumber" :page-size="50" :total="pageTotal"
+      layout="prev, pager, next, total" @current-change="page => { pageNumber = page; fetchPage() }" />
   </div>
 </template>
 
 <script>
 import arrayToTree from 'array-to-tree'
 import { getAllStudent } from '@/api/user.js'
-import { getList } from '@/api/table.js'
 
 export default {
   // 提供组件初始响应式数据。
   data() {
     return {
       filterText: '',
+      pageNumber: 1,
+      pageTotal: 0,
       studentlist: [],
       grouplist: [],
       searchInfo: '',
@@ -68,24 +71,15 @@ export default {
     }
   },
   // 组件创建后加载页面初始数据。
-  created() {
-    getAllStudent(this.searchInfo).then((response) => {
-      this.studentlist = response.data.items
-      this.createtree()
-    })
-      .catch(error => {
-        console.error(error)
-      })
-
-    getList(this.searchInfo).then((response) => {
-      this.grouplist = response.data.items
-      this.createtree()
-    })
-      .catch(error => {
-        console.error(error)
-      })
-  },
+  created() { this.fetchPage() },
   methods: {
+    async fetchPage() {
+      const response = await getAllStudent(this.searchInfo, { pageNum: this.pageNumber, pageSize: 50 })
+      this.studentlist = response.data.items
+      this.grouplist = response.data.groups
+      this.pageTotal = response.data.page.total
+      this.createtree()
+    },
     // 处理当前组件的业务逻辑或用户交互。
     filterNode(value, data) {
       if (!value) return true
@@ -95,12 +89,13 @@ export default {
     // 创建业务数据或初始化页面结构。
     createtree() {
       if (!this.studentlist.length || !this.grouplist.length) {
+        this.data2 = []
         return
       }
       this.index = 1
       this.grouplist.forEach((item, index) => {
         item.index = this.grouplist[index].id
-        this.index = this.grouplist[index].id
+        this.index = Math.max(this.index, this.grouplist[index].id)
       })
       this.index = this.index + 1
       this.studentlist.forEach(item => {

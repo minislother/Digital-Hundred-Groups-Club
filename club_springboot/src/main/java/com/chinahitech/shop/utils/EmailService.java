@@ -4,11 +4,11 @@ import com.chinahitech.shop.exception.EmailException;
 import com.chinahitech.shop.exception.RedisAddException;
 import org.springframework.scheduling.annotation.Async;
 
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Message;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 import java.util.Random;
 
@@ -71,7 +71,7 @@ public class EmailService {
             transport.close();
         }
 
-        boolean check = RedisUtils.set(toEmail, valicode, 300);
+        boolean check = RedisUtils.set(ContactCipher.verificationKey(toEmail), valicode, 300);
         if (!check) {
             /**
              * 新增业务数据或追加界面状态。

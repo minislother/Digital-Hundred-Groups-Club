@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +33,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/topManager")
 public class TopManagerController {
+    /** 完整联系方式单独读取，明确校验超级管理员权限，列表默认只返回掩码。 */
+    @GetMapping("/contactDetail")
+    public Result contactDetail(String userNumber, Authentication authentication) {
+        SecurityUtils.currentUserId(authentication);
+        if (authentication.getAuthorities().stream().noneMatch(a -> "ROLE_TOP_MANAGER".equals(a.getAuthority()))) {
+            throw new com.chinahitech.shop.exception.BusinessException("FORBIDDEN", "无权查看完整联系方式");
+        }
+        User user = topManagerService.getContactUser(userNumber);
+        if (user == null) throw new com.chinahitech.shop.exception.BusinessException("NOT_FOUND", "用户不存在");
+        return Result.ok().data("email", user.getEmail()).data("phone", user.getPhone());
+    }
+
     @Autowired
     private TopManagerService topManagerService;
 
@@ -196,12 +208,9 @@ public class TopManagerController {
     @RepeatLimit
     @RequestMapping("/getAllUsers")
     public Result getAllUsers(String searchInfo, Integer pageNum, Integer pageSize) {
-        if (PageUtils.isPageRequest(pageNum, pageSize)) {
-            PageResult<User> page = topManagerService.getAllUsersPage(searchInfo, pageNum, pageSize);
-            return PageUtils.ok("items", page);
-        }
-        List<User> users = topManagerService.getAllUsers(searchInfo);
-        return PageUtils.ok("items", users, pageNum, pageSize);
+        PageResult<User> page = topManagerService.getAllUsersPage(searchInfo, pageNum, pageSize);
+        page.setRecords(page.getRecords().stream().map(com.chinahitech.shop.utils.ContactPrivacy::summary).toList());
+        return PageUtils.ok("items", page);
     }
 
     /**
@@ -225,16 +234,33 @@ public class TopManagerController {
     }
 
     /**
-     * 超级管理员上传用户 Excel 文件，并将批量导入任务加入后台处理队列。
+     * 超级管理员上传用户 Excel 文件，登记数据库任务后立即返回任务编号。
      */
     @RepeatLimit
     @PostMapping("/uploadExcel")
-    public Result uploadExcel(@RequestParam("file") MultipartFile file) {
-        StoredFile storedFile = fileStorageService.store(file);
-        topManagerService.enqueueUploadExcel(storedFile.getFilePath());
-        return Result.ok()
-                .message("上传成功，已开始导入")
-                .data("fileUrl", storedFile.getFileUrl());
+    public Result uploadExcel(@RequestParam("file") MultipartFile file, Authentication authentication) {
+        return Result.ok().message("文件已接收，等待导入")
+                .data("task", userImportService.submit(file, SecurityUtils.currentUserId(authentication)));
+    }
+
+    @Autowired
+    private com.chinahitech.shop.service.UserImportService userImportService;
+
+    /** 只允许上传人查询自己的任务和失败明细。 */
+    @GetMapping("/importTasks")
+    public Result importTasks(Authentication authentication) {
+        return Result.ok().data("tasks", userImportService.list(SecurityUtils.currentUserId(authentication)));
+    }
+
+    @GetMapping("/importTasks/{id}")
+    public Result importTask(@org.springframework.web.bind.annotation.PathVariable String id, Authentication authentication) {
+        return Result.ok().data("task", userImportService.get(id, SecurityUtils.currentUserId(authentication)));
+    }
+
+    @GetMapping("/importTasks/{id}/errors")
+    public Result importErrors(@org.springframework.web.bind.annotation.PathVariable String id,
+            @RequestParam(defaultValue="0") long after, Authentication authentication) {
+        return Result.ok().data("errors", userImportService.errors(id, SecurityUtils.currentUserId(authentication), after));
     }
 
     /**

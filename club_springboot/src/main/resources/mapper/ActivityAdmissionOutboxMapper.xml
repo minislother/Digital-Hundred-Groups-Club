@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinahitech.shop.mapper.ActivityAdmissionOutboxMapper">
+    <insert id="insert">
+        insert into activity_admission_outbox(id, payload, attempts, next_attempt_at)
+        values(#{id}, #{payload}, 0, now())
+    </insert>
+    <select id="findDue" resultType="com.chinahitech.shop.bean.ActivityAdmissionOutbox">
+        select id, payload, attempts, next_attempt_at, date_add(now(), interval 120 second) as claim_until
+        from activity_admission_outbox
+        where sent_at is null and dead_at is null and next_attempt_at &lt;= now()
+        order by next_attempt_at, id limit 100
+    </select>
+    <select id="backlog" resultType="com.chinahitech.shop.mapper.ActivityAdmissionOutboxMapper$OutboxBacklog" timeout="3">
+        select count(*) as pending,
+               coalesce(timestampdiff(second, min(created_at), now()), 0) as oldestSeconds
+        from activity_admission_outbox
+        where sent_at is null and dead_at is null
+    </select>
+    <!-- 推迟下次可见时间作为租约，避免新增字段并允许崩溃后重新认领。 -->
+    <update id="claim">
+        update activity_admission_outbox set next_attempt_at = #{claimUntil}
+        where id = #{id} and sent_at is null and dead_at is null
+          and next_attempt_at = #{dueAt} and next_attempt_at &lt;= now()
+          and #{claimUntil} &gt;= date_add(now(), interval 90 second)
+    </update>
+    <update id="markSent">
+        update activity_admission_outbox set sent_at = now(), last_error = null
+        where id = #{id} and sent_at is null and dead_at is null and next_attempt_at = #{claimUntil}
+    </update>
+    <update id="defer">
+        update activity_admission_outbox
+        set last_error = #{error},
+            dead_at = case when attempts + 1 >= 5 then now() else dead_at end,
+            next_attempt_at = date_add(now(), interval least(300, greatest(5, (attempts + 1) * 2)) second),
+            attempts = attempts + 1
+        where id = #{id} and sent_at is null and dead_at is null and next_attempt_at = #{claimUntil}
+    </update>
+    <select id="findDead" resultType="com.chinahitech.shop.bean.ActivityAdmissionOutbox">
+        select id, payload, attempts, next_attempt_at, dead_at, last_error from activity_admission_outbox
+        where sent_at is null and dead_at is not null order by dead_at desc limit 200
+    </select>
+    <update id="retryDead">update activity_admission_outbox set dead_at = null, attempts = 0, next_attempt_at = now() where id = #{id} and sent_at is null and dead_at is not null</update>
+    <update id="resolve">update activity_admission_outbox set sent_at = now() where id = #{id} and sent_at is null and dead_at is not null</update>
+</mapper>

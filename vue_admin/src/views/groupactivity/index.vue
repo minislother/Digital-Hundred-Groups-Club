@@ -26,6 +26,8 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination :current-page="pageNumber" :page-size="20" :total="pageTotal"
+      layout="prev, pager, next, total" @current-change="page => { pageNumber = page; fetchPage() }" />
   </div>
 </template>
 
@@ -43,12 +45,17 @@ export default {
   // 提供组件初始响应式数据。
   data() {
     return {
+      pageNumber: 1,
+      pageTotal: 0,
       activities: []
     }
   },
   // 组件创建后加载页面初始数据。
-  created() {
-    getMyActivity(this.$store.getters.currentClubName).then((response) => {
+  created() { this.fetchPage() },
+  methods: {
+    fetchPage() {
+getMyActivity(this.$store.getters.currentClubName, { pageNum: this.pageNumber, pageSize: 20 }).then((response) => {
+        this.pageTotal = response.data.page.total
       this.activities = response.data.items
     })
       .catch(error => {
@@ -58,8 +65,7 @@ export default {
       this.$message.warning('登录身份失效，请重新登录')
       this.reload()
     }
-  },
-  methods: {
+    },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleRowClick(row) {
       const aid = row.id

@@ -150,13 +150,13 @@ class GroupControllerTest {
     @DisplayName("allApps - returns paged applications")
     void testGetAllApps_ReturnPagedApplications() {
         Group group = new Group();
-        when(groupService.getAllApp("computer")).thenReturn(Collections.singletonList(group));
+        when(groupService.getAllAppPage("computer", 1, 10)).thenReturn(PageUtils.pageResult(Collections.singletonList(group), 1, 1, 10));
 
         Result result = groupController.getAllApps("computer", 1, 10);
 
         assertTrue(result.getSuccess());
         assertSame(group, ((java.util.List<?>) result.getData().get("items")).get(0));
-        verify(groupService).getAllApp("computer");
+        verify(groupService).getAllAppPage("computer", 1, 10);
     }
 
     @Test

@@ -60,4 +60,38 @@
         set is_accepted = false
         where application_id = #{applicationId}
     </update>
+    <sql id="findallPageQuery">select *
+        from `stu_app`</sql>
+    <select id="findallPage" resultType="com.chinahitech.shop.bean.StuApp">
+        <include refid="findallPageQuery"/>
+        order by application_id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="findallCount" resultType="long">
+        select count(*) from `stu_app`
+    </select>
+    <sql id="findMyappPageQuery">select *
+        from `stu_app`
+        where stu_number = #{stunumber}</sql>
+    <select id="findMyappPage" resultType="com.chinahitech.shop.bean.StuApp">
+        <include refid="findMyappPageQuery"/>
+        order by application_id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="findMyappCount" resultType="long">
+        select count(*) from `stu_app`
+        where stu_number = #{stunumber}
+    </select>
+    <sql id="findRecvappPageQuery">select *
+        from `stu_app`
+        where group_name = #{groupName}</sql>
+    <select id="findRecvappPage" resultType="com.chinahitech.shop.bean.StuApp">
+        <include refid="findRecvappPageQuery"/>
+        order by application_id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="findRecvappCount" resultType="long">
+        select count(*) from `stu_app`
+        where group_name = #{groupName}
+    </select>
 </mapper>

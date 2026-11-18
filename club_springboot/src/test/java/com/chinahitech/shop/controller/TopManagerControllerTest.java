@@ -15,7 +15,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,8 +33,29 @@ class TopManagerControllerTest {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private com.chinahitech.shop.service.UserImportService userImportService;
+
     @InjectMocks
     private TopManagerController topManagerController;
+
+    @Test
+    @DisplayName("上传文件 - 创建本人任务且不调用旧消息队列链路")
+    void testUploadExcel_CreatesOwnedTask() {
+        // Given - 已认证超级管理员上传文件。
+        var file = new org.springframework.mock.web.MockMultipartFile("file", "users.xlsx", "application/octet-stream", new byte[]{1});
+        Authentication authentication = new UsernamePasswordAuthenticationToken("admin001", null);
+        var task = new com.chinahitech.shop.bean.UserImportTask();
+        task.setId("task-1");
+        org.mockito.Mockito.when(userImportService.submit(file, "admin001")).thenReturn(task);
+        // When - 接收上传。
+        Result result = topManagerController.uploadExcel(file, authentication);
+        // Then - 返回任务，旧同步及 Kafka 导入均未调用。
+        assertTrue(result.getSuccess());
+        assertEquals(task, result.getData().get("task"));
+        verify(userImportService).submit(file, "admin001");
+        org.mockito.Mockito.verifyNoInteractions(topManagerService, fileStorageService);
+    }
 
     @Test
     @DisplayName("register - delegates to service")

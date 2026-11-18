@@ -59,7 +59,12 @@ public final class PageUtils {
 
     /** 计算 SQL OFFSET，页码和每页数量会先按系统上限进行归一化。 */
     public static int offset(Integer pageNum, Integer pageSize) {
-        return (normalizePageNum(pageNum) - 1) * normalizePageSize(pageSize);
+        long offset = (long) (normalizePageNum(pageNum) - 1) * normalizePageSize(pageSize);
+        if (offset > 10000) {
+            throw new com.chinahitech.shop.exception.BusinessException("PAGE_TOO_DEEP",
+                    "页码超出查询范围，请缩小筛选范围或使用游标分页");
+        }
+        return (int) offset;
     }
 
     /** 返回限制在 1 到 100 之间的数据库分页大小。 */
@@ -72,7 +77,7 @@ public final class PageUtils {
         int normalizedPageNum = normalizePageNum(pageNum);
         int normalizedPageSize = normalizePageSize(pageSize);
         int total = safeSource.size();
-        int fromIndex = Math.min((normalizedPageNum - 1) * normalizedPageSize, total);
+        int fromIndex = Math.min(offset(pageNum, pageSize), total);
         int toIndex = Math.min(fromIndex + normalizedPageSize, total);
 
         return pageResult(safeSource.subList(fromIndex, toIndex), total,

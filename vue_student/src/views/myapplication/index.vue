@@ -51,6 +51,8 @@
         <el-button type="primary" @click="$router.push({ name: 'Dashboard' })">浏览社团</el-button>
       </aside>
     </section>
+    <el-pagination :current-page="pageNumber" :page-size="20" :total="pageTotal"
+      layout="prev, pager, next, total" @current-change="page => { pageNumber = page; fetchPage() }" />
   </div>
 </template>
 
@@ -69,6 +71,8 @@ export default {
   data() {
     return {
       myApps: [],
+      pageNumber: 1,
+      pageTotal: 0,
       hours: 0,
       minutes: 0,
       seconds: 0,
@@ -76,16 +80,7 @@ export default {
     }
   },
   // 组件创建后加载页面初始数据。
-  created() {
-    getApplications(this.name)
-      .then((response) => {
-        this.myApps = response.data.items || []
-        this.myApps.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-      })
-      .catch(error => {
-        console.error(error)
-      })
-  },
+  created() { this.fetchPage() },
   // 组件挂载后初始化页面交互或监听器。
   mounted() {
     this.startCountdown()
@@ -95,6 +90,17 @@ export default {
     clearInterval(this.timer)
   },
   methods: {
+    fetchPage() {
+getApplications(this.name, { pageNum: this.pageNumber, pageSize: 20 })
+      .then((response) => {
+        this.myApps = response.data.items || []
+        this.pageTotal = response.data.page.total
+      })
+      .catch(error => {
+        console.error(error)
+      })
+
+    },
     // 处理当前组件的业务逻辑或用户交互。
     tableRowClassName({ row }) {
       if (row.isAccepted === true) return 'success-row'

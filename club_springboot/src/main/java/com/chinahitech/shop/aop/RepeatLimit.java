@@ -19,4 +19,7 @@ public @interface RepeatLimit {
     String message() default "请求过于频繁，请稍后再试";
 
     RateLimiter.LimitType type() default RateLimiter.LimitType.IP;
+
+    /** 仅用于下游具备独立降级限流的入口。 */
+    boolean failOpenOnRedisError() default false;
 }

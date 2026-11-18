@@ -40,6 +40,9 @@ class GroupServiceImplTest {
     @Mock
     private KafkaProducer kafkaProducer;
 
+    @Mock
+    private com.chinahitech.shop.service.CacheInvalidationService invalidation;
+
     @InjectMocks
     private GroupServiceImpl groupService;
 
@@ -144,7 +147,7 @@ class GroupServiceImplTest {
 
         // Then - database status is updated and cache eviction fallback is published
         verify(groupMapper).confirmApplication(7);
-        verify(kafkaProducer).send(eq(MqTopics.GROUP_CACHE), contains("group_cache_evict"));
+        verify(invalidation).evict("group:*");
     }
 
     @Test
@@ -155,7 +158,7 @@ class GroupServiceImplTest {
 
         // Then - mapper receives exact update arguments
         verify(groupMapper).updateImage("摄影社", "uploads/image.png");
-        verify(kafkaProducer).send(eq(MqTopics.GROUP_CACHE), anyString());
+        verify(invalidation).evict("group:*");
     }
 
     private Group group(String name) {

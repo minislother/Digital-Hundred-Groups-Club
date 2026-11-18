@@ -38,6 +38,11 @@ class IndividualActivityServiceImplTest {
     @Mock
     private KafkaProducer kafkaProducer;
 
+    @Mock
+    private com.chinahitech.shop.service.ActivityAdmissionService admission;
+    @Mock
+    private com.chinahitech.shop.service.CacheInvalidationService invalidation;
+
     @InjectMocks
     private IndividualActivityServiceImpl individualActivityService;
 
@@ -61,19 +66,14 @@ class IndividualActivityServiceImplTest {
     @DisplayName("申请加入活动 - 成功写入待审核记录并发送通知")
     void testJoinActivityAndNotify_Success_InsertPendingRecordAndSendEvent() {
         // Given - no existing application
-        when(individualActivityMapper.checkExist("1001", 7)).thenReturn(null);
+
         ArgumentCaptor<IndividualActivity> captor = ArgumentCaptor.forClass(IndividualActivity.class);
 
         // When - applying to join activity
         individualActivityService.joinActivityAndNotify(7, "1001");
 
         // Then - pending record is inserted and event is sent
-        verify(individualActivityMapper).insert(captor.capture());
-        IndividualActivity inserted = captor.getValue();
-        assertEquals(7, inserted.getActivityId());
-        assertEquals("1001", inserted.getStudentId());
-        assertEquals(0, inserted.getStatus());
-        assertEquals("成员", inserted.getPosition());
+        verify(admission).register(7, "1001", "成员", 0);
         verify(kafkaProducer).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), contains("join_activity_apply"));
     }
 
@@ -81,14 +81,15 @@ class IndividualActivityServiceImplTest {
     @DisplayName("申请加入活动 - 已存在申请抛出异常")
     void testJoinActivityAndNotify_AlreadyExists_ThrowException() {
         // Given - existing application or member record
-        when(individualActivityMapper.checkExist("1001", 7)).thenReturn(new IndividualActivity());
+        org.mockito.Mockito.doThrow(new BusinessException("APPLY_REPEAT", "重复报名"))
+                .when(admission).register(7, "1001", "成员", 0);
 
         // When & Then - duplicate application is rejected
         BusinessException exception = assertThrows(
                 BusinessException.class,
                 () -> individualActivityService.joinActivityAndNotify(7, "1001")
         );
-        assertEquals("APPLY_EXIST", exception.getCode());
+        assertEquals("APPLY_REPEAT", exception.getCode());
         verify(individualActivityMapper, never()).insert(any(IndividualActivity.class));
         verify(kafkaProducer, never()).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), any(String.class));
     }
@@ -115,12 +116,7 @@ class IndividualActivityServiceImplTest {
         individualActivityService.addActivityStudentAndNotify(7, "1001", "摄影");
 
         // Then - approved record is inserted
-        verify(individualActivityMapper).insert(captor.capture());
-        IndividualActivity inserted = captor.getValue();
-        assertEquals(7, inserted.getActivityId());
-        assertEquals("1001", inserted.getStudentId());
-        assertEquals(1, inserted.getStatus());
-        assertEquals("摄影", inserted.getPosition());
+        verify(admission).register(7, "1001", "摄影", 1);
         verify(kafkaProducer).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), contains("add_activity_student"));
     }
 
@@ -128,13 +124,13 @@ class IndividualActivityServiceImplTest {
     @DisplayName("审批活动申请 - 通过时更新状态并发送通知")
     void testConfirmApplicationAndNotify_Success_UpdateStatusAndSendEvent() {
         // Given - update succeeds
-        when(individualActivityMapper.updateStatus(7, "1001", 1)).thenReturn(1);
+
 
         // When - approving activity application
         individualActivityService.confirmApplicationAndNotify(7, "1001");
 
         // Then - status is updated and event is sent
-        verify(individualActivityMapper).updateStatus(7, "1001", 1);
+        verify(admission).changeStatus(7, "1001", 1);
         verify(kafkaProducer).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), contains("accept_apply"));
     }
 
@@ -158,7 +154,8 @@ class IndividualActivityServiceImplTest {
     @DisplayName("审批活动申请 - 更新0行抛出异常")
     void testConfirmApplicationAndNotify_NoRowsUpdated_ThrowException() {
         // Given - update affects no rows
-        when(individualActivityMapper.updateStatus(7, "1001", 1)).thenReturn(0);
+        org.mockito.Mockito.doThrow(new BusinessException("NOT_FOUND", "不存在"))
+                .when(admission).changeStatus(7, "1001", 1);
 
         // When & Then - missing application is rejected
         BusinessException exception = assertThrows(
@@ -173,13 +170,13 @@ class IndividualActivityServiceImplTest {
     @DisplayName("拒绝活动申请 - 成功更新状态并发送通知")
     void testDenyApplicationAndNotify_Success_UpdateStatusAndSendEvent() {
         // Given - 拒绝申请时 Mapper 成功更新一条记录。
-        when(individualActivityMapper.updateStatus(7, "1001", -1)).thenReturn(1);
+
 
         // When - 管理员拒绝学生活动报名。
         individualActivityService.denyApplicationAndNotify(7, "1001");
 
         // Then - 状态应写为拒绝，并发送业务事件。
-        verify(individualActivityMapper).updateStatus(7, "1001", -1);
+        verify(admission).changeStatus(7, "1001", -1);
         verify(kafkaProducer).send(eq(MqTopics.INDIVIDUAL_ACTIVITY), contains("reject_apply"));
     }
 

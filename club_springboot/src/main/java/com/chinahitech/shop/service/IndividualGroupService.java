@@ -40,6 +40,8 @@ public interface IndividualGroupService {
      * 查询指定社团的成员列表，可按条件筛选。
      */
     List<IndividualGroup> getStudentsByGroup(int groupId, String searchInfo);
+    PageResult<IndividualGroup> getMembershipPage(int groupId, int status, String searchInfo,
+            Integer pageNum, Integer pageSize);
 
     /**
      * 从缓存优先读取指定社团的成员列表。
@@ -185,4 +187,14 @@ public interface IndividualGroupService {
      * 从缓存优先读取各社团成员数量统计。
      */
     List<GroupNum> getGroupMembersCached();
+
+    com.chinahitech.shop.utils.PageResult<IndividualGroup> getAllStudentsPage(String searchInfo, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.Result studentSlice(String studentId, Long beforeId, Integer pageSize);
+
+    com.chinahitech.shop.utils.Result membershipTreePage(String searchInfo, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.Result studentGroupsPage(String studentId, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.Result memberSlice(int resourceId, int status, Long beforeId, Integer pageSize, String managerId);
 }

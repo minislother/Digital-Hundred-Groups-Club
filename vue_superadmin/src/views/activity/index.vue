@@ -6,15 +6,15 @@
         <strong>{{ activities.length }}</strong>
       </div>
       <div class="stat-card success">
-        <span>已通过</span>
+        <span>本页已通过</span>
         <strong>{{ accepted }}</strong>
       </div>
       <div class="stat-card danger">
-        <span>已拒绝</span>
+        <span>本页已拒绝</span>
         <strong>{{ rejected }}</strong>
       </div>
       <div class="stat-card warning">
-        <span>待审核</span>
+        <span>本页待审核</span>
         <strong>{{ toBeAccepted }}</strong>
       </div>
     </section>
@@ -71,6 +71,8 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination :current-page="pageNumber" :page-size="20" :total="pageTotal"
+      layout="prev, pager, next, total" @current-change="page => { pageNumber = page; fetchActivities() }" />
   </div>
 </template>
 
@@ -83,6 +85,8 @@ export default {
   // 提供组件初始响应式数据。
   data() {
     return {
+      pageNumber: 1,
+      pageTotal: 0,
       activities: [],
       searchInfo: ''
     }
@@ -111,7 +115,8 @@ export default {
   methods: {
     // 从后端接口获取业务数据。
     fetchActivities() {
-      return getAllApps().then((response) => {
+      return searchActivities(this.searchInfo, { pageNum: this.pageNumber, pageSize: 20 }).then((response) => {
+        this.pageTotal = response.data.page.total
         this.activities = response.data.items
       })
         .catch(error => {
@@ -137,8 +142,10 @@ export default {
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
-      searchActivities(this.searchInfo)
+      this.pageNumber = 1
+      searchActivities(this.searchInfo, { pageNum: this.pageNumber, pageSize: 20 })
         .then((response) => {
+        this.pageTotal = response.data.page.total
           this.activities = response.data.items
         })
         .catch((error) => {

@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    consul:
+      enabled: true
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        register: false
+        query-passing: true

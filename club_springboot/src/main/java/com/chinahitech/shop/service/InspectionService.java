@@ -63,4 +63,12 @@ public interface InspectionService {
      * 驳回年审申请。
      */
     void denyApplication(int inspectionId);
+
+    com.chinahitech.shop.utils.PageResult<Inspection> getByGroupPage(String groupName, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<Inspection> getByGroupAndYearPage(String groupName, java.time.Year year, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<Inspection> getByYearPage(java.time.Year year, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<Inspection> getBySearchInfoPage(String searchInfo, Integer pageNum, Integer pageSize);
 }

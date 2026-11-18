@@ -15,9 +15,9 @@
             v-model="searchInfo"
             placeholder="搜索社团名称"
             clearable
-            @keyup.enter="handleSearch"
+            @keyup.enter="currentPage = 1; handleSearch()"
           />
-          <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="currentPage = 1; handleSearch()">搜索</el-button>
         </div>
         <div class="tool-row">
           <el-button plain @click="showVideoDialog">播放社团宣传视频</el-button>
@@ -158,10 +158,10 @@ export default {
       videoDialogVisible: false,
       videoUrl: '',
       imagebox: [
-        { id: 0, idView: require('../../assets/caraousel/走马灯_05.webp') },
-        { id: 1, idView: require('../../assets/caraousel/走马灯_06.webp') },
-        { id: 2, idView: require('../../assets/caraousel/走马灯_07.webp') },
-        { id: 3, idView: require('../../assets/caraousel/走马灯_08.webp') }
+        { id: 0, idView: new URL('../../assets/caraousel/走马灯_05.webp', import.meta.url).href },
+        { id: 1, idView: new URL('../../assets/caraousel/走马灯_06.webp', import.meta.url).href },
+        { id: 2, idView: new URL('../../assets/caraousel/走马灯_07.webp', import.meta.url).href },
+        { id: 3, idView: new URL('../../assets/caraousel/走马灯_08.webp', import.meta.url).href }
       ],
       carouselVisible: true
     }
@@ -253,10 +253,10 @@ export default {
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
-      getGroups(this.searchInfo)
+      getGroups(this.searchInfo, this.currentPage, this.pageSize)
         .then((response) => {
-          this.totalItems = response.data.items.length
-          this.groups = response.data.items.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+          this.totalItems = response.data.page.total
+          this.groups = response.data.items
         })
         .catch((error) => {
           console.error(error)

@@ -1,25 +1,18 @@
 package com.chinahitech.shop.service.impl;
 
-import cn.hutool.json.JSONUtil;
 import com.chinahitech.shop.bean.Activity;
-import com.chinahitech.shop.constant.MqTopics;
 import com.chinahitech.shop.exception.BusinessException;
 import com.chinahitech.shop.mapper.ActivityMapper;
-import com.chinahitech.shop.mq.KafkaProducer;
 import com.chinahitech.shop.service.ActivityService;
 import com.chinahitech.shop.utils.CacheData;
 import com.chinahitech.shop.utils.PageResult;
 import com.chinahitech.shop.utils.PageUtils;
 import com.chinahitech.shop.utils.RedisUtils;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -29,31 +22,24 @@ import java.util.concurrent.Executors;
  * 活动业务实现，处理活动查询缓存、报名防重复提交、活动审核和 MQ 通知。
  */
 @Service
+@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class, isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class ActivityServiceImpl implements ActivityService {
 
-    private static final String ACTIVITY_CACHE_PATTERN = "activity:*";
-    private static final long APPLY_GUARD_TTL_SECONDS = 24 * 60 * 60L;
     private static final long ACTIVITY_DETAIL_LOGICAL_TTL_MINUTES = 10L;
-    private static final long ACTIVITY_DETAIL_NULL_TTL_SECONDS = 2 * 60L;
+    private static final long ACTIVITY_DETAIL_NULL_TTL_SECONDS = 120L;
     private static final long ACTIVITY_DETAIL_REBUILD_LOCK_SECONDS = 10L;
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(2);
 
-    private static final DefaultRedisScript<Long> APPLY_ACTIVITY_SCRIPT;
+    @Resource
+    private com.chinahitech.shop.service.ActivityAdmissionService admission;
+    @Resource
+    private com.chinahitech.shop.service.CacheInvalidationService invalidation;
 
-    static {
-        APPLY_ACTIVITY_SCRIPT = new DefaultRedisScript<>();
-        APPLY_ACTIVITY_SCRIPT.setLocation(new ClassPathResource("activity_apply.lua"));
-        APPLY_ACTIVITY_SCRIPT.setResultType(Long.class);
-    }
 
     @Resource
     private ActivityMapper activityMapper;
 
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
 
-    @Resource
-    private KafkaProducer kafkaProducer;
 
     @Override
     public List<Activity> query(String searchInfo) {
@@ -130,36 +116,10 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void applyJoin(Integer activityId, Integer studentId) {
-        Activity activity = activityMapper.getActivityById(activityId);
-        if (activity == null) {
-            throw new BusinessException("ACTIVITY_NOT_EXIST", "\u6d3b\u52a8\u4e0d\u5b58\u5728");
+        if (activityId == null || studentId == null) {
+            throw new BusinessException("PARAM_ERROR", "活动和学生编号不能为空");
         }
-
-        Map<String, Object> check = activityMapper.checkApply(activityId, studentId);
-        if (check != null) {
-            throw new BusinessException("APPLY_REPEAT", "\u4f60\u5df2\u7ecf\u62a5\u540d\u8fc7\u8be5\u6d3b\u52a8");
-        }
-
-        int dbCount = activityMapper.countActiveApplications(activityId);
-        if (activity.getNumber() > 0 && dbCount >= activity.getNumber()) {
-            throw new BusinessException("ACTIVITY_FULL", "\u6d3b\u52a8\u62a5\u540d\u4eba\u6570\u5df2\u6ee1");
-        }
-
-        Long guardResult = tryApplyGuard(activityId, studentId, activity.getNumber(), dbCount);
-        if (guardResult != null && guardResult == 1L) {
-            throw new BusinessException("APPLY_REPEAT", "\u4f60\u5df2\u7ecf\u62a5\u540d\u8fc7\u8be5\u6d3b\u52a8");
-        }
-        if (guardResult != null && guardResult == 2L) {
-            throw new BusinessException("ACTIVITY_FULL", "\u6d3b\u52a8\u62a5\u540d\u4eba\u6570\u5df2\u6ee1");
-        }
-
-        try {
-            activityMapper.applyJoin(activityId, studentId, 0);
-            evictActivityCache();
-        } catch (RuntimeException e) {
-            rollbackApplyGuard(activityId, studentId, guardResult);
-            throw e;
-        }
+        admission.register(activityId, String.valueOf(studentId), "成员", 0);
     }
 
     /**
@@ -183,19 +143,24 @@ public class ActivityServiceImpl implements ActivityService {
      */
     @Override
     public List<Map<String, Object>> getActivityApplicants(Integer activityId) {
-        return activityMapper.getActivityApplicants(activityId);
+        return com.chinahitech.shop.utils.ContactPrivacy.applicants(activityMapper.getActivityApplicants(activityId));
     }
 
     @Override
     public void auditApply(Integer id, Integer status) {
-        activityMapper.auditApply(id, status);
-        evictActivityCache();
+        if (id == null || status == null) {
+            throw new BusinessException("PARAM_ERROR", "申请编号和状态不能为空");
+        }
+        com.chinahitech.shop.bean.IndividualActivity application = activityMapper.getApplicationById(id);
+        if (application == null) { throw new BusinessException("NOT_FOUND", "申请不存在"); }
+        admission.changeStatus(application.getActivityId(), application.getStudentId(), status);
     }
 
     @Override
     public void insert(Activity activity) {
         validateActivityForSave(activity, false);
         activityMapper.insert(activity);
+        // 数据库触发器在同一事务记录搜索任务；不在主业务事务内调用 ES。
         evictActivityCache();
     }
 
@@ -281,20 +246,12 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public void confirmApplication(Integer activityId) {
         activityMapper.confirmApplication(activityId);
-        /**
-         * 清空表单、状态或本地缓存。
-         */
-        clearActivityApplyGuard(activityId);
         evictActivityCache();
     }
 
     @Override
     public void denyApplication(Integer activityId) {
         activityMapper.denyApplication(activityId);
-        /**
-         * 清空表单、状态或本地缓存。
-         */
-        clearActivityApplyGuard(activityId);
         evictActivityCache();
     }
 
@@ -302,10 +259,6 @@ public class ActivityServiceImpl implements ActivityService {
     public void modifyInfo(Activity activity) {
         validateActivityForSave(activity, true);
         activityMapper.modifyInfo(activity);
-        /**
-         * 清空表单、状态或本地缓存。
-         */
-        clearActivityApplyGuard(activity.getId());
         evictActivityCache();
     }
 
@@ -332,51 +285,6 @@ public class ActivityServiceImpl implements ActivityService {
      */
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
-    }
-
-    private Long tryApplyGuard(Integer activityId, Integer studentId, int limit, int dbCount) {
-        try {
-            return stringRedisTemplate.execute(
-                    APPLY_ACTIVITY_SCRIPT,
-                    java.util.Arrays.asList(applyStudentsKey(activityId), applyCountKey(activityId)),
-                    String.valueOf(studentId),
-                    String.valueOf(limit),
-                    String.valueOf(dbCount),
-                    String.valueOf(APPLY_GUARD_TTL_SECONDS)
-            );
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private void rollbackApplyGuard(Integer activityId, Integer studentId, Long guardResult) {
-        if (guardResult == null || guardResult != 0L) {
-            return;
-        }
-        try {
-            stringRedisTemplate.opsForSet().remove(applyStudentsKey(activityId), String.valueOf(studentId));
-            stringRedisTemplate.opsForValue().decrement(applyCountKey(activityId));
-        } catch (Exception ignored) {
-        }
-    }
-
-    /**
-     * 清空表单、状态或本地缓存。
-     */
-    private void clearActivityApplyGuard(Integer activityId) {
-        if (activityId == null) {
-            return;
-        }
-        RedisUtils.del(applyStudentsKey(activityId));
-        RedisUtils.del(applyCountKey(activityId));
-    }
-
-    private String applyStudentsKey(Integer activityId) {
-        return "activity:apply:students:" + activityId;
-    }
-
-    private String applyCountKey(Integer activityId) {
-        return "activity:apply:count:" + activityId;
     }
 
     private String activityDetailKey(String groupName, String activityName) {
@@ -417,15 +325,52 @@ public class ActivityServiceImpl implements ActivityService {
                 activity,
                 LocalDateTime.now().plusMinutes(ACTIVITY_DETAIL_LOGICAL_TTL_MINUTES)
         );
-        RedisUtils.setBusinessCache(key, cacheData);
+        RedisUtils.setBusinessCache(key, cacheData, 1200);
     }
 
     private void evictActivityCache() {
-        if (!RedisUtils.del(ACTIVITY_CACHE_PATTERN)) {
-            Map<String, Object> msg = new HashMap<>();
-            msg.put("type", "activity_cache_evict");
-            msg.put("pattern", ACTIVITY_CACHE_PATTERN);
-            kafkaProducer.send(MqTopics.ACTIVITY_CACHE, JSONUtil.toJsonStr(msg));
-        }
+        // 显式列举查询缓存，兼容旧键且不会误删报名占位。
+        invalidation.evict("activity:all:*", "activity:page:*", "activity:detail:*",
+                "activity:top", "activity:managed:*", "individualActivity:*");
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Activity> getActivityByGroupNamePage(String groupName, String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = activityMapper.getActivityByGroupNamePage(groupName, searchInfo, offset, limit);
+        long total = activityMapper.getActivityByGroupNameCount(groupName, searchInfo);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Activity> getAllAppPage(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = activityMapper.getAllAppPage(searchInfo, offset, limit);
+        long total = activityMapper.getAllAppCount(searchInfo);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<Activity> getMyJoinedActivitiesPage(int studentId, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = activityMapper.getMyJoinedActivitiesPage(studentId, offset, limit);
+        long total = activityMapper.getMyJoinedActivitiesCount(studentId);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<java.util.Map<String, Object>> getActivityApplicantsPage(int activityId, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = com.chinahitech.shop.utils.ContactPrivacy.applicants(activityMapper.getActivityApplicantsPage(activityId, offset, limit));
+        long total = activityMapper.getActivityApplicantsCount(activityId);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
     }
 }

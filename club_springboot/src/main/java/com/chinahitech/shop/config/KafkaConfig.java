@@ -39,7 +39,9 @@ public class KafkaConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         // 消息确认机制
-        config.put(ProducerConfig.ACKS_CONFIG, "1");
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        config.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 3000);
         // 重试次数
         config.put(ProducerConfig.RETRIES_CONFIG, 3);
         config.put(ProducerConfig.BATCH_SIZE_CONFIG, 32768);
@@ -66,8 +68,7 @@ public class KafkaConfig {
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         // 自动提交offset
-        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-        config.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 1000);
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         // 重置策略：无offset时从头消费
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return new DefaultKafkaConsumerFactory<>(config);
@@ -78,10 +79,39 @@ public class KafkaConfig {
      */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
+        return newBusinessListenerFactory();
+    }
+
+    private ConcurrentKafkaListenerContainerFactory<String, String> newBusinessListenerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setAutoStartup(listenerAutoStartup);
         factory.setConcurrency(listenerConcurrency);
+        return factory;
+    }
+
+    /** 报名死信持久化后才确认消费位点，恢复器失败时保留原消息。 */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> admissionKafkaListenerContainerFactory(
+            com.chinahitech.shop.service.ActivityAdmissionMessageService admissions) {
+        var factory = newBusinessListenerFactory();
+        factory.getContainerProperties().setAckMode(org.springframework.kafka.listener.ContainerProperties.AckMode.RECORD);
+        factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler(
+                (record, exception) -> admissions.deadLetter(record),
+                new org.springframework.util.backoff.FixedBackOff(5000L, 5L)));
+        return factory;
+    }
+
+    /** 缓存重试监听随 Kafka 发送开关启动，避免只开生产者却遗忘缓存消费者。 */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> cacheRetryKafkaListenerContainerFactory(
+            @Value("${app.kafka.enabled:false}") boolean enabled) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.setAutoStartup(enabled);
+        factory.getContainerProperties().setAckMode(org.springframework.kafka.listener.ContainerProperties.AckMode.RECORD);
+        factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler(
+                new org.springframework.util.backoff.FixedBackOff(5000L, 5L)));
         return factory;
     }
 }

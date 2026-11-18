@@ -118,4 +118,61 @@
         order by memberNum desc
         limit 5
     </select>
+    <sql id="getActivityByStuIdPageQuery">select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.user_id = #{studentId}</sql>
+    <select id="getActivityByStuIdPage" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        <include refid="getActivityByStuIdPageQuery"/>
+        order by ia.id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getActivityByStuIdCount" resultType="long">
+        select count(*) from individual_activity ia
+        where ia.user_id = #{studentId}
+    </select>
+    <sql id="getActivityByActivityIdPageQuery">select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.activity_id = #{activityId}
+          and ia.status = 1</sql>
+    <select id="getActivityByActivityIdPage" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        <include refid="getActivityByActivityIdPageQuery"/>
+        order by ia.id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getActivityByActivityIdCount" resultType="long">
+        select count(*) from individual_activity ia
+        where ia.activity_id = #{activityId}
+          and ia.status = 1
+    </select>
+    <sql id="getApplyByActivityIdPageQuery">select
+            <include refid="IndividualActivityColumns"/>
+        from individual_activity ia
+        where ia.activity_id = #{activityId}
+          and ia.status = 0</sql>
+    <select id="getApplyByActivityIdPage" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        <include refid="getApplyByActivityIdPageQuery"/>
+        order by ia.id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getApplyByActivityIdCount" resultType="long">
+        select count(*) from individual_activity ia
+        where ia.activity_id = #{activityId}
+          and ia.status = 0
+    </select>
+
+    <select id="studentSlice" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select ia.*, ia.user_id as student_id from individual_activity ia
+        where ia.user_id = #{studentId}
+        <if test="beforeId != null">and ia.id &lt; #{beforeId}</if>
+        order by ia.id desc limit #{limit}
+    </select>
+
+    <select id="memberSlice" resultType="com.chinahitech.shop.bean.IndividualActivity">
+        select m.*, m.user_id as student_id from individual_activity m
+        where m.activity_id = #{resourceId} and m.status = #{status}
+        <if test="beforeId != null">and m.id &lt; #{beforeId}</if>
+        order by m.id desc limit #{limit}
+    </select>
 </mapper>

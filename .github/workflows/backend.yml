@@ -1,0 +1,29 @@
+name: Backend verification
+on:
+  push:
+    paths: ['club_springboot/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['club_springboot/**', '.github/workflows/backend.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: club_springboot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: club_springboot/pom.xml
+      - run: mvn -B test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: club_springboot/target/surefire-reports/

@@ -36,14 +36,14 @@ class IndividualActivityControllerTest {
     void testGetIndividualActivity_AuthenticatedUser_CallServiceWithPrincipal() {
         // Given - authenticated student
         Authentication authentication = new UsernamePasswordAuthenticationToken("1001", null);
-        when(individualActivityService.getActivityByStuIdCached("1001")).thenReturn(Collections.emptyList());
+        when(individualActivityService.getActivityByStuIdPage("1001", 1, 10)).thenReturn(com.chinahitech.shop.utils.PageUtils.pageResult(Collections.emptyList(), 0, 1, 10));
 
         // When - querying joined activities
         Result result = individualActivityController.getIndividualActivity(1, 10, authentication);
 
         // Then - service receives principal from authentication
         assertTrue(result.getSuccess());
-        verify(individualActivityService).getActivityByStuIdCached("1001");
+        verify(individualActivityService).getActivityByStuIdPage("1001", 1, 10);
     }
 
     @Test
@@ -51,7 +51,7 @@ class IndividualActivityControllerTest {
     void testGetIndividualActivity_MissingAuthentication_ThrowException() {
         // When & Then - unauthenticated request is rejected before service call
         assertThrows(RuntimeException.class, () -> individualActivityController.getIndividualActivity(1, 10, null));
-        verify(individualActivityService, never()).getActivityByStuIdCached("1001");
+        verify(individualActivityService, never()).getActivityByStuIdPage("1001", 1, 10);
     }
 
     @Test

@@ -2,27 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.chinahitech.shop.mapper.TopManagerMapper">
+    <resultMap id="contactUser" type="com.chinahitech.shop.bean.User" autoMapping="true">
+        <id column="user_id" property="userId"/>
+        <result column="user_name" property="userName" typeHandler="com.chinahitech.shop.utils.NameTypeHandler"/>
+        <result column="email" property="email" typeHandler="com.chinahitech.shop.utils.EmailTypeHandler"/>
+        <result column="phone" property="phone" typeHandler="com.chinahitech.shop.utils.PhoneTypeHandler"/>
+    </resultMap>
 
-    <select id="getTopManagerByNum" resultType="com.chinahitech.shop.bean.User">
+
+    <select id="getTopManagerByNum" resultMap="contactUser">
         select *
         from `user`
         where user_id = #{num}
           and status &gt;= 10
     </select>
 
-    <select id="getUserByNum" resultType="com.chinahitech.shop.bean.User">
+    <select id="getUserByNum" resultMap="contactUser">
         select *
         from `user`
         where user_id = #{num}
     </select>
 
-    <select id="getAllUsers" resultType="com.chinahitech.shop.bean.User">
+    <select id="getAllUsers" resultMap="contactUser">
         select *
         from `user`
         order by status
     </select>
 
-    <select id="getAllUsersPage" resultType="com.chinahitech.shop.bean.User">
+    <select id="getAllUsersPage" resultMap="contactUser">
         select *
         from `user`
         order by status, user_id
@@ -33,17 +40,17 @@
         select count(1) from `user`
     </select>
 
-    <select id="getUser" resultType="com.chinahitech.shop.bean.User">
+    <select id="getUser" resultMap="contactUser">
         select *
         from `user`
-        where user_name = #{userName}
+        where user_name_lookup = #{userName,typeHandler=com.chinahitech.shop.utils.NameLookupTypeHandler}
         order by status
     </select>
 
-    <select id="getUserPage" resultType="com.chinahitech.shop.bean.User">
+    <select id="getUserPage" resultMap="contactUser">
         select *
         from `user`
-        where user_name = #{userName}
+        where user_name_lookup = #{userName,typeHandler=com.chinahitech.shop.utils.NameLookupTypeHandler}
         order by status, user_id
         limit #{limit} offset #{offset}
     </select>
@@ -51,7 +58,7 @@
     <select id="countUser" resultType="long">
         select count(1)
         from `user`
-        where user_name = #{userName}
+        where user_name_lookup = #{userName,typeHandler=com.chinahitech.shop.utils.NameLookupTypeHandler}
     </select>
 
     <insert id="addManager">
@@ -59,6 +66,7 @@
             user_id,
             password,
             email,
+            email_lookup,
             salt,
             create_time,
             modify_time,
@@ -67,7 +75,8 @@
         values (
             #{userId},
             #{password},
-            #{email},
+            #{email,typeHandler=com.chinahitech.shop.utils.EmailTypeHandler},
+            #{email,typeHandler=com.chinahitech.shop.utils.EmailLookupTypeHandler},
             #{salt},
             #{createTime},
             #{modifyTime},
@@ -85,7 +94,8 @@
 
     <update id="updatePhone">
         update `user`
-        set phone = #{phone},
+        set phone = #{phone,typeHandler=com.chinahitech.shop.utils.PhoneTypeHandler},
+            phone_lookup = #{phone,typeHandler=com.chinahitech.shop.utils.PhoneLookupTypeHandler},
             modify_time = #{modifyTime}
         where user_id = #{userId}
           and status &gt;= 10
@@ -125,7 +135,7 @@
           and status &lt; 10
     </update>
 
-    <select id="getByNumNoStatus" resultType="com.chinahitech.shop.bean.User">
+    <select id="getByNumNoStatus" resultMap="contactUser">
         select *
         from `user`
         where user_id = #{num}

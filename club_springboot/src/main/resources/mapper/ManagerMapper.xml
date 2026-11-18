@@ -2,8 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.chinahitech.shop.mapper.ManagerMapper">
+    <resultMap id="contactUser" type="com.chinahitech.shop.bean.User" autoMapping="true">
+        <id column="user_id" property="userId"/>
+        <result column="user_name" property="userName" typeHandler="com.chinahitech.shop.utils.NameTypeHandler"/>
+        <result column="email" property="email" typeHandler="com.chinahitech.shop.utils.EmailTypeHandler"/>
+        <result column="phone" property="phone" typeHandler="com.chinahitech.shop.utils.PhoneTypeHandler"/>
+    </resultMap>
 
-    <select id="getByNum" resultType="com.chinahitech.shop.bean.User">
+
+    <select id="getByNum" resultMap="contactUser">
         select *
         from `user`
         where user_id = #{num}
@@ -15,6 +22,7 @@
             user_id,
             password,
             email,
+            email_lookup,
             salt,
             create_time,
             modify_time,
@@ -23,7 +31,8 @@
         values (
             #{userId},
             #{password},
-            #{email},
+            #{email,typeHandler=com.chinahitech.shop.utils.EmailTypeHandler},
+            #{email,typeHandler=com.chinahitech.shop.utils.EmailLookupTypeHandler},
             #{salt},
             #{createTime},
             #{modifyTime},
@@ -41,7 +50,8 @@
 
     <update id="updatePhone">
         update `user`
-        set phone = #{phone},
+        set phone = #{phone,typeHandler=com.chinahitech.shop.utils.PhoneTypeHandler},
+            phone_lookup = #{phone,typeHandler=com.chinahitech.shop.utils.PhoneLookupTypeHandler},
             modify_time = #{modifyTime}
         where user_id = #{userId}
           and status &gt;= 1

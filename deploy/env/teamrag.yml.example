@@ -1,0 +1,11 @@
+# 复制为工作区外的本地配置，再通过 SPRING_CONFIG_ADDITIONAL_LOCATION 加载。
+# 必须与 TeamRag 的 RAG_TENANT_ID、RAG_SECURITY_TOKEN_SECRET 一致，并开启其认证。
+app:
+  teamrag:
+    enabled: true
+    base-url: ${TEAMRAG_BASE_URL:http://127.0.0.1:8082}
+    token-secret: ${TEAMRAG_TOKEN_SECRET}
+    tenant-id: ${TEAMRAG_TENANT_ID:baituan}
+    projects:
+      # 这里只是格式示例。键是数字百团真实社团ID，值是已入库文档的TeamRag项目名。
+      1: ${TEAMRAG_GROUP_1_PROJECT}

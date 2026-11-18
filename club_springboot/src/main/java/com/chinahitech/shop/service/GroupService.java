@@ -103,4 +103,6 @@ public interface GroupService {
      * 驳回社团创建或变更申请。
      */
     void denyApplication(Integer groupId);
+
+    com.chinahitech.shop.utils.PageResult<Group> getAllAppPage(String searchInfo, Integer pageNum, Integer pageSize);
 }

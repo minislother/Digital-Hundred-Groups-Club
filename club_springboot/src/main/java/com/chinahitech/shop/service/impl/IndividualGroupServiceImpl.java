@@ -35,6 +35,19 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
     private IndividualGroupMapper individualGroupMapper;
 
     @Autowired
+    private com.chinahitech.shop.mapper.GroupMapper groupPageMapper;
+
+    /** 分页请求直接查询当前页，避免全量成员进入应用内存。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<IndividualGroup> getMembershipPage(
+            int groupId, int status, String searchInfo, Integer pageNum, Integer pageSize) {
+        var records = individualGroupMapper.getMembershipPage(groupId, status, searchInfo,
+                PageUtils.offset(pageNum, pageSize), PageUtils.limit(pageSize));
+        long total = individualGroupMapper.countMembership(groupId, status, searchInfo);
+        return PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    @Autowired
     private GroupService groupService;
 
     @Autowired
@@ -507,5 +520,62 @@ public class IndividualGroupServiceImpl implements IndividualGroupService {
 
     private String managerKey(String managerId) {
         return "individualGroup:manager:" + managerId;
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<IndividualGroup> getAllStudentsPage(String searchInfo, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = individualGroupMapper.getAllStudentsPage(searchInfo, offset, limit);
+        long total = individualGroupMapper.getAllStudentsCount(searchInfo);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 下一页多取一条判断 hasNext，不执行总数统计。 */
+    @Override
+    public com.chinahitech.shop.utils.Result studentSlice(String studentId, Long beforeId, Integer pageSize) {
+        if (beforeId != null && beforeId <= 0) throw new com.chinahitech.shop.exception.BusinessException("PARAM_ERROR", "游标必须为正数");
+        int size = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var rows = individualGroupMapper.studentSlice(studentId, beforeId, size + 1);
+        boolean hasNext = rows.size() > size;
+        var items = rows.subList(0, Math.min(size, rows.size()));
+        var ids = items.stream().map(IndividualGroup::getGroupId).distinct().toList();
+        var groups = ids.isEmpty() ? java.util.List.of() : groupPageMapper.findByIds(ids);
+        return com.chinahitech.shop.utils.Result.ok().data("items", items).data("stuItems", items)
+                .data("groupItems", groups).data("hasNext", hasNext)
+                .data("nextCursor", hasNext ? items.getLast().getId() : null);
+    }
+
+    @Override
+    public com.chinahitech.shop.utils.Result membershipTreePage(String searchInfo, Integer pageNum, Integer pageSize) {
+        var page = getAllStudentsPage(searchInfo, pageNum, pageSize);
+        var ids = page.getRecords().stream().map(IndividualGroup::getGroupId).distinct().toList();
+        var groups = ids.isEmpty() ? java.util.List.of() : groupPageMapper.findByIds(ids);
+        return PageUtils.ok("items", page).data("groups", groups);
+    }
+
+    @Override
+    public com.chinahitech.shop.utils.Result studentGroupsPage(String studentId, Integer pageNum, Integer pageSize) {
+        var records = individualGroupMapper.studentPage(studentId, PageUtils.offset(pageNum, pageSize), PageUtils.limit(pageSize));
+        var ids = records.stream().map(IndividualGroup::getGroupId).distinct().toList();
+        var groups = ids.isEmpty() ? java.util.List.of() : groupPageMapper.findByIds(ids);
+        var page = PageUtils.pageResult(records, individualGroupMapper.countStudent(studentId), pageNum, pageSize);
+        return PageUtils.ok("items", page).data("stuItems", records).data("groupItems", groups);
+    }
+
+    /** 高增长成员或申请列表按不可变关系 ID 连续翻页，保留管理员资源范围校验。 */
+    @Override
+    public com.chinahitech.shop.utils.Result memberSlice(int resourceId, int status, Long beforeId, Integer pageSize, String managerId) {
+        assertManagedGroup(resourceId, managerId);
+        if ((status != 0 && status != 1) || (beforeId != null && beforeId <= 0)) {
+            throw new com.chinahitech.shop.exception.BusinessException("PARAM_ERROR", "成员游标或状态不合法");
+        }
+        int size = PageUtils.limit(pageSize);
+        var rows = individualGroupMapper.memberSlice(resourceId, status, beforeId, size + 1);
+        boolean hasNext = rows.size() > size;
+        var items = rows.subList(0, Math.min(size, rows.size()));
+        return com.chinahitech.shop.utils.Result.ok().data("items", items).data("hasNext", hasNext)
+                .data("nextCursor", hasNext ? items.getLast().getId() : null);
     }
 }

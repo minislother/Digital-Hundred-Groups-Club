@@ -64,7 +64,7 @@ public class StuServiceImpl implements StuService {
      */
     @Override
     public void validateCode(String email, String validateCode) {
-        Object cached = RedisUtils.get(email);
+        Object cached = RedisUtils.get(com.chinahitech.shop.utils.ContactCipher.verificationKey(email));
         if (!Objects.equals(cached == null ? null : cached.toString(), validateCode)) {
             throw new ServiceException("验证码错误");
         }

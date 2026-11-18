@@ -1,0 +1,18 @@
+{
+  "services": [
+    {
+      "id": "club-backend-primary",
+      "name": "club-backend",
+      "address": "backend",
+      "port": 8081,
+      "checks": [{"http": "http://backend:8081/actuator/health/traffic", "interval": "10s", "timeout": "3s"}]
+    },
+    {
+      "id": "club-backend-replica",
+      "name": "club-backend",
+      "address": "backend-replica",
+      "port": 8081,
+      "checks": [{"http": "http://backend-replica:8081/actuator/health/traffic", "interval": "10s", "timeout": "3s"}]
+    }
+  ]
+}

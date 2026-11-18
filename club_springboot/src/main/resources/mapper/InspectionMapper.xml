@@ -66,4 +66,54 @@
         set is_accepted = false
         where id = #{inspectionId}
     </update>
+    <sql id="getByGroupPageQuery">select *
+        from `Inspection`
+        where group_name = #{groupName}</sql>
+    <select id="getByGroupPage" resultType="com.chinahitech.shop.bean.Inspection">
+        <include refid="getByGroupPageQuery"/>
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getByGroupCount" resultType="long">
+        select count(*) from `Inspection`
+        where group_name = #{groupName}
+    </select>
+    <sql id="getByGroupAndYearPageQuery">select *
+        from `Inspection`
+        where group_name = #{groupName}
+          and year = #{year}</sql>
+    <select id="getByGroupAndYearPage" resultType="com.chinahitech.shop.bean.Inspection">
+        <include refid="getByGroupAndYearPageQuery"/>
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getByGroupAndYearCount" resultType="long">
+        select count(*) from `Inspection`
+        where group_name = #{groupName}
+          and year = #{year}
+    </select>
+    <sql id="getByYearPageQuery">select *
+        from `Inspection`
+        where year = #{year}</sql>
+    <select id="getByYearPage" resultType="com.chinahitech.shop.bean.Inspection">
+        <include refid="getByYearPageQuery"/>
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getByYearCount" resultType="long">
+        select count(*) from `Inspection`
+        where year = #{year}
+    </select>
+    <sql id="getBySearchInfoPageQuery">select *
+        from `Inspection`
+        <if test="searchInfo != null and searchInfo.trim() != ''">where group_name like concat('%', #{searchInfo}, '%')</if></sql>
+    <select id="getBySearchInfoPage" resultType="com.chinahitech.shop.bean.Inspection">
+        <include refid="getBySearchInfoPageQuery"/>
+        order by id desc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="getBySearchInfoCount" resultType="long">
+        select count(*) from `Inspection`
+        <if test="searchInfo != null and searchInfo.trim() != ''">where group_name like concat('%', #{searchInfo}, '%')</if>
+    </select>
 </mapper>

@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 读取并返回业务数据或页面状态。
-export function getGroups(searchInfo) {
+export function getGroups(searchInfo, pageNum = 1, pageSize = 32) {
   return request({
     url: '/group/all',
     method: 'get',
-    params: { searchInfo }
+    params: { searchInfo, pageNum, pageSize }
   })
 }
 
@@ -37,11 +37,11 @@ export function getTopGroups() {
 }
 
 // 读取并返回业务数据或页面状态。
-export function getApplications(stuNumber) {
+export function getApplications(stuNumber, pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
     url: '/application/myApps',
     method: 'post',
-    params: { stuNumber }
+    params: { stuNumber , ...pagination }
   })
 }
 
@@ -64,20 +64,20 @@ export function getAttachmentUrl(groupId) {
 }
 
 // 展示弹窗、详情或提示内容。
-export function showGroups(searchInfo) {
+export function showGroups(searchInfo, pageNum = 1, pageSize = 32) {
   return request({
     url: '/group/all',
     method: 'post',
-    params: { searchInfo }
+    params: { searchInfo, pageNum, pageSize }
   })
 }
 
 // 读取并返回业务数据或页面状态。
-export function getMyGroups(studentId) {
+export function getMyGroups(studentId, beforeId = null) {
   return request({
-    url: '/individualGroup/allGroups',
+    url: '/individualGroup/studentSlice',
     method: 'post',
-    params: { studentId }
+    params: { beforeId, pageSize: 20 }
   })
 }
 

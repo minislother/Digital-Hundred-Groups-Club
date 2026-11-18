@@ -1,0 +1,26 @@
+# TeamRag部署独立运行，本文件只接入其真实地址，不创建替代知识库。
+x-teamrag-environment: &teamrag-environment
+  SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/config/teamrag.yml
+  TEAMRAG_BASE_URL: ${TEAMRAG_BASE_URL:?Set the TeamRag service URL}
+  TEAMRAG_TOKEN_SECRET: ${TEAMRAG_TOKEN_SECRET:?Set the local shared signing secret}
+  TEAMRAG_TENANT_ID: ${TEAMRAG_TENANT_ID:-baituan}
+  TEAMRAG_GROUP_1_PROJECT: ${TEAMRAG_GROUP_1_PROJECT:-}
+services:
+  backend:
+    environment: *teamrag-environment
+    volumes:
+      - type: bind
+        source: ${TEAMRAG_CONFIG_FILE:?Set the local TeamRag mapping file}
+        target: /run/config/teamrag.yml
+        read_only: true
+    networks: [app, data, ai]
+  backend-replica:
+    environment: *teamrag-environment
+    volumes:
+      - type: bind
+        source: ${TEAMRAG_CONFIG_FILE:?Set the local TeamRag mapping file}
+        target: /run/config/teamrag.yml
+        read_only: true
+    networks: [app, data, ai]
+networks:
+  ai:

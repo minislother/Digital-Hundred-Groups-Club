@@ -4,9 +4,12 @@
   "private": true,
   "description": "数字百团网页端统一身份入口",
   "scripts": {
-    "dev": "vue-cli-service serve",
-    "build:prod": "vue-cli-service build",
-    "lint": "eslint --ext .js,.vue src"
+    "dev": "vite --host 127.0.0.1",
+    "build:prod": "vite build --mode production",
+    "lint": "eslint --ext .js,.vue src",
+    "build:stage": "vite build --mode staging",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
     "core-js": "^3.49.0",
@@ -15,15 +18,19 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.3",
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-service": "^5.0.8",
     "@vue/compiler-sfc": "^3.4.38",
     "eslint": "6.7.2",
-    "eslint-plugin-vue": "6.2.2"
+    "eslint-plugin-vue": "6.2.2",
+    "vite": "7.3.1",
+    "@vitejs/plugin-vue": "6.0.3",
+    "typescript": "5.9.3",
+    "sass": "^1.97.3"
   },
   "browserslist": [
     "> 1%",
     "last 2 versions"
-  ]
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  }
 }

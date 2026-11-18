@@ -33,8 +33,7 @@ public class InspectionController {
     @RepeatLimit
     @RequestMapping("/findAllByGroup")
     public Result findAllByGroup(String groupName, Integer pageNum, Integer pageSize) {
-        List<Inspection> inspections = inspectionService.findAllByGroup(groupName);
-        return PageUtils.ok("items", inspections, pageNum, pageSize);
+        return PageUtils.ok("items", inspectionService.getByGroupPage(groupName, pageNum, pageSize));
     }
 
     /**
@@ -43,8 +42,7 @@ public class InspectionController {
     @RepeatLimit
     @RequestMapping("/findAllByGroupAndYear")
     public Result findAllByGroupAndYear(String groupName, Year year, Integer pageNum, Integer pageSize) {
-        List<Inspection> inspections = inspectionService.findAllByGroupAndYear(groupName, year);
-        return PageUtils.ok("items", inspections, pageNum, pageSize);
+        return PageUtils.ok("items", inspectionService.getByGroupAndYearPage(groupName, year, pageNum, pageSize));
     }
 
     /**
@@ -104,8 +102,7 @@ public class InspectionController {
     @RepeatLimit
     @RequestMapping("/all")
     public Result findAll(String searchInfo, Integer pageNum, Integer pageSize) {
-        List<Inspection> inspections = inspectionService.findAll(searchInfo);
-        return PageUtils.ok("items", inspections, pageNum, pageSize);
+        return PageUtils.ok("items", inspectionService.getBySearchInfoPage(searchInfo, pageNum, pageSize));
     }
 
     /**
@@ -114,8 +111,7 @@ public class InspectionController {
     @RepeatLimit
     @RequestMapping("/findAllByYear")
     public Result findAllByYear(Year year, Integer pageNum, Integer pageSize) {
-        List<Inspection> inspections = inspectionService.findAllByYear(year);
-        return PageUtils.ok("items", inspections, pageNum, pageSize);
+        return PageUtils.ok("items", inspectionService.getByYearPage(year, pageNum, pageSize));
     }
 
     /**

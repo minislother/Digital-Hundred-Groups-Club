@@ -59,6 +59,8 @@
         <el-button type="primary" @click="submitForm">保存修改</el-button>
       </template>
     </el-dialog>
+    <el-pagination :current-page="pageNumber" :page-size="20" :total="pageTotal"
+      layout="prev, pager, next, total" @current-change="page => { pageNumber = page; fetchActivities(searchInfo) }" />
   </div>
 </template>
 
@@ -76,6 +78,8 @@ export default {
   // 提供组件初始响应式数据。
   data() {
     return {
+      pageNumber: 1,
+      pageTotal: 0,
       searchInfo: '',
       activities: [],
       searcchRes: [],
@@ -103,7 +107,8 @@ export default {
   methods: {
     // 从后端接口获取业务数据。
     fetchActivities(keyword = '') {
-      return getMyApps(keyword, this.$store.getters.currentClubName).then((response) => {
+      return getMyApps(keyword, this.$store.getters.currentClubName, { pageNum: this.pageNumber, pageSize: 20 }).then((response) => {
+        this.pageTotal = response.data.page.total
         this.searcchRes = response.data.items || []
         this.activities = response.data.items || []
       })
@@ -120,12 +125,14 @@ export default {
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
+      this.pageNumber = 1
       this.fetchActivities(this.searchInfo)
     },
     // 根据筛选条件查询并更新列表结果。
     clearSearch() {
       this.searchInfo = ''
-      this.searcchRes = this.activities
+      this.pageNumber = 1
+      this.fetchActivities()
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleEdit(index) {

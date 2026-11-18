@@ -109,6 +109,10 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
       REDIS_POOL_MAX_ACTIVE: ${REDIS_POOL_MAX_ACTIVE:-200}
+      CONTACT_ACTIVE_KEY_ID: ${CONTACT_ACTIVE_KEY_ID:-primary}
+      CONTACT_KEY_primary: ${CONTACT_KEY_primary:?Configure contact encryption key}
+      CONTACT_LOOKUP_KEY: ${CONTACT_LOOKUP_KEY:?Configure independent contact lookup key}
+      CONTACT_STRICT_READ: ${CONTACT_STRICT_READ:-true}
       JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET of at least 32 bytes in .env}
       JWT_EXPIRE_SECONDS: ${JWT_EXPIRE_SECONDS:-604800}
       UPLOAD_DIR: /var/baituan/upload/
@@ -130,7 +134,7 @@ services:
       - app
       - data
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/actuator/health"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/actuator/health/traffic"]
       interval: 20s
       timeout: 5s
       retries: 6

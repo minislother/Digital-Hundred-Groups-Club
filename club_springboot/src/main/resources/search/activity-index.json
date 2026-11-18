@@ -1,0 +1,61 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "refresh_interval": "1s"
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "_meta": {
+      "schema_version": 2
+    },
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "hot": {
+        "type": "integer"
+      },
+      "is_accepted": {
+        "type": "boolean"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "cjk",
+        "search_analyzer": "cjk"
+      },
+      "group_name": {
+        "type": "text",
+        "analyzer": "cjk",
+        "search_analyzer": "cjk"
+      },
+      "organizer": {
+        "type": "text",
+        "analyzer": "cjk",
+        "search_analyzer": "cjk"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "cjk",
+        "search_analyzer": "cjk"
+      },
+      "attachment_content": {
+        "type": "text",
+        "analyzer": "cjk",
+        "search_analyzer": "cjk"
+      },
+      "name_pinyin": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "group_name_pinyin": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "organizer_pinyin": {
+        "type": "text",
+        "analyzer": "standard"
+      }
+    }
+  }
+}

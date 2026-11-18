@@ -82,11 +82,13 @@ class ActivityControllerTest {
         // Given - authenticated user
         Authentication authentication = new UsernamePasswordAuthenticationToken("1001", null);
 
+        when(activityService.getMyJoinedActivitiesPage(1001, 1, 10)).thenReturn(
+                com.chinahitech.shop.utils.PageUtils.pageResult(java.util.List.of(), 0, 1, 10));
         // When - querying joined activities
         activityController.myJoinedActivities(1, 10, authentication);
 
         // Then - service receives student id from authentication
-        verify(activityService).getMyJoinedActivities(1001);
+        verify(activityService).getMyJoinedActivitiesPage(1001, 1, 10);
     }
 
     @Test

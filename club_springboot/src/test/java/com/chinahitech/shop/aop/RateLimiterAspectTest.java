@@ -24,6 +24,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -170,6 +171,24 @@ class RateLimiterAspectTest {
         assertCapturedKeyEquals("repeat_limit:" + DemoApi.class.getName() + ":repeatLimited:ip:127.0.0.1");
     }
 
+    @Test
+    @DisplayName("报名入口在全局失败关闭时允许数据库降级，仍拒绝正常限流")
+    void testDoBeforeRepeat_AdmissionRedisFailure_OnlyAllowsDegradation() throws NoSuchMethodException {
+        // Given
+        ReflectionTestUtils.setField(rateLimiterAspect, "failOpen", false);
+        Method method = DemoApi.class.getDeclaredMethod("admission");
+        var rule = method.getAnnotation(RepeatLimit.class);
+        bindRequest(null, null, null);
+        mockMethod(method);
+        when(stringRedisTemplate.execute(any(DefaultRedisScript.class), anyList(), anyString(), anyString(), anyString()))
+                .thenThrow(new org.springframework.data.redis.RedisConnectionFailureException("offline"))
+                .thenReturn(0L);
+
+        // When / Then
+        assertDoesNotThrow(() -> rateLimiterAspect.doBeforeRepeat(joinPoint, rule));
+        assertThrows(RateLimitException.class, () -> rateLimiterAspect.doBeforeRepeat(joinPoint, rule));
+    }
+
     private void mockMethod(Method method) {
         when(joinPoint.getSignature()).thenReturn(methodSignature);
         when(methodSignature.getMethod()).thenReturn(method);
@@ -224,6 +243,10 @@ class RateLimiterAspectTest {
 
         @RepeatLimit
         void repeatLimited() {
+        }
+
+        @RepeatLimit(failOpenOnRedisError = true)
+        void admission() {
         }
     }
 }

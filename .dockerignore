@@ -5,7 +5,7 @@
 .codex/skills/ui-ux-pro-max/scripts/__pycache__
 
 # Java build outputs
-club_springboot/target
+**/target
 club_springboot/log
 club_springboot/upload
 
@@ -25,3 +25,8 @@ baituan_android/**/build
 outputs
 *.log
 *.diff
+**/__pycache__
+/.env
+/.env.local
+**/.env.local
+**/.env.*.local

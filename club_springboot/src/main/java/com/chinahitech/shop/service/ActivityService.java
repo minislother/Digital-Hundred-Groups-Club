@@ -129,4 +129,12 @@ public interface ActivityService {
      * 修改活动的基础信息。
      */
     void modifyInfo(Activity activity);
+
+    com.chinahitech.shop.utils.PageResult<Activity> getActivityByGroupNamePage(String groupName, String searchInfo, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<Activity> getAllAppPage(String searchInfo, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<Activity> getMyJoinedActivitiesPage(int studentId, Integer pageNum, Integer pageSize);
+
+    com.chinahitech.shop.utils.PageResult<java.util.Map<String, Object>> getActivityApplicantsPage(int activityId, Integer pageNum, Integer pageSize);
 }

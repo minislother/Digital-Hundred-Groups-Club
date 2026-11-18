@@ -1,5 +1,5 @@
 # Build the Spring Boot jar inside Docker so the server does not need Maven or JDK installed.
-FROM maven:3.9.11-eclipse-temurin-17 AS build
+FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /workspace
 
 COPY club_springboot/pom.xml ./pom.xml
@@ -9,7 +9,7 @@ COPY club_springboot/src ./src
 RUN mvn -q -DskipTests package
 
 # Run with a smaller JRE image and a non-root user for safer production defaults.
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 RUN apt-get update \

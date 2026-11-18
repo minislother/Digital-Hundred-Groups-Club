@@ -11,6 +11,9 @@ import java.util.List;
  * 超级管理员账号和用户管理服务，负责超级管理员登录、全量用户维护和批量导入。
  */
 public interface TopManagerService {
+    /** 仅供已授权的完整联系方式查询使用。 */
+    com.chinahitech.shop.bean.User getContactUser(String userId);
+
     /**
      * 校验超级管理员账号密码并生成登录令牌。
      */

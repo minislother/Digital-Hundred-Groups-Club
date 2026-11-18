@@ -28,28 +28,28 @@ export function logout() {
   })
 }
 // 读取并返回业务数据或页面状态。
-export function getAllStudent(searchInfo) {
+export function getAllStudent(searchInfo, pagination = { pageNum: 1, pageSize: 20 }) {
   return request({
     url: '/individualGroup/getAllStudents',
     method: 'post',
-    params: { searchInfo }
+    params: { searchInfo, ...pagination }
   })
 }
 // 展示弹窗、详情或提示内容。
-export function showGroups(searchInfo) {
+export function showGroups(searchInfo, pageNum = 1, pageSize = 32) {
   return request({
     url: '/group/all',
     method: 'post',
-    params: { searchInfo }
+    params: { searchInfo, pageNum, pageSize }
   })
 }
 
 // 读取并返回业务数据或页面状态。
-export function getGroups(searchInfo) {
+export function getGroups(searchInfo, pageNum = 1, pageSize = 32) {
   return request({
     url: '/group/all',
     method: 'get',
-    params: { searchInfo }
+    params: { searchInfo, pageNum, pageSize }
   })
 }
 
@@ -76,9 +76,6 @@ export function uploadfile1(file) {
   return request({
     url: '/topManager/uploadExcel',
     method: 'post',
-    headers: new Headers({
-      'Content-Type': 'application/json'
-    }),
     data: file
   })
 }
@@ -90,4 +87,12 @@ export function download1(fileName) {
     method: 'get',
     params: { fileName }
   })
+}
+
+// 导入任务保存在服务器，页面刷新后仍可查询。
+export function listImportTasks() {
+  return request({ url: '/topManager/importTasks', method: 'get' })
+}
+export function getImportErrors(id, after = 0) {
+  return request({ url: `/topManager/importTasks/${id}/errors`, method: 'get', params: { after }})
 }

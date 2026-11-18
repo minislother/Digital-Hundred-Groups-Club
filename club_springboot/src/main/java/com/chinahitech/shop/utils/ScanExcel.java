@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ScanExcel {
 
@@ -117,10 +116,10 @@ public class ScanExcel {
             }
 
             Row headerRow = sheet.getRow(headerRowIndex);
-            Map<Integer, String> keyMap = buildHeaderMap(headerRow, formatter);
-            if (!keyMap.containsValue(HEADER_STUDENT_ID)
-                    || !keyMap.containsValue(HEADER_NAME)
-                    || !keyMap.containsValue(HEADER_PASSWORD)) {
+            Map<Integer, ImportColumn> keyMap = buildHeaderMap(headerRow, formatter);
+            if (!keyMap.containsValue(ImportColumn.STUDENT_ID)
+                    || !keyMap.containsValue(ImportColumn.NAME)
+                    || !keyMap.containsValue(ImportColumn.PASSWORD)) {
                 continue;
             }
 
@@ -165,19 +164,18 @@ public class ScanExcel {
         return -1;
     }
 
-    private Map<Integer, String> buildHeaderMap(Row headerRow, DataFormatter formatter) {
-        Map<Integer, String> keyMap = new HashMap<>();
+    private Map<Integer, ImportColumn> buildHeaderMap(Row headerRow, DataFormatter formatter) {
+        Map<Integer, ImportColumn> keyMap = new HashMap<>();
         for (int cellIndex = headerRow.getFirstCellNum(); cellIndex < headerRow.getLastCellNum(); cellIndex++) {
             String value = cellValue(headerRow.getCell(cellIndex), formatter);
             if (value == null) {
                 continue;
             }
-            if (value.contains(HEADER_STUDENT_ID)) {
-                keyMap.put(cellIndex, HEADER_STUDENT_ID);
-            } else if (value.contains(HEADER_NAME) || value.contains(HEADER_ALT_NAME)) {
-                keyMap.put(cellIndex, HEADER_NAME);
-            } else if (value.contains(HEADER_PASSWORD)) {
-                keyMap.put(cellIndex, HEADER_PASSWORD);
+            for (ImportColumn column : ImportColumn.values()) {
+                if (column.matches(value)) {
+                    keyMap.put(cellIndex, column);
+                    break;
+                }
             }
         }
         return keyMap;
@@ -186,27 +184,43 @@ public class ScanExcel {
     /**
      * 读取文件、接口响应或本地缓存数据。
      */
-    private User readUser(Row row, Map<Integer, String> keyMap, DataFormatter formatter) {
+    private User readUser(Row row, Map<Integer, ImportColumn> keyMap, DataFormatter formatter) {
         if (row == null) {
             return null;
         }
         User user = new User();
         boolean hasValue = false;
-        for (Map.Entry<Integer, String> entry : keyMap.entrySet()) {
+        for (Map.Entry<Integer, ImportColumn> entry : keyMap.entrySet()) {
             String value = cellValue(row.getCell(entry.getKey()), formatter);
             if (value == null) {
                 continue;
             }
             hasValue = true;
-            if (Objects.equals(entry.getValue(), HEADER_STUDENT_ID)) {
-                user.setUserId(value);
-            } else if (Objects.equals(entry.getValue(), HEADER_NAME)) {
-                user.setUserName(value);
-            } else if (Objects.equals(entry.getValue(), HEADER_PASSWORD)) {
-                user.setPassword(value);
-            }
+            entry.getValue().assign.accept(user, value);
         }
         return hasValue ? user : null;
+    }
+
+    /** 按既有优先级识别表头，每种列策略持有自己的字段写入操作。 */
+    private enum ImportColumn {
+        STUDENT_ID(User::setUserId, HEADER_STUDENT_ID),
+        NAME(User::setUserName, HEADER_NAME, HEADER_ALT_NAME),
+        PASSWORD(User::setPassword, HEADER_PASSWORD);
+
+        private final java.util.function.BiConsumer<User, String> assign;
+        private final String[] aliases;
+
+        ImportColumn(java.util.function.BiConsumer<User, String> assign, String... aliases) {
+            this.assign = assign;
+            this.aliases = aliases;
+        }
+
+        boolean matches(String header) {
+            for (String alias : aliases) {
+                if (header.contains(alias)) return true;
+            }
+            return false;
+        }
     }
 
     private String cellValue(Cell cell, DataFormatter formatter) {

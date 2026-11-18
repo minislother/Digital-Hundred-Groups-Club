@@ -48,4 +48,20 @@ public interface InspectionMapper extends BaseMapper<Inspection> {
     int confirmApplicationByid(@Param("inspectionId") int inspectionId);
 
     int denyApplicationByid(@Param("inspectionId") int inspectionId);
+
+    java.util.List<Inspection> getByGroupPage(@org.apache.ibatis.annotations.Param("groupName") String groupName, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getByGroupCount(@org.apache.ibatis.annotations.Param("groupName") String groupName);
+
+    java.util.List<Inspection> getByGroupAndYearPage(@org.apache.ibatis.annotations.Param("groupName") String groupName, @org.apache.ibatis.annotations.Param("year") java.time.Year year, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getByGroupAndYearCount(@org.apache.ibatis.annotations.Param("groupName") String groupName, @org.apache.ibatis.annotations.Param("year") java.time.Year year);
+
+    java.util.List<Inspection> getByYearPage(@org.apache.ibatis.annotations.Param("year") java.time.Year year, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getByYearCount(@org.apache.ibatis.annotations.Param("year") java.time.Year year);
+
+    java.util.List<Inspection> getBySearchInfoPage(@org.apache.ibatis.annotations.Param("searchInfo") String searchInfo, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getBySearchInfoCount(@org.apache.ibatis.annotations.Param("searchInfo") String searchInfo);
 }

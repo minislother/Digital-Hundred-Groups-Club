@@ -25,6 +25,7 @@ import java.util.Map;
  * 管理端写操作会先校验当前管理员是否有权管理目标活动。
  */
 @Service
+@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class, isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class IndividualActivityServiceImpl implements IndividualActivityService {
 
     @Autowired
@@ -32,6 +33,10 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
 
     @Autowired
     private KafkaProducer kafkaProducer;
+    @Autowired
+    private com.chinahitech.shop.service.ActivityAdmissionService admission;
+    @Autowired
+    private com.chinahitech.shop.service.CacheInvalidationService invalidation;
 
     /**
      * 读取并返回业务数据或页面状态。
@@ -59,16 +64,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void joinActivity(String studentId, int activityId) {
-        IndividualActivity exist = individualActivityMapper.checkExist(studentId, activityId);
-        if (exist != null) {
-            throw new BusinessException("APPLY_EXIST", "\u5df2\u7533\u8bf7\u6216\u5df2\u52a0\u5165\u8be5\u6d3b\u52a8");
-        }
-        IndividualActivity ia = new IndividualActivity();
-        ia.setStudentId(studentId);
-        ia.setActivityId(activityId);
-        ia.setStatus(0);
-        ia.setPosition("\u6210\u5458");
-        individualActivityMapper.insert(ia);
+        admission.register(activityId, studentId, "成员", 0);
     }
 
     @Override
@@ -131,12 +127,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addActivityStudent(String studentId, int activityId, String position, boolean approved) {
-        IndividualActivity ia = new IndividualActivity();
-        ia.setStudentId(studentId);
-        ia.setActivityId(activityId);
-        ia.setPosition(position);
-        ia.setStatus(approved ? 1 : 0);
-        individualActivityMapper.insert(ia);
+        admission.register(activityId, studentId, position, approved ? 1 : 0);
     }
 
     /**
@@ -169,6 +160,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Transactional(rollbackFor = Exception.class)
     public void modifyActivityStudent(int activityId, String studentId, String position) {
         ensureUpdated(individualActivityMapper.updatePosition(activityId, studentId, position));
+        evictActivityStudentCache(activityId, studentId);
     }
 
     @Override
@@ -191,7 +183,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteActivityStudent(int activityId, String studentId) {
-        ensureUpdated(individualActivityMapper.delete(activityId, studentId));
+        admission.remove(activityId, studentId);
     }
 
     /**
@@ -266,7 +258,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void confirmApplication(int activityId, String studentId) {
-        ensureUpdated(individualActivityMapper.updateStatus(activityId, studentId, 1));
+        admission.changeStatus(activityId, studentId, 1);
     }
 
     @Override
@@ -286,7 +278,7 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void denyApplication(int activityId, String studentId) {
-        ensureUpdated(individualActivityMapper.updateStatus(activityId, studentId, -1));
+        admission.changeStatus(activityId, studentId, -1);
     }
 
     @Override
@@ -380,10 +372,8 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
     }
 
     private void evictActivityStudentCache(int activityId, String studentId) {
-        RedisUtils.del(studentsKey(activityId));
-        RedisUtils.del(applyKey(activityId));
-        RedisUtils.del(studentKey(studentId));
-        RedisUtils.del("individualActivity:top5:members");
+        invalidation.evict(studentsKey(activityId), applyKey(activityId), studentKey(studentId),
+                "individualActivity:top5:members");
     }
 
     private String studentKey(String studentId) {
@@ -396,5 +386,62 @@ public class IndividualActivityServiceImpl implements IndividualActivityService 
 
     private String applyKey(int activityId) {
         return "individualActivity:apply:" + activityId;
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<IndividualActivity> getActivityByStuIdPage(String studentId, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = individualActivityMapper.getActivityByStuIdPage(studentId, offset, limit);
+        long total = individualActivityMapper.getActivityByStuIdCount(studentId);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<IndividualActivity> getActivityByActivityIdPage(int activityId, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = individualActivityMapper.getActivityByActivityIdPage(activityId, offset, limit);
+        long total = individualActivityMapper.getActivityByActivityIdCount(activityId);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 按数据库页读取，列表与总数沿用相同业务筛选条件。 */
+    @Override
+    public com.chinahitech.shop.utils.PageResult<IndividualActivity> getApplyByActivityIdPage(int activityId, Integer pageNum, Integer pageSize) {
+        int offset = com.chinahitech.shop.utils.PageUtils.offset(pageNum, pageSize);
+        int limit = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var records = individualActivityMapper.getApplyByActivityIdPage(activityId, offset, limit);
+        long total = individualActivityMapper.getApplyByActivityIdCount(activityId);
+        return com.chinahitech.shop.utils.PageUtils.pageResult(records, total, pageNum, pageSize);
+    }
+
+    /** 下一页多取一条判断 hasNext，不执行总数统计。 */
+    @Override
+    public com.chinahitech.shop.utils.Result studentSlice(String studentId, Long beforeId, Integer pageSize) {
+        if (beforeId != null && beforeId <= 0) throw new com.chinahitech.shop.exception.BusinessException("PARAM_ERROR", "游标必须为正数");
+        int size = com.chinahitech.shop.utils.PageUtils.limit(pageSize);
+        var rows = individualActivityMapper.studentSlice(studentId, beforeId, size + 1);
+        boolean hasNext = rows.size() > size;
+        var items = rows.subList(0, Math.min(size, rows.size()));
+        return com.chinahitech.shop.utils.Result.ok().data("items", items).data("hasNext", hasNext)
+                .data("nextCursor", hasNext ? items.getLast().getId() : null);
+    }
+
+    /** 高增长成员或申请列表按不可变关系 ID 连续翻页，保留管理员资源范围校验。 */
+    @Override
+    public com.chinahitech.shop.utils.Result memberSlice(int resourceId, int status, Long beforeId, Integer pageSize, String managerId) {
+        assertManagedActivity(resourceId, managerId);
+        if ((status != 0 && status != 1) || (beforeId != null && beforeId <= 0)) {
+            throw new com.chinahitech.shop.exception.BusinessException("PARAM_ERROR", "成员游标或状态不合法");
+        }
+        int size = PageUtils.limit(pageSize);
+        var rows = individualActivityMapper.memberSlice(resourceId, status, beforeId, size + 1);
+        boolean hasNext = rows.size() > size;
+        var items = rows.subList(0, Math.min(size, rows.size()));
+        return com.chinahitech.shop.utils.Result.ok().data("items", items).data("hasNext", hasNext)
+                .data("nextCursor", hasNext ? items.getLast().getId() : null);
     }
 }

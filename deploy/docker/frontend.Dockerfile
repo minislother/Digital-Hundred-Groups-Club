@@ -2,14 +2,14 @@
 FROM node:22.23.1-alpine3.24 AS build
 WORKDIR /workspace
 
-COPY package.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend-shared/package.json frontend-shared/package.json
 COPY web_portal/package.json web_portal/package.json
 COPY vue_student/package.json vue_student/package.json
 COPY vue_admin/package.json vue_admin/package.json
 COPY vue_superadmin/package.json vue_superadmin/package.json
 # The legacy peer flag is required by a few Vue CLI-era packages until they are upgraded.
-RUN npm install --legacy-peer-deps --no-audit --no-fund
+RUN npm install -g pnpm@11.25.0 && pnpm install --frozen-lockfile
 
 COPY frontend-shared frontend-shared
 COPY web_portal web_portal

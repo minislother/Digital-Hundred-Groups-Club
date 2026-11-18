@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
@@ -49,19 +49,26 @@ public class RateLimiterAspect {
     @Before("@annotation(rateLimiter)")
     public void doBefore(JoinPoint point, RateLimiter rateLimiter) {
         checkLimit(point, rateLimiter.key(), rateLimiter.window(), rateLimiter.limit(),
-                rateLimiter.type(), rateLimiter.message());
+                rateLimiter.type(), rateLimiter.message(), false);
     }
 
     @Before("@annotation(repeatLimit)")
     public void doBeforeRepeat(JoinPoint point, RepeatLimit repeatLimit) {
         checkLimit(point, repeatLimit.key(), repeatLimit.window(), repeatLimit.limit(),
-                repeatLimit.type(), repeatLimit.message());
+                repeatLimit.type(), repeatLimit.message(), repeatLimit.failOpenOnRedisError());
     }
 
     private void checkLimit(JoinPoint point, String key, long window, long limit,
-                            RateLimiter.LimitType type, String message) {
+                            RateLimiter.LimitType type, String message, boolean endpointFailOpen) {
         String fullKey = buildRateLimitKey(point, type, key);
-        Long result = executeSlidingWindowScript(fullKey, window, limit);
+        Long result;
+        try {
+            result = executeSlidingWindowScript(fullKey, window, limit);
+        } catch (org.springframework.dao.DataAccessException redisFailure) {
+            if (!endpointFailOpen) throw redisFailure;
+            LOG.warn("Redis 限流不可用，交给报名服务的数据库降级限流。key={}", fullKey);
+            return;
+        }
         if (result != null && result == 0) {
             throw new RateLimitException(message);
         }

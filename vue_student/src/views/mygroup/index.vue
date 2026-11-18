@@ -27,6 +27,7 @@
         <el-button type="primary" @click="dialogVisible = false">知道了</el-button>
       </template>
     </el-dialog>
+    <el-button v-if="hasNext" @click="loadMore">加载更多社团</el-button>
   </div>
 </template>
 
@@ -46,6 +47,8 @@ export default {
   data() {
     return {
       groups: [],
+      nextCursor: null,
+      hasNext: false,
       userID: '',
       dialogVisible: false,
       currentGroup: {
@@ -62,12 +65,20 @@ export default {
       })
       .then((response) => {
         this.groups = response.data.groupItems || []
+        this.hasNext = response.data.hasNext
+        this.nextCursor = response.data.nextCursor
       })
       .catch(error => {
         console.error(error)
       })
   },
   methods: {
+    async loadMore() {
+      const response = await getMyGroups(this.userID, this.nextCursor)
+      this.groups.push(...response.data.groupItems)
+      this.hasNext = response.data.hasNext
+      this.nextCursor = response.data.nextCursor
+    },
     // 展示弹窗、详情或提示内容。
     showDescription(group) {
       this.currentGroup = group

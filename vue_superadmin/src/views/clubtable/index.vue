@@ -10,9 +10,9 @@
           v-model="searchInfo"
           placeholder="搜索社团名称"
           clearable
-          @keyup.enter="handleSearch"
+          @keyup.enter="currentPage = 1; handleSearch()"
         />
-        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="currentPage = 1; handleSearch()">搜索</el-button>
       </div>
     </section>
 
@@ -41,12 +41,17 @@
         <el-button @click="dialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+    <el-pagination
+      :current-page="currentPage" :page-size="pageSize" :total="totalItems"
+      layout="prev, pager, next, total"
+      @current-change="page => { currentPage = page; handleSearch() }"
+    />
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-import { showGroups, getGroups } from '@/api/user.js'
+import { getGroups } from '@/api/user.js'
 
 export default {
   name: 'Clubtable',
@@ -70,14 +75,7 @@ export default {
     }
   },
   // 组件创建后加载页面初始数据。
-  created() {
-    showGroups().then((response) => {
-      this.groups = response.data.items
-    })
-      .catch(error => {
-        console.error(error)
-      })
-  },
+  created() { this.handleSearch() },
   methods: {
     // 展示弹窗、详情或提示内容。
     showDescription(group) {
@@ -86,10 +84,10 @@ export default {
     },
     // 处理用户操作或组件事件，连接界面交互和业务请求。
     handleSearch() {
-      getGroups(this.searchInfo)
+      getGroups(this.searchInfo, this.currentPage, this.pageSize)
         .then((response) => {
-          this.totalItems = response.data.items.length
-          this.groups = response.data.items.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+          this.totalItems = response.data.page.total
+          this.groups = response.data.items
         })
         .catch((error) => {
           console.error(error)

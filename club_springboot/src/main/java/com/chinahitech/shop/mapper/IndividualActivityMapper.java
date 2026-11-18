@@ -57,4 +57,25 @@ public interface IndividualActivityMapper {
 
     // 超级管理员端：活动人数统计。
     List<ActivityNum> getActivityMembers();
+
+    java.util.List<IndividualActivity> getActivityByStuIdPage(@org.apache.ibatis.annotations.Param("studentId") String studentId, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getActivityByStuIdCount(@org.apache.ibatis.annotations.Param("studentId") String studentId);
+
+    java.util.List<IndividualActivity> getActivityByActivityIdPage(@org.apache.ibatis.annotations.Param("activityId") int activityId, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getActivityByActivityIdCount(@org.apache.ibatis.annotations.Param("activityId") int activityId);
+
+    java.util.List<IndividualActivity> getApplyByActivityIdPage(@org.apache.ibatis.annotations.Param("activityId") int activityId, @org.apache.ibatis.annotations.Param("offset") int offset,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+    long getApplyByActivityIdCount(@org.apache.ibatis.annotations.Param("activityId") int activityId);
+
+    java.util.List<IndividualActivity> studentSlice(@org.apache.ibatis.annotations.Param("studentId") String studentId,
+            @org.apache.ibatis.annotations.Param("beforeId") Long beforeId,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
+
+    java.util.List<IndividualActivity> memberSlice(@org.apache.ibatis.annotations.Param("resourceId") int resourceId,
+            @org.apache.ibatis.annotations.Param("status") int status,
+            @org.apache.ibatis.annotations.Param("beforeId") Long beforeId,
+            @org.apache.ibatis.annotations.Param("limit") int limit);
 }

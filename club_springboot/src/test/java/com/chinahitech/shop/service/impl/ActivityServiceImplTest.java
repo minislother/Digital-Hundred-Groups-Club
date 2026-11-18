@@ -51,6 +51,11 @@ class ActivityServiceImplTest {
     @Mock
     private KafkaProducer kafkaProducer;
 
+    @Mock
+    private com.chinahitech.shop.service.ActivityAdmissionService admission;
+    @Mock
+    private com.chinahitech.shop.service.CacheInvalidationService invalidation;
+
     @InjectMocks
     private ActivityServiceImpl activityService;
 
@@ -124,163 +129,28 @@ class ActivityServiceImplTest {
 
         // Then - approval mapper is called and cache eviction fallback is published
         verify(activityMapper).confirmApplication(20);
-        verify(kafkaProducer).send(eq(com.chinahitech.shop.constant.MqTopics.ACTIVITY_CACHE), anyString());
+        verify(invalidation).evict("activity:all:*", "activity:page:*", "activity:detail:*",
+                "activity:top", "activity:managed:*", "individualActivity:*");
     }
 
     @Test
-    @DisplayName("活动报名 - 活动不存在抛出异常")
-    void testApplyJoin_ActivityNotExist_ThrowException() {
-        // Given - 准备测试数据和Mock行为
-        when(activityMapper.getActivityById(1)).thenReturn(null);
-
-        // When & Then - 执行被测试方法并验证异常
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> activityService.applyJoin(1, 1001)
-        );
-        assertEquals("ACTIVITY_NOT_EXIST", exception.getCode());
-        verify(activityMapper, never()).applyJoin(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("活动报名 - 重复报名抛出异常")
-    void testApplyJoin_RepeatApply_ThrowException() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(10);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(Collections.singletonMap("id", 1));
-
-        // When & Then - 执行被测试方法并验证异常
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> activityService.applyJoin(1, 1001)
-        );
-        assertEquals("APPLY_REPEAT", exception.getCode());
-        verify(activityMapper, never()).applyJoin(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("活动报名 - 人数已满抛出异常")
-    void testApplyJoin_ActivityFull_ThrowException() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(2);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(null);
-        when(activityMapper.countActiveApplications(1)).thenReturn(2);
-
-        // When & Then - 执行被测试方法并验证异常
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> activityService.applyJoin(1, 1001)
-        );
-        assertEquals("ACTIVITY_FULL", exception.getCode());
-        verify(activityMapper, never()).applyJoin(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("活动报名 - 成功写入待审核记录")
-    void testApplyJoin_Success_InsertPendingRecord() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(10);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(null);
-        when(activityMapper.countActiveApplications(1)).thenReturn(1);
-        when(stringRedisTemplate.execute(
-                any(DefaultRedisScript.class),
-                anyList(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(0L);
-
-        // When - 执行被测试方法
+    @DisplayName("活动报名 - 统一使用名额服务并保留待审核状态")
+    void testApplyJoin_DelegateToAdmission() {
+        // Given - 使用原有数字学生编号入口。
+        // When - 报名委托统一名额服务。
         activityService.applyJoin(1, 1001);
-
-        // Then - 验证结果和交互
-        verify(activityMapper).applyJoin(1, 1001, 0);
-    }
-
-    @Test
-    @DisplayName("活动报名 - Redis判定重复报名抛出异常")
-    void testApplyJoin_GuardRepeat_ThrowException() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(10);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(null);
-        when(activityMapper.countActiveApplications(1)).thenReturn(1);
-        whenExecuteGuardReturn(1L);
-
-        // When & Then - 执行被测试方法并验证异常
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> activityService.applyJoin(1, 1001)
-        );
-        assertEquals("APPLY_REPEAT", exception.getCode());
+        // Then - 不再通过旧 Mapper 绕过名额控制。
+        verify(admission).register(1, "1001", "成员", 0);
         verify(activityMapper, never()).applyJoin(any(), any(), any());
     }
 
     @Test
-    @DisplayName("活动报名 - Redis判定人数已满抛出异常")
-    void testApplyJoin_GuardFull_ThrowException() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(10);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(null);
-        when(activityMapper.countActiveApplications(1)).thenReturn(8);
-        whenExecuteGuardReturn(2L);
-
-        // When & Then - 执行被测试方法并验证异常
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> activityService.applyJoin(1, 1001)
-        );
-        assertEquals("ACTIVITY_FULL", exception.getCode());
-        verify(activityMapper, never()).applyJoin(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("活动报名 - Redis异常时降级写入数据库")
-    void testApplyJoin_GuardException_InsertPendingRecord() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(10);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(null);
-        when(activityMapper.countActiveApplications(1)).thenReturn(1);
-        when(stringRedisTemplate.execute(
-                any(DefaultRedisScript.class),
-                anyList(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenThrow(new RuntimeException("redis down"));
-
-        // When - 执行被测试方法
-        activityService.applyJoin(1, 1001);
-
-        // Then - 验证结果和交互
-        verify(activityMapper).applyJoin(1, 1001, 0);
-    }
-
-    @Test
-    @DisplayName("活动报名 - 数据库插入失败回滚Redis报名标记")
-    void testApplyJoin_InsertFailed_RollbackGuard() {
-        // Given - 准备测试数据和Mock行为
-        Activity activity = createActivity(10);
-        when(activityMapper.getActivityById(1)).thenReturn(activity);
-        when(activityMapper.checkApply(1, 1001)).thenReturn(null);
-        when(activityMapper.countActiveApplications(1)).thenReturn(1);
-        whenExecuteGuardReturn(0L);
-        when(stringRedisTemplate.opsForSet()).thenReturn(setOperations);
-        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
-        org.mockito.Mockito.doThrow(new RuntimeException("insert failed"))
-                .when(activityMapper).applyJoin(1, 1001, 0);
-
-        // When & Then - 执行被测试方法并验证异常
-        assertThrows(RuntimeException.class, () -> activityService.applyJoin(1, 1001));
-        verify(setOperations).remove("activity:apply:students:1", "1001");
-        verify(valueOperations).decrement("activity:apply:count:1");
+    @DisplayName("活动报名 - 空编号拒绝请求")
+    void testApplyJoin_NullId_Reject() {
+        // Given - 未提供活动编号。
+        // When & Then - 在进入名额服务前返回参数错误。
+        assertThrows(BusinessException.class, () -> activityService.applyJoin(null, 1001));
+        org.mockito.Mockito.verifyNoInteractions(admission);
     }
 
     @Test
@@ -343,17 +213,6 @@ class ActivityServiceImplTest {
 
         // Then - 校验通过后调用 Mapper 更新指定活动。
         verify(activityMapper).modifyInfo(activity);
-    }
-
-    private void whenExecuteGuardReturn(Long value) {
-        when(stringRedisTemplate.execute(
-                any(DefaultRedisScript.class),
-                anyList(),
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(value);
     }
 
     private Activity createActivity(int number) {
